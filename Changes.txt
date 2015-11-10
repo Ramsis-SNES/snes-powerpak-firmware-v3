@@ -1,0 +1,203 @@
+===========================================================================================
+|
+|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
+|   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+|
+|	*** CHANGES LIST ***
+|
+===========================================================================================
+
+
+
+CHANGES IN V3.00 "MUFASA" (RELEASED MAY 24, 2015):
+______________________________________________________________________
+
+- no more CF module mess, the concept of which has been obsolete ever since the introduction of my in-system flasher anyway. :p Instead, all loading routines have been integrated into the boot ROM itself. Not only does this offer yet another overall speed boost, but it also makes it easier to relocate flags and variables without having to worry about "old version boot ROM" vs. "new version CF modules" variable clashes whenever a new version is released :D
+- full themeing support, replacing the restricted logo/BG selection from v2.0X (the theme file format is regarded as final as of April 2015)
+- added five themes to choose from (for a start ;-). If no theme file was saved previously, the standard "MUFASA" theme will be loaded
+- replaced the configuration CF module with a dedicated settings menu with access to the SDRAM test, flash updater, theme selector, and more
+- added a cold-boot check and reworked the SPC player to make use of it. Now you can return to the filebrowser to instantly play another song :-)
+- added a sprite-based, palette-switchable VWF font for errors/special messages (font and palette data is loaded from the current theme file)
+- added sprite graphics for on-screen joypad button hints (ditto)
+- added a macro to draw "window" borders, e.g. for the settings menu
+- added a "filling" color to the SRAM info boxes as well as the new SPC player "window" (once again, the color data itself is loaded from the current theme file)
+- reduced the BG fonts to the necessary tiles only and added a routine that "expands" font data on-the-fly for hi-res use into VRAM. This saves a whopping 10 KiB of both ROM space and theme file size :D
+- added dedicated boot ROM version/build no./build date strings right at the beginning of the ROM file to make version checks (e.g. for the flash updater, or when simply viewing the file in a hex editor) more reliable
+- simplified HDMA implementation and relocated all HDMA tables to WRAM so they can be patched in real-time (e.g. in order to "fill" a specific screen section with a semi-transparent color), and so that HDMA may stay on even during upgrade flashing :-)
+- renamed most system files to clarify their function and/or to prevent them from showing up in the filebrowser:
+  CONFIG.TXT   --> POWERPAK.CFG (N.B. All settings are stored in binary form as from now because parsing all that text made the boot-up procedure slow, and a mess of spaghetti code. You can still safely revert to the standard settings at any time -- to do so, simply replace POWERPAK.CFG on your CF card with the one from this release package. For a description of the CFG file format, see How To Use.txt)
+  LASTSNES.TXT --> LASTGAME.LOG
+  LOG.TXT      --> ERROR.LOG
+  UPDATE.BIN   --> UPDATE.ROM
+- added a basic check & error message when attempting to load a zeroed-out LASTGAME.LOG, which would otherwise result in a CF card error
+- added a THEMES subfolder to the POWERPAK system folder, where all the themes shipping with the firmware package reside. Once you launch the theme selector, the filebrowser starts out directly in the THEMES subfolder. You can still place your theme files anywhere on the card, of course :-)
+- similarly, when you choose to select an SRM file, the filebrowser starts out directly in the SAVES subfolder
+- fixed sprite artifacts that occurred in v2.0X when the flash updater launched automagically
+- fixed a previously undetected bug in the text engine where a "%s" (or any other valid format character) within a filename would mess up the filebrowser. Now, format characters within sub-strings (such as filenames) are ignored
+- refined the printing routine even more by significantly shortening the PrintString macro (e.g. page-by-page navigation feels a lot snappier now)
+- minor ROM mapping tweaks
+- many more optimizations
+
+
+
+CHANGES IN V2.02 "SIMBA" (RELEASED OCTOBER 31, 2013):
+______________________________________________________________________
+
+- added feature: Hidden files/folders are now properly acknowledged. Use this e.g. to prevent the "POWERPAK" system folder from showing up in the filebrowser -- just set the "hidden" flag on it using your computer. SRM files in your SAVES folder will still be found and loaded, of course :-)
+- added a basic check & error message when launching the ROM browser with no files/folders to display (i.e., with nothing but a hidden "POWERPAK" directory on the card)
+- optimized the CF card software interface using 16 bit calculations wherever possible for efficiency. Not only does this speed up things considerably, but it also greatly reduces game loading times. For reference, the 96 Mbit version of Star Ocean now loads within 24.8 seconds -- compared to the ~30 secs you had to wait before, this is a ~17% speed increase! :D
+- the previous changes allow for speedier scrolling without slowdowns, so all d-pad navigation in the filebrowser is now faster (left/right is twice as fast as before)
+- reworked the entire GameGenie code handler: First of all, you can now move freely around the GG code editing field with the directional pad. Hold A/X or B/Y to rapidly increment/decrement the current digit. Clear out any single code with L+R, or all at once using an on-screen option. All GG code printing is now handled from within the options module, which is great from a developer's point of view when it comes to rearranging option screen elements. ;-) Decoded codes now appear on the right (press Select). Under the hood, GG decoding has vastly improved as well. For reference, the whole address deshuffling is now done within 34 lines of code using my own newly-devised (and mostly 16 bit) decoder, as opposed to the previous all-8-bit decoder (~70 lines)
+- fixed an annoying issue that caused entered GameGenie codes to get cleared out after launching the TXT browser and returning to the options screen with B: Codes aren't cleared out now until a TXT file is actually chosen/loaded
+- hardcoded music into the bootloader ROM (incorporating a modified version of mukunda's SNESMod) to reduce loading time when accessing the developer's note. Also, the music can now be stopped/restarted at will :-)
+- sped up mosaic effects on the developer's note, and added an audiovisual "fade-out on exit" effect
+- reworked the SPC player timer code to use the 65816's decimal mode, added a frame counter, and made seconds/minutes increment based on the carry flag, making the code much more lightweight
+- many minor bugfixes, such as e.g. scrolling and page-by-page navigation bugs that could occur with >32,768 files in a directory
+- lots of optimizations, both code maintenance and performance related
+- successfully tested my SNES PowerPak firmware on an elusive North American 2/1/2 chipset console -- without encountering the dreaded (and false) 2/1/1 SDRAM error message -- nor any other error message, for that matter :D
+
+
+
+CHANGES IN V2.01 "SIMBA" (RELEASED JUNE 07, 2013):
+______________________________________________________________________
+
+- pulled my North American 2/1/1 chipset SNES out of the closet to simulate an SDRAM error, and thus be able to clean up the error message. ;-) Also, the latter is now written to LOG.TXT for easy reporting if required
+- added feature: With a semi-intelligent buffer selection system, it's finally possible to use half of the available SDRAM (64 Mbit) for directory buffering. This extends the former limit of ~500 supported files per directory to a whopping 65,536 (theoretically, i.e. with FAT32 limitations in mind), which is especially useful if you have a large ROM collection, and/or store massive amounts of SRM files within a single directory. Best of all: It's faaaast! :D
+- improved button mapping: You can now back out of the SRAM browser as well (press B) and return to where you previously were (i.e., options screen before starting a game / questions screen after long reset)
+- changed the way ROM/SRAM filename printing on the options screen is implemented: Full filenames are preserved now, and written to LASTSNES.TXT, instead of NUL-terminated strings
+- tweaked the flash updater for reliability, and removed v1.0X/v2.00-betaX support from it. (Caveat: To be able to update to v2.01 without an external programming device, you MUST have v2.00 already installed!)
+- added SRAM auto-loading support for .FIG ROMs, this was forgotten in v2.00 for some reason (sorry). Also, maxed out the filename matching character limit (122 with the current implementation), though for the sake of efficiency, it never compares any more characters than the ROM name actually consists of. Finally, optimized the module (SA.MAP) code-wise after realizing that my FindFile macro introduced in v2.00 supports finding directories, too! X-)
+- optimized filebrowser and questions modules (SB/SG/SN/SQ.MAP) even more, getting rid of clone instructions and anti-stack overflow hacks
+- countless other optimizations (especially code-wise, but also speed-related)
+- other minor bugfixes and cleanups (e.g., error messages when system files/folders are missing, logo visibility after long reset)
+
+
+
+CHANGES IN V2.00 "SIMBA" (RELEASED MARCH 01, 2013):
+______________________________________________________________________
+
+- major code restructuring: This helps relocating functions more easily, and it allowed me to eliminate many a clone section of code. Phew!
+- rewrote ROM makeup while I was at it using compiler features; this renders the need for an external checksum fix via snestools.exe obsolete
+- rewrote the print handler to feature "intelligent" character-to-BG allocation. Finally, no more annoying spaces when displaying hex or other numbers! :D
+- rewrote file extension checker (in "CardLoadDir" routine), enhancing functionality and eliminating >10KB of identical code in the process. Even better, a pesky v1.0X bug that allowed certain non-SNES files to slip through is now gone, too. (To see it, put any file with the extension of GDC, GPC, SD3, SDC, SF3, SM3, or SW3 on your card, and enter the ROM browser.)
+- added BIN and FIG file extensions to the ROM browser
+- overhauled SRAM auto-loading module (SA.MAP), especially improving the file matching algorithm for reliability and efficiency :-)
+- changed WRAM buffering yet again to do calculations based on bitwise operations (instead of using hardware multiplication registers) as suggested by thefox, this should speed up loading a bit
+- fixed "file not found" error message, which didn't display the filename anymore in beta2 due to a misplaced use of the Y index register. Additionally, instead of e.g., "SI       file not found!", it now reports the full filename (with extension)
+- fixed GameGenie decoder WRAM allocation by doubling its size (now 40 bytes). No idea how/why v1.0X got away with overwriting 20 bytes of subsequent variables on every GG decoding iteration, tsk! Anyway, appending the jump table directly doesn't seem to cause crashes anymore, so bye-bye, "reserved" chunk of WRAM! :D
+- fixed page-by-page navigation yet again, hopefully for good ...
+- added an "emergency off" variable to my HDMA implementation
+- lastly, a profound boot ROM version check was added. Using v2.00 CF modules alongside a v1.0X or v2.00-beta1/beta2 ROM launches the all-new, fully automated flash updater (SU.MAP & UPDATE.BIN), which updates the internal boot ROM to this version. Only PowerPaks with an AT29C010A or SST39SF010A flash ROM chip are supported at the moment (are there any others at all?)
+
+
+
+CHANGES IN V2.00-BETA2 (RELEASED NOVEMBER 07, 2012):
+______________________________________________________________________
+
+- updated WLA DX to v9.5a (Windows binaries compiled from the source using MinGW) and rewrote the make scripts to generate temporary linker files on-the-fly
+- added feature: Loaded and/or entered GameGenie codes can be cleared all out again by pressing L+R+X together. Also, when loading a GG code TXT file, previously loaded/entered codes will be cleared out first to avoid code hodgepodge
+- added feature: Press X on the titlescreen to access the new customization module (SC.MAP), where you can set DMA on/off, switch to another logo/cursor sprite set, and choose one of six different HDMA backgrounds, each designed with great attention to detail. Upon leaving, your settings will be saved onto the CF card, of course. The PowerPak will even know how to deal with an empty or incomplete configuration file, and rebuild it! :D (Caveat: CONFIG.TXT has to be 512 bytes in size as from now!)
+- renamed the SDRAM check to "info", and made it abortable (with B)
+- added logo indicator and video refresh rate report to the info screen, the latter of which cannot be fooled by $213F hardware trickery :-)
+- changed directory handling and WRAM buffer allocation in such a way that it is now possible to put any amount of files into a single directory at a time; the first 508 relevant files will only ever be read, buffered, and displayed. Plus, no more "glimpse of garbage" when loading an SPC file! :-)
+- changed filebrowser button mapping yet again: Hold up/down on the directional pad for faster "digital" short-distance navigation, go up one directory from anywhere with B (X, Y are ignored)
+- changed boot-up sequence and CF error handling to avoid logo "flickering" if LOGO=2 or LOGO=3. Also, the PowerPak should now recognize a card inserted *after* power-on (though this might occasionally throw up a "card error" and is generally not recommended due to possible data corruption)
+- rewrote page-by-page navigation, which plagued silly bugs I actually remember trying to avoid :p
+- fixed mysterious crashing bug that v1.0X suffered from already. It was caused by, you guessed it, a stack overflow. This unlocks some cool new flexibility. Now it's finally possible to back out of the filebrowser safely, (re-)load any (unwanted) ROM/SRAM/GG code file for as many times as you want, or even switch to, say, customization while your favorite SPC is playing. Yay! ^_^
+- fixed an ugly math bug in WRAM directory buffering introduced in alpha1 that caused the filebrowser to never allow access to more than 128 distinct files, and show clone entries if a directory contained more. Whew, so glad I managed to spot that one!
+- fixed logo reloading after SRAM is saved or discarded, this was unreliable if LOGO=1
+- fixed vertical alignment of "Loading ..." message, this was unreliable when scrolling occurred immediately previously
+- fixed cosmetic bug when auto-loading SRAM with a filename longer than ~56 characters
+- fixed minor SRAM saving button mapping issue
+- fixed BG palette, this should eliminate any color flickering
+- added SPC player update by ikari_01
+- composed new developer's note soundtrack using more channels and better sample quality :-)
+- rearranged/shortened message strings where possible
+- modified "ClearLine" routine for a slight speed gain
+- significantly optimized options and questions modules (SO.MAP, SQ.MAP), improving performance in the process
+- various other code optimizations
+- cleaned up source graphics folder, split up character/palette inclusion, and added a graphics conversion script for convenience
+
+
+
+CHANGES IN V2.00-BETA1 (INITIAL RELEASE / AUGUST 21, 2012):
+______________________________________________________________________
+
+- ported over blargg's SPC player from sd2snes to replace the half-broken previous one. Works too awesome to be true, and yet it is! :D
+- fixed SPC playing timer so it won't show hex numbers beyond 09:59 but instead reset to 00:00, plus it now runs at the correct speed in PAL mode, too
+- modified the developer's note module introduced in alpha3 to load an SPC file from CF via blargg's player instead of bootloader-hardcoded music. This requires another additional file in the "POWERPAK" directory (SD.SPC), which might even be updated with another composition of mine in the future!
+- added three different logo/cursor sprite sets, and made them user-switchable (try setting LOGO=1, LOGO=2, or LOGO=3 in CONFIG.TXT). I know this is nowhere near a truly themeable GUI, but it's still a lot better than having to look at the exact same graphics over and over again! :D
+- removed startup mosaic effect introduced in alpha2 to speed up booting and logo switching
+- added plenty mosaic stuff to the developer's note instead ;-)
+- added page-by-page navigation with L/R shoulder buttons to the filebrowser. Works better than expected! :-)
+- changed/fixed miscellaneous button assignment on the intro (directional pad is now ignored) and GG code editing screens
+- work on the bootloader itself is mostly complete, I guess :-)
+
+
+
+CHANGES IN V2.00-ALPHA4 (UNRELEASED):
+______________________________________________________________________
+
+- added a "wait for H-Blank" routine before DMA is performed during active display to avoid DMA <> HDMA conflicts on CPU rev1 SNES units. This also completely eliminates HDMA "flickering", with the drawback of slightly increased ROM loading time (namely, by less than 0.3 seconds for a 32 Mbit game and just about 0.7 seconds for the decompressed 96 Mbit version of Star Ocean). Thanks to ikari_01 for suggesting a fine solution like that! :-)
+- added "Loading ..." message screens where appropriate
+- changed hardcoded intro module reloads to warm resets, which for now works around a rarely encountered (?) crashing bug present in v1.0X
+- changed button assignments in the filebrowser in a way that's to be explained in the readme :p (subject to change)
+- started to improve the SPC player, no major breakthrough as of yet
+- polished up SRAM saving messages (finally!)
+- polished up option screen messages (finally!)
+
+
+
+CHANGES IN V2.00-ALPHA3 (UNRELEASED):
+______________________________________________________________________
+
+- added CPU revision check to dynamically disable HDMA on rev1 consoles (DMA <> HDMA crashing bug workaround). Sorry for the time being, rev1 users! :-/
+- added Developer's Note (with music!) by means of an additional CF module file (SD.MAP), to be accessed by pressing L+R at the titlescreen
+- added button assignment hints at the bottom of the screen (subject to change/be removed again)
+
+
+
+CHANGES IN V2.00-ALPHA2 (UNRELEASED):
+______________________________________________________________________
+
+- any text (as well as the cursor sprite) is now automagically indented both at the top and on the left of the screen to ensure nothing gets cut off e.g. on older CRT TVs
+- HDMA windowing prevents "garbage" lines from showing up in the filebrowser
+- while I was at it, I implemented a nice HDMA background color gradient effect :D
+- ROM mapping now handles rare 9 Mbit games properly (this fixes e.g. Alcahest English v1.0 Beta)
+- automatic save name matching now compares up to 52 characters instead of only 28 like v1.05 did
+- fixed screen logging, which was broken in alpha1. Caveat: LOG.TXT has to be 2048 bytes in size as from now!
+- added small mosaic effect to the intro screen
+- huge code cleanup, not finished yet by far ...
+
+
+
+CHANGES IN V2.00-ALPHA1 (UNRELEASED):
+______________________________________________________________________
+
+- pseudo-hi-res mode for better display of long filenames
+- buffer was expanded to 128 bytes per entry
+- partial rewrite of the file browsing/loading routines to make use of the changes mentioned above
+- two new custom fonts (one per BG layer, to work around Mode 5's 16x8 tile size limitation), each with added drop shadow. Thanks to ikari_01 for hints on how to enhance the print handler to make this possible!
+- changed titlescreen sprite to classic "four dots" logo (subject to change)
+- changed background color to dark blue
+- changed cursor size and appearance (subject to change)
+- new startup messages (subject to change)
+- re-arranged bootscreen elements
+- fixed fast scrolling button behavior when choosing SRAM (L and R were swapped in v1.0X)
+- deactivated the file verification feature for now, which was/is totally broken in v1.0X (to see for yourself, browse to a ROM file and press Select instead of A)
+- reduced content of the "POWERPAK" directory on the CF card to the necessary files only:
+
+	/SAVES		<-- subfolder with savegames
+	CONFIG.TXT	<-- user configuration file
+	LASTSNES.TXT	<-- holds information about the last played game
+	LOG.TXT		<-- holds information about failed ROM loadings, or a user-invoked screen log
+	SA.MAP		<-- module: SRAM auto-loading
+	SB.MAP		<-- module: SRAM choosing, SRM browser
+	SG.MAP		<-- module: GameGenie handler, TXT browser
+	SI.MAP		<-- module: titlescreen
+	SM.MAP		<-- module: game mapping
+	SN.MAP		<-- module: ROM browser/loader
+	SO.MAP		<-- module: options screen
+	SP.MAP		<-- module: SPC player
+	SQ.MAP		<-- module: SRAM auto-saving
+	TOPLEVEL.BIT	<-- FPGA configuration file

@@ -1,0 +1,23 @@
+===========================================================================================
+|
+|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
+|   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+|
+|	*** KNOWN ISSUES ***
+|
+===========================================================================================
+
+
+
+   KNOWN ISSUES IN V3.00:
+______________________________________________________________________
+
+- When playing an SPC file (esp. tunes from later SquareSoft games), audio artifacts/glitches may occur. The exact cause of this issue is unknown and subject to current investigations.
+
+- Attempting to load a 0-byte file will result in a CF card error. A fix is unlikely but on my priority list nonetheless. ;-)
+
+- On SNES consoles with CPU v02/PPU1 v01/PPU2 v01 (in short, 2/1/1) chipset, the SDRAM check may report errors although loading and playing ROMs works just fine (i.e. hardware-wise, SDRAM is OK). This is most likely caused by a PowerPak hardware design flaw -- in any case, there is no known fix or workaround on the software side. Consoles with 1/1/1, 2/1/2, or 2/1/3 chipsets don't seem to be affected though.
+
+- The SPC player neither reads nor displays extended ID666 tags.
+
+- The file browser doesn't display entries in alphabetical order, but instead the way the filesystem organizes files on the CF card. If it really bothers you, please consider using drive-sorting software after loading your card with ROMs and savegames (although this is neither recommended nor tested).
