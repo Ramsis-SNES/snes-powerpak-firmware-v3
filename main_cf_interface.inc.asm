@@ -1341,19 +1341,16 @@ __CLD_WRAMcontinue:
 	sep #A_8BIT				; otherwise, A = 8 bit, and continue
 
 	jsr CLD_ClearEntryName
-
 	bra __CLD_NextEntry
-
-
 
 __CLD_UseSDRAMbuffer:
 	lda CLDConfigFlags			; check if hidden files/folders are to be skipped
 	and #%00000010
-	beq _f
+	beq __CLD_SaveEntryToSDRAM
 
 	lda tempEntry.tempFlags
-	and #%00000010				; check for "hidden" flag
-	beq _f
+	and #%00000010				; yes, check for "hidden" flag
+	beq __CLD_SaveEntryToSDRAM
 
 	rep #A_8BIT				; A = 16 bit
 
@@ -1361,13 +1358,16 @@ __CLD_UseSDRAMbuffer:
 
 	bra __CLD_SDRAMcontinue			; ... and jump out
 
-__	lda tempEntry, y			; save entry to SDRAM
+.ACCU 8
+
+__CLD_SaveEntryToSDRAM:
+	lda tempEntry, y			; save entry to SDRAM
 	sta DMAREADDATA
 	iny
 	cpy #$0080
-	bne _b
+	bne __CLD_SaveEntryToSDRAM
 
-	rep #A_8BIT
+	rep #A_8BIT				; A = 16 bit
 
 	lda filesInDir
 	cmp #$FFFF				; check if file counter has reached 65535
