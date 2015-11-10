@@ -1220,18 +1220,43 @@ __CLD_CheckExtLoop:
 
 	lda [sourceEntryLo], y
 	cmp extMatch3, x
-	beq __CLD_ProcessMatchingEntry		; extension matches, branch
+	beq __CLD_EntryExtensionMatch		; extension matches
 
 +	dex					; otherwise, try next extension indicated
 	bpl __CLD_CheckExtLoop
 
 	jsr CLD_ClearEntryName			; extension doesn't match, skip entry
-
 	jmp __CLD_NextEntry
 
+__CLD_EntryExtensionMatch:
 
 
-; -------------------------- load long/short entry with matching ext.
+
+; -------------------------- check file size
+	rep #A_8BIT				; A = 16 bit
+
+	ldy #$001E
+
+	lda [sourceEntryLo], y			; upper 16 bit of file size
+	bne __CLD_FileSizeNotZero
+
+	ldy #$001C
+
+	lda [sourceEntryLo], y			; lower 16 bit of file size
+	bne __CLD_FileSizeNotZero
+
+	sep #A_8BIT				; A = 8 bit
+
+	jsr CLD_ClearEntryName			; file size = 0, skip entry
+	jmp __CLD_NextEntry
+
+__CLD_FileSizeNotZero:
+
+	sep #A_8BIT				; A = 8 bit
+
+
+
+; -------------------------- load long/short dir or entry with matching ext. and size not zero
 __CLD_ProcessMatchingEntry:
 	rep #A_8BIT				; A = 16 bit
 
