@@ -96,6 +96,9 @@ FlashUpdateWarning:
 	stz Joy1New
 	stz Joy1New+1
 
+
+
+; -------------------------- wait for user to press A button
 -	wai
 
 	lda Joy1New				; wait for user input
@@ -109,7 +112,10 @@ FlashUpdateWarning:
 
 	ldx #$0000				; reset X
 
-	lda temp				; re-check for chip ID
+
+
+; -------------------------- use AT29C010A flashing code
+	lda temp				; re-check chip ID (temp variable shouldn't have changed, but you never know ...)
 	cmp #$1F
 	bne +
 
@@ -127,6 +133,7 @@ FlashUpdateWarning:
 
 
 
+; -------------------------- use SST39SF010A flashing code
 +	lda temp
 	cmp #$BF
 	bne +
@@ -145,7 +152,8 @@ FlashUpdateWarning:
 
 
 
-+	ClearLine 19				; temp variable shouldn't have changed, but you never know ...
+; -------------------------- WRAM (at the least) has been compromised --> cancel flashing
++	ClearLine 19
 
 	SetCursorPos 19, 0
 	PrintString "ERROR!\n\n"
@@ -158,7 +166,6 @@ FlashUpdateWarning:
 ; *********************** WRAM flashing routines ***********************
 
 ; These must be uploaded to WRAM before being executed.
-
 ; Reminder: Only use relative branches here (BRA/BSR macro/etc.), as
 ; JMP/JSR/etc. will jump back to code in ROM!
 

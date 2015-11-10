@@ -203,7 +203,7 @@ __ColdBoot:
 +	jmp __ThemeFileClusterSet
 
 __NoThemeFileSaved:
-	FindFile "THEMES.   "
+	FindFile "THEMES.   "			; this makes A = 8 bit
 
 	jsr ClearFindEntry
 
@@ -784,7 +784,7 @@ ShowMainGFX:
 
 	lda temp+2
 	clc
-	adc #$0010				; tile num += 16 (i.e., skip one row of 8*8 tiles)
+	adc #$0010				; tile num += 16 (i.e., skip one row of 8×8 tiles)
 	sta temp+2
 
 	cpx #$0100				; 256 / 4 = 64 (large) sprites done?
@@ -1490,7 +1490,7 @@ rts
 ClearFindEntry:
 	rep #A_8BIT				; A = 16 bit
 
-	lda #$2020				; ASCII = 2 spaces (caveat #1: WLA DX compiles "lda #'  '" to "LDA #$0020"!)
+	lda #$2020				; ASCII = 2 spaces (caveat #1: WLA DX assembles "lda #'  '" to "LDA #$0020"!)
 	sta findEntry				; Caveat #2: It's crucially important to clear out findEntry with spaces (not zeroes)
 	sta findEntry+2				; due to the way the FAT filesystem handles short file names < 8 characters!
 	sta findEntry+4

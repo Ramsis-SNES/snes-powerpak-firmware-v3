@@ -120,7 +120,7 @@ StateCardReadyDone:
 
 	lda sectorBuffer1+$1FE			; last word check, should be $55AA
 	cmp #$55
-	bne CardFormatErrorJump
+	bne CardFormatErrorJump			; code fixed for v3.00
 
 	lda sectorBuffer1+$1FF
 	cmp #$AA
@@ -1121,7 +1121,6 @@ __CLD_EntryNotUnused:
 	bcc __CLD_EntryPrepareLoadLFN
 
 	jsr CLD_ClearEntryName			; if index >= 10, skip entry (reminder: index = 0 doesn't seem to exist ??)
-
 	jmp __CLD_NextEntry
 
 __CLD_EntryPrepareLoadLFN:
@@ -1144,7 +1143,6 @@ __CLD_EntryPrepareLoadLFN:
 	sep #A_8BIT				; A = 8 bit
 
 	jsr CLD_LoadLFN				; load LFN entry, store characters to tempEntry
-
 	jmp __CLD_NextEntry
 
 __CLD_EntryNotLFN:
@@ -1160,7 +1158,6 @@ __CLD_EntryNotLFN:
 	bne __CLD_EntryNotVolumeID
 
 	jsr CLD_ClearEntryName
-
 	jmp __CLD_NextEntry
 
 __CLD_EntryNotVolumeID:
@@ -1299,27 +1296,21 @@ __CLD_ProcessMatchingEntry:
 	sta tempEntry+$B
 
 __CLD_PrepareSaveEntry:
+	rep #A_8BIT				; A = 16 bit
+
 	ldy #$001A
 
-	lda [sourceEntryLo], y			; copy clusterhilo to last 4 bytes of entry
+	lda [sourceEntryLo], y			; copy cluster (32 bit) to last 4 bytes of entry
 	sta tempEntry.tempCluster
-
-	iny
-
-	lda [sourceEntryLo], y
-	sta tempEntry.tempCluster+1
 
 	ldy #$0014
 
 	lda [sourceEntryLo], y
 	sta tempEntry.tempCluster+2
 
-	iny
+	sep #A_8BIT				; A = 8 bit
 
-	lda [sourceEntryLo], y
-	sta tempEntry.tempCluster+3
-
-	ldy #$0000
+	ldy #$0000				; reset Y for upcoming loop
 
 	lda CLDConfigFlags			; check for selected buffer
 	and #%00000001
@@ -1569,7 +1560,7 @@ rts
 CLD_SaveEntryToWRAM:
 	rep #A_8BIT				; A = 16 bit
 
--	lda tempEntry, y
+-	lda tempEntry, y			; Y was reset before
 	sta [destEntryLo], y
 	iny
 	iny

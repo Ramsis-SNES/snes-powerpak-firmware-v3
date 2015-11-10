@@ -422,7 +422,7 @@ rts
 ; ***************************** SRAM saver *****************************
 
 SaveSRAMFile:
-	jsr SpriteInit				; purge OAM to suppress sprite artifacts
+	jsr SpriteInit				; purge OAM to suppress sprite artifacts // FIXME, prob. unnecessary (use HideCursorSprite)
 
 	rep #A_8BIT				; A = 16 bit
 
