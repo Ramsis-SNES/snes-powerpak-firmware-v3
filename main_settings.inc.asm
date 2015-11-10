@@ -189,7 +189,22 @@ SettingsLoop:
 
 +
 
-	bra SettingsLoop
+
+
+; -------------------------- show/hide hint
+	lda cursorY
+	cmp #cursorYsetmenu3			; cursor on "Select a theme"?
+	bne +
+	
+	SetCursorPos 16, 1
+	PrintString "Please save your settings after selecting a new theme."
+	bra ++
+
++	ClearLine 16
+
+++
+
+	jmp SettingsLoop
 
 
 
