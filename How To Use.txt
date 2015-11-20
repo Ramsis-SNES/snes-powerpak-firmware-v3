@@ -53,7 +53,7 @@ Prerequisites:
 
 Steps necessary:
    1. Reprogram your PowerPak's boot ROM chip with <this release's archive root>/src/out/bootrom.sfc
-   2. Delete all files in the POWERPAK directory on your CF card (including the TXT files) except for the SAVES subdirectory. Then, copy over the contents of <this release's archive root>/POWERPAK (sans the SAVES subdirectory).
+   2. Delete all files in the POWERPAK directory on your CF card (including the TXT files) except for the SAVES subdirectory. Then, copy over the contents of <this release's archive root>/src/out/POWERPAK (sans the SAVES subdirectory).
 
 The first step is likely the more difficult one. First of all, you have to open up your SNES PowerPak and remove the sticker (if there is one) from the boot ROM chip. My own cart is a revD with an ATMEL AT29C010A type of chip. If you have a revE, you'll likely find an SST39SF010A chip in there. Next, remove the chip. Be very careful! It's likely not glued in, but I still had an incredibly hard time getting it out of the socket at first. This should be done with extreme care in order to avoid damage to you, the PowerPak, and/or any equipment you might be using. PLCC32 tweezers are recommended, though even these might cause damage to the socket if you aren't especially careful.
 
@@ -75,7 +75,7 @@ Prerequisites:
 
 Steps necessary:
    1. Determine the current version of your firmware. You'll see the version number once you power up your SNES PowerPak. If it says, "Boot ROM v1.0X" (where X can be any number), then you have a version 1 firmware. If you spot the word "SIMBA" anywhere on the screen, then you have a version 2 firmware.
-   2. Copy the contents of <this release's archive root>/POWERPAK (sans the SAVES subfolder) to the POWERPAK directory on your CF card, replacing any existing file(s) (i.e., TOPLEVEL.BIT).
+   2. Copy the contents of <this release's archive root>/src/out/POWERPAK (sans the SAVES subfolder) to the POWERPAK directory on your CF card, replacing any existing file(s) (i.e., TOPLEVEL.BIT).
    3. Browse to <your CF card root>/POWERPAK. Delete SI.MAP. Then, rename the SIvX.MAP file that matches your installed firmware number from step 1 (i.e., SIv1.MAP for a version 1 firmware, and SIv2.MAP for a version 2 firmware) to SI.MAP.
    4. Power on your SNES PowerPak, and follow the on-screen instructions.
    5. After the upgrade procedure has completed successfully, you can safely delete all *.TXT and *.MAP files from <your CF card root>/POWERPAK. :-)
