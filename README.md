@@ -1,5 +1,4 @@
 # SNES PowerPak Firmware v3 "MUFASA"
-====================================
 
 This is an unofficial firmware for RetroUSB's [SNES PowerPak](http://www.retrousb.com/product_info.php?cPath=24&products_id=84) flash cart.
 
@@ -14,5 +13,7 @@ It gives you the following advantages over the stock v1.0X firmware:
 * ... and more! :-)
 
 For installation instructions and more information, please check [How To Use.txt](https://github.com/Ramsis-SNES/snes-powerpak-firmware-v3/blob/master/How%20To%20Use.txt).
+
+To learn about my other projects, feel free to visit my [homepage](http://manuloewe.de).
 
 Have fun, and ... long live the SNES PowerPak! :D
