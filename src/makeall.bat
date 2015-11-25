@@ -12,8 +12,8 @@ zerofill -f -q 0x200 out\POWERPAK\LASTGAME.LOG
 echo -- generating ERROR.LOG --
 zerofill -f -q 0x800 out\POWERPAK\ERROR.LOG
 
-echo -- copying TOPLEVEL.BIT --
-copy TOPLEVEL.BIT out\POWERPAK\TOPLEVEL.BIT
+rem echo -- copying TOPLEVEL.BIT --
+rem copy TOPLEVEL.BIT out\POWERPAK\TOPLEVEL.BIT
 
 echo -- preparing SOUNDBANK --
 smconv -s -o soundbnk "music\parforceritt_b2_downsampled.it"
