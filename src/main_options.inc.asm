@@ -188,8 +188,7 @@ SaveRAMLoop:
 	beq __ACheck2Done
 
 	jsr SpriteMessageLoading
-	jsr SRAMBrowser				; go to SRAM browser
-
+	jsr InitSRMBrowser			; go to SRAM browser
 	jmp GotoGameOptions			; refresh game options screen
 
 __ACheck2Done:
@@ -237,7 +236,6 @@ __DownCheck2Done:
 	beq +					; if Select is released, clear decoded GG code lines
 
 	jsr SelectButton
-
 	bra __SelectCheck2Done
 
 +	jsr SelectReleased
@@ -268,8 +266,7 @@ LoadGGCodeLoop:
 	bra __ACheck3Done
 
 +	jsr SpriteMessageLoading
-	jsr GameGenieTXTBrowser			; go to GameGenie TXT browser
-
+	jsr InitTXTBrowser			; go to GameGenie TXT browser
 	jmp GotoGameOptions			; refresh game options screen
 
 __ACheck3Done:

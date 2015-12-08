@@ -12,7 +12,7 @@
 .ACCU 8
 .INDEX 16
 
-; *************************** Theme selector ***************************
+; ************************* Init theme browser *************************
 
 ; File extensions to look for, mapped to search variables:
 ;
@@ -25,7 +25,9 @@
 ; extMatch3 |  M  |     |     |     |     |     |     |     |     |     |     |
 ; ------------------------------------------------------------------------------
 
-SelectTheme:
+
+
+InitTHMBrowser:
 	jsr SpriteMessageLoading
 
 	FindFile "THEMES.   "
@@ -43,130 +45,26 @@ SelectTheme:
 	lda #'M'
 	sta extMatch3
 
-	jsr __InitFileBrowserOtherDir		; go to filebrowser, start in "THEMES" folder
+	jsr FileBrowser
 
-	stz Joy1New				; reset input buttons
-	stz Joy1New+1
-	stz Joy1Press
-	stz Joy1Press+1
+	lda DP_SelectionFlags			; check if file was selected
+	and #%00000001
+	bne ThemeFileSelected			; yes, process file
 
+	jsr PrintClearScreen			; no, clear screen
 
-
-ThemeBrowserLoop:
-	wai
-
-	DpadUpHold2Scroll
-	DpadDownHold2Scroll
-	DpadLeftScrollUp
-	DpadRightScrollDown
-
-
-
-; -------------------------- check for left shoulder button = page up
-	lda Joy1New
-	and #%00100000
-	beq +
-
-	jsr PageUp
-
-+
-
-
-
-; -------------------------- check for right shoulder button = page down
-	lda Joy1New
-	and #%00010000
-	beq +
-
-	jsr PageDown
-
-+
-
-
-
-; -------------------------- check for A button = select file / load dir
-	lda Joy1New
-	and #%10000000
-	beq ++
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry				; get selected entry
-
-	lda tempEntry.tempFlags			; check for "dir" flag
-	and #$01
-	bne +
-
-	jmp __ThemeSelected
-
-+	jsr NextDir
-
-++
-
-
-
-; -------------------------- check for B button = go up one directory / return to settings menu
-	lda Joy1New+1
-	and #%10000000
-	beq ++
-
-	rep #A_8BIT				; A = 16 bit
-
-	lda sourceCluster			; check if current dir = root dir ...
-	cmp rootDirCluster
-	bne +
-
-	lda sourceCluster+2
-	cmp rootDirCluster+2
-	bne +
-
-	sep #A_8BIT				; ... if so, A = 8 bit, and return (no theme file selected)
-
-__ReturnFromThemeBrowser:
-	jsr PrintClearScreen
-
-	lda #cursorXsettings			; restore cursor position
+	lda #cursorXsettings			; put cursor back on 3rd menu line
 	sta cursorX
 
-	lda #cursorYsetmenu3			; menu line: select theme
+	lda #cursorYsetmenu3
 	sta cursorY
 
 	jmp __ReturnFromMenuSection		; return to settings menu
 
-+
-
-.ACCU 16
-
-	lda #$0001				; otherwise, load entry $0001, which is always "/.." (except for when in root dir)
-	sta selectedEntry
-
-	sep #A_8BIT				; A = 8 bit
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry
-	jsr NextDir
-
-++
 
 
-
-; -------------------------- check for Start button = return to settings menu
-	lda Joy1New+1
-	and #%00010000
-	beq +
-
-	jmp __ReturnFromThemeBrowser
-
-+
-
-	jmp ThemeBrowserLoop			; end of loop
-
-
-
-__ThemeSelected:				; THM file selected --> load new theme, and return to intro
+; -------------------------- process selected file
+ThemeFileSelected:				; THM file selected --> load new theme, and return to intro
 	lda #$0F
 
 -	wai					; screen fade-out loop

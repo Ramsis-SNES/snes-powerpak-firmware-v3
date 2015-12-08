@@ -14,6 +14,70 @@
 .ACCU 8
 .INDEX 16
 
+; ************************* Init SRAM browser **************************
+
+; File extensions to look for, mapped to search variables:
+;
+;           |     | +1  | +2  | +3  | +4  | +5  | +6  | +7  | +8  | +9  | +10 |
+; ------------------------------------------------------------------------------
+; extMatch1 |  S  |     |     |     |     |     |     |     |     |     |     |
+; ------------------------------------------------------------------------------
+; extMatch2 |  R  |     |     |     |     |     |     |     |     |     |     |
+; ------------------------------------------------------------------------------
+; extMatch3 |  M  |     |     |     |     |     |     |     |     |     |     |
+; ------------------------------------------------------------------------------
+
+
+
+InitSRMBrowser:
+	FindFile "SAVES.   "
+
+	lda #$01				; number of file types to look for (1, SRM only)
+	sta extNum
+	stz extNum+1
+
+	lda #'S'
+	sta extMatch1
+
+	lda #'R'
+	sta extMatch2
+
+	lda #'M'
+	sta extMatch3
+
+	jsr FileBrowser
+
+	lda DP_SelectionFlags			; check if file was selected
+	and #%00000001
+;	bne SRAMFileSelected			; yes, process file
+	beq __SRAMBrowserEnd			; no, jump out
+
+
+
+; -------------------------- SRAM file selected
+;SRAMFileSelected:
+;	lda #%00000001				; SRM file selected
+;	sta DP_SelectionFlags
+
+	rep #A_8BIT				; A = 16 bit
+
+	ldy #$0000
+
+-	lda tempEntry, y			; copy SRM file name + cluster
+	sta saveName, y
+	iny
+	iny
+	cpy #$0080				; 128 bytes
+	bne -
+
+	sep #A_8BIT				; A = 8 bit
+
+__SRAMBrowserEnd:
+
+rts
+
+
+
 ; ************************* SRAM save handler **************************
 
 BattUsedInitSaveSRAM:
@@ -142,9 +206,9 @@ __SelectSRAMFile:
 	trb DP_HDMAchannels
 
 	jsr SpriteMessageLoading
-	jsr SRAMBrowser				; load SRAM browser
+	jsr InitSRMBrowser			; launch SRAM browser
 
-	lda SelectionFlags			; back from browser, check if SRM file was picked or not
+	lda DP_SelectionFlags			; back from browser, check again if SRM file was picked or not
 	and #%00000001
 	bne __SRAMFilePicked
 
@@ -261,160 +325,6 @@ __PrevButtonDone:
 
 __PrevButtonDone2:
 
-rts
-
-
-
-; ************************** SRAM filebrowser **************************
-
-; File extensions to look for, mapped to search variables:
-;
-;           |     | +1  | +2  | +3  | +4  | +5  | +6  | +7  | +8  | +9  | +10 |
-; ------------------------------------------------------------------------------
-; extMatch1 |  S  |     |     |     |     |     |     |     |     |     |     |
-; ------------------------------------------------------------------------------
-; extMatch2 |  R  |     |     |     |     |     |     |     |     |     |     |
-; ------------------------------------------------------------------------------
-; extMatch3 |  M  |     |     |     |     |     |     |     |     |     |     |
-; ------------------------------------------------------------------------------
-
-
-
-SRAMBrowser:
-	FindFile "SAVES.   "
-
-	lda #$01				; number of file types to look for (1, SRM only)
-	sta extNum
-	stz extNum+1
-
-	lda #'S'
-	sta extMatch1
-
-	lda #'R'
-	sta extMatch2
-
-	lda #'M'
-	sta extMatch3
-
-	jsr __InitFileBrowserOtherDir		; go to filebrowser, start in "SAVES" folder
-
-	stz Joy1New				; reset input buttons
-	stz Joy1New+1
-	stz Joy1Press
-	stz Joy1Press+1
-
-
-
-SRAMBrowserLoop:
-	wai
-
-	DpadUpHold2Scroll
-	DpadDownHold2Scroll
-	DpadLeftScrollUp
-	DpadRightScrollDown
-
-
-
-; -------------------------- check for left shoulder button = page up
-	lda Joy1New
-	and #%00100000
-	beq +
-
-	jsr PageUp
-
-+
-
-
-
-; -------------------------- check for right shoulder button = page down
-	lda Joy1New
-	and #%00010000
-	beq +
-
-	jsr PageDown
-
-+
-
-
-
-; -------------------------- check for A button = select file / load dir
-	lda Joy1New
-	and #%10000000
-	beq ++
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry				; get selected entry
-
-	lda tempEntry.tempFlags			; check for "dir" flag
-	and #$01
-	bne +
-
-	jmp __SRAMFileSelected
-
-+	jsr NextDir
-
-++
-
-
-
-; -------------------------- check for B button = go up one directory / return to where we were
-	lda Joy1New+1
-	and #%10000000
-	beq ++
-
-	rep #A_8BIT				; A = 16 bit
-
-	lda sourceCluster			; check if current dir = root dir ...
-	cmp rootDirCluster
-	bne +
-
-	lda sourceCluster+2
-	cmp rootDirCluster+2
-	bne +
-
-	sep #A_8BIT				; ... if so, A = 8 bit ...
-
-	stz SelectionFlags			; ... and return (no SRM file selected)
-rts
-
-.ACCU 16
-
-+	lda #$0001				; otherwise, load entry $0001, which is always "/.." (except for when in root dir)
-	sta selectedEntry
-
-	sep #A_8BIT				; A = 8 bit
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry
-	jsr NextDir
-
-++
-
-	jmp SRAMBrowserLoop			; end of loop
-
-
-
-; -------------------------- SRAM file selected
-__SRAMFileSelected:
-	lda #%00000001				; SRM file selected
-	sta SelectionFlags
-
-	rep #A_8BIT				; A = 16 bit
-
-	ldy #$0000
-
--	lda tempEntry, y			; copy SRM file name + cluster
-	sta saveName, y
-	iny
-	iny
-	cpy #$0080				; 128 bytes
-	bne -
-
-	sep #A_8BIT				; A = 8 bit
 rts
 
 

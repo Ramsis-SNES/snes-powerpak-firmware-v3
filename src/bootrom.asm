@@ -133,7 +133,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11314"
+	.DB "11317"
 
 STR_Firmware_BuildNum_End:
 
@@ -183,7 +183,8 @@ CONST_Zeroes:
 
 	.INCLUDE "main_boot.inc.asm"		; main bootloader code
 	.INCLUDE "main_cf_interface.inc.asm"
-	.INCLUDE "main_rombrowser.inc.asm"
+	.INCLUDE "main_filebrowser.inc.asm"
+	.INCLUDE "main_romspc.inc.asm"
 	.INCLUDE "main_options.inc.asm"
 	.INCLUDE "main_gamegenie.inc.asm"
 	.INCLUDE "main_rommapping.inc.asm"

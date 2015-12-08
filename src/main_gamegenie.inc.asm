@@ -11,10 +11,204 @@
 
 
 
-.ACCU 8
 .INDEX 16
 
-; ************************* GameGenie Handler **************************
+; ********************* Init GG code list browser **********************
+
+; File extensions to look for, mapped to search variables:
+;
+;           |     | +1  | +2  | +3  | +4  | +5  | +6  | +7  | +8  | +9  | +10 |
+; ------------------------------------------------------------------------------
+; extMatch1 |  T  |     |     |     |     |     |     |     |     |     |     |
+; ------------------------------------------------------------------------------
+; extMatch2 |  X  |     |     |     |     |     |     |     |     |     |     |
+; ------------------------------------------------------------------------------
+; extMatch3 |  T  |     |     |     |     |     |     |     |     |     |     |
+; ------------------------------------------------------------------------------
+
+
+
+InitTXTBrowser:
+	rep #A_8BIT				; A = 16 bit
+
+	lda rootDirCluster			; start in root directory
+	sta sourceCluster
+
+	lda rootDirCluster+2
+	sta sourceCluster+2
+
+	sep #A_8BIT				; A = 8 bit
+
+	lda #$01				; number of file types to look for (1, TXT only)
+	sta extNum
+	stz extNum+1
+
+	lda #'T'
+	sta extMatch1
+	sta extMatch3
+
+	lda #'X'
+	sta extMatch2
+
+	jsr FileBrowser
+
+	lda DP_SelectionFlags			; check if file was selected
+	and #%00000001
+;	bne GGCodeListSelected			; yes, process file
+	beq __GGBrowserEnd			; no, jump out
+
+
+
+; -------------------------- TXT file selected
+GGCodeListSelected:
+	jsr GameGenieClearAll			; clear out all previously entered codes
+
+	rep #A_8BIT				; A = 16 bit
+
+	lda tempEntry.tempCluster		; copy TXT file cluster to source cluster
+	sta sourceCluster
+
+	lda tempEntry.tempCluster+2
+	sta sourceCluster+2
+
+	sep #A_8BIT				; A = 8 bit
+
+	lda #<sectorBuffer1
+	sta destLo
+	lda #>sectorBuffer1
+	sta destHi				; put into sector RAM
+	stz destBank
+
+	stz sectorCounter
+	stz bankCounter
+
+	jsr ClusterToLBA			; sourceCluster -> first sourceSector
+
+	lda #kDestWRAM
+	sta destType
+
+	jsr CardReadSector			; sector -> WRAM
+
+	ldx #$0000
+	ldy #$0000
+
+ReadLoop:					; read GG codes from text file
+	lda sectorBuffer1, y
+	cmp #$20				; space - read to end of line, then next code
+	beq ReadLine
+	cmp #$0D				; CR
+	beq NextCode
+	cmp #$0A				; LF
+	beq NextCode
+	cmp #$1A				; EOF
+	beq ReadLoopDone
+	cmp #$30
+	bcc NextChar				; under 0
+	cmp #$3A
+	bcc SaveCharNumJump			; between 0 and 9
+	cmp #$41
+	bcc NextChar				; under A
+	cmp #$47
+	bcc SaveCharAlphaJump			; between A and F
+	bra NextChar
+
+SaveCharAlphaJump:
+	jsr SaveCharAlpha
+	bra NextGGChar
+
+SaveCharNumJump:
+	jsr SaveCharNum
+	bra NextGGChar
+
+ReadLine:
+	;PrintString "R"
+
+	lda sectorBuffer1, y
+	cmp #$0D
+	beq NextCode
+	cmp #$0A
+	beq NextCode
+
+	iny
+	cpy #$0100				; CHANGEME --> read 256 bytes per line only ??
+;	beq ReadLoopDone
+;	bra ReadLine
+	bne ReadLine
+
+__GGBrowserEnd:
+
+rts
+
+
+
+NextCode:
+;  PrintString "N"
+
+	stx temp
+
+ ; PrintHexNum temp
+
+	lda temp
+	and #%00000111
+	beq NextChar				; already at the beginning of a code, skip
+	lda temp
+	and #%11111000				; go to beginning of current code
+	clc
+	adc #%00001000				; go to beginning of next code
+	sta temp
+	ldx temp
+	lda temp
+	cmp #$28
+	beq ReadLoopDone
+	bra NextChar
+
+NextGGChar:
+	inx					; next GG char
+	cpx #$0028				; 40 GG chars = 5 codes × 8 chars
+	beq ReadLoopDone
+
+NextChar:
+	iny
+	cpy #$0100				; CHANGEME --> why read 256 bytes only ??
+	bne ReadLoop
+
+ReadLoopDone:
+
+rts						; return to game options
+
+
+
+SaveCharAlpha:
+	lda sectorBuffer1, y			; put character into codes
+	sec
+	sbc #$41				; subtract 'A'
+	clc
+	adc #$0A				; add 0-9
+	sta GameGenie.Codes, x
+	sta temp
+
+;  PrintString " A"
+;  PrintHexNum temp
+
+rts
+
+
+
+SaveCharNum:
+	lda sectorBuffer1, y			; put character into codes
+	sec
+	sbc #$30				; subtract '0'
+	sta GameGenie.Codes, x
+	sta temp
+
+;  PrintString " C"
+;  PrintHexNum temp
+
+rts
+
+
+
+; ************************** GG code handler ***************************
 
 GameGenieClearCode:				; clears out one GG code at a time, expects code no. set to Y
 	ldx #$0000				; (#$0000 = code 1, #$0008 = code 2, ... #$0020 = code 5)
@@ -490,290 +684,6 @@ GGCheck:
 	sta CONFIGWRITEBANK+$1F0		; put bank back
 
 GameGenieWriteCodeDone:
-
-rts
-
-
-
-; ********************** GG TXT list filebrowser ***********************
-
-; File extensions to look for, mapped to search variables:
-;
-;           |     | +1  | +2  | +3  | +4  | +5  | +6  | +7  | +8  | +9  | +10 |
-; ------------------------------------------------------------------------------
-; extMatch1 |  T  |     |     |     |     |     |     |     |     |     |     |
-; ------------------------------------------------------------------------------
-; extMatch2 |  X  |     |     |     |     |     |     |     |     |     |     |
-; ------------------------------------------------------------------------------
-; extMatch3 |  T  |     |     |     |     |     |     |     |     |     |     |
-; ------------------------------------------------------------------------------
-
-
-
-GameGenieTXTBrowser:
-	lda #$01				; number of file types to look for (1, TXT only)
-	sta extNum
-	stz extNum+1
-
-	lda #'T'
-	sta extMatch1
-	sta extMatch3
-
-	lda #'X'
-	sta extMatch2
-
-	jsr InitFileBrowser
-
-	stz Joy1New				; reset input buttons
-	stz Joy1New+1
-	stz Joy1Press
-	stz Joy1Press+1
-
-
-
-TXTBrowserLoop:
-	wai
-
-	DpadUpHold2Scroll
-	DpadDownHold2Scroll
-	DpadLeftScrollUp
-	DpadRightScrollDown
-
-
-
-; -------------------------- check for left shoulder button = page up
-	lda Joy1New
-	and #%00100000
-	beq +
-
-	jsr PageUp
-
-+
-
-
-
-; -------------------------- check for right shoulder button = page down
-	lda Joy1New
-	and #%00010000
-	beq +
-
-	jsr PageDown
-
-+
-
-
-
-; -------------------------- check for A button = select file / load dir
-	lda Joy1New
-	and #%10000000
-	beq ++
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry				; get selected entry
-
-	lda tempEntry.tempFlags			; check for "dir" flag
-	and #$01
-	bne +
-
-	jmp __GGCodeListSelected
-
-+	jsr NextDir
-
-++
-
-
-
-; -------------------------- check for B button = go up one directory / return to options
-	lda Joy1New+1
-	and #%10000000
-	beq ++
-
-	rep #A_8BIT				; A = 16 bit
-
-	lda sourceCluster			; check if current dir = root dir ...
-	cmp rootDirCluster
-	bne +
-
-	lda sourceCluster+2
-	cmp rootDirCluster+2
-	bne +
-
-	sep #A_8BIT				; ... if so, A = 8 bit, and return (no TXT file selected)
-rts
-
-+
-
-.ACCU 16
-
-	lda #$0001				; otherwise, load entry $0001, which is always "/.." (except for when in root dir)
-	sta selectedEntry
-
-	sep #A_8BIT				; A = 8 bit
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry
-	jsr NextDir
-
-++
-
-
-
-; -------------------------- check for Start button = return to options
-	lda Joy1New+1
-	and #%00010000
-	beq +
-rts
-
-+
-
-	jmp TXTBrowserLoop			; end of loop
-
-
-
-__GGCodeListSelected:
-	jsr GameGenieClearAll			; clear out all previously entered codes
-
-	rep #A_8BIT				; A = 16 bit
-
-	lda tempEntry.tempCluster		; copy TXT file cluster to source cluster
-	sta sourceCluster
-
-	lda tempEntry.tempCluster+2
-	sta sourceCluster+2
-
-	sep #A_8BIT				; A = 8 bit
-
-	lda #<sectorBuffer1
-	sta destLo
-	lda #>sectorBuffer1
-	sta destHi				; put into sector RAM
-	stz destBank
-
-	stz sectorCounter
-	stz bankCounter
-
-	jsr ClusterToLBA			; sourceCluster -> first sourceSector
-
-	lda #kDestWRAM
-	sta destType
-
-	jsr CardReadSector			; sector -> WRAM
-
-	ldx #$0000
-	ldy #$0000
-
-ReadLoop:					; read GG codes from text file
-	lda sectorBuffer1, y
-	cmp #$20				; space - read to end of line, then next code
-	beq ReadLine
-	cmp #$0D				; CR
-	beq NextCode
-	cmp #$0A				; LF
-	beq NextCode
-	cmp #$1A				; EOF
-	beq ReadLoopDone
-	cmp #$30
-	bcc NextChar				; under 0
-	cmp #$3A
-	bcc SaveCharNumJump			; between 0 and 9
-	cmp #$41
-	bcc NextChar				; under A
-	cmp #$47
-	bcc SaveCharAlphaJump			; between A and F
-	bra NextChar
-
-SaveCharAlphaJump:
-	jsr SaveCharAlpha
-	bra NextGGChar
-
-SaveCharNumJump:
-	jsr SaveCharNum
-	bra NextGGChar
-
-ReadLine:
-	;PrintString "R"
-
-	lda sectorBuffer1, y
-	cmp #$0D
-	beq NextCode
-	cmp #$0A
-	beq NextCode
-
-	iny
-	cpy #$0100				; CHANGEME --> read 256 bytes per line only ??
-;	beq ReadLoopDone
-;	bra ReadLine
-	bne ReadLine
-rts
-
-
-
-NextCode:
-;  PrintString "N"
-
-	stx temp
-
- ; PrintHexNum temp
-
-	lda temp
-	and #%00000111
-	beq NextChar				; already at the beginning of a code, skip
-	lda temp
-	and #%11111000				; go to beginning of current code
-	clc
-	adc #%00001000				; go to beginning of next code
-	sta temp
-	ldx temp
-	lda temp
-	cmp #$28
-	beq ReadLoopDone
-	bra NextChar
-
-NextGGChar:
-	inx					; next GG char
-	cpx #$0028				; 40 GG chars = 5 codes × 8 chars
-	beq ReadLoopDone
-
-NextChar:
-	iny
-	cpy #$0100				; CHANGEME --> why read 256 bytes only ??
-	bne ReadLoop
-
-ReadLoopDone:
-
-rts						; return to game options
-
-
-
-SaveCharAlpha:
-	lda sectorBuffer1, y			; put character into codes
-	sec
-	sbc #$41				; subtract 'A'
-	clc
-	adc #$0A				; add 0-9
-	sta GameGenie.Codes, x
-	sta temp
-
-;  PrintString " A"
-;  PrintHexNum temp
-
-rts
-
-
-
-SaveCharNum:
-	lda sectorBuffer1, y			; put character into codes
-	sec
-	sbc #$30				; subtract '0'
-	sta GameGenie.Codes, x
-	sta temp
-
-;  PrintString " C"
-;  PrintHexNum temp
 
 rts
 

@@ -96,12 +96,9 @@ Filebrowser:
 - Up/down moves the cursor "digitally" from entry to entry. Hold for fast and convenient short-distance navigation
 - Left/right (directional pad) scrolls the cursor twice as fast as the L/R shoulder buttons used to in v1.0X (left = up, right = down)
 - L/R (shoulder buttons) skip entire "pages" (L = previous page, R = next page). To avoid confusion, there is a built-in "stop" both at the beginning and end of a directory
-- A selects a file or directory
+- A (or Start) selects a file/directory
 - B allows you to go up one directory at any time. If you are in the root directory, B will take you back to the previous screen instead
 - X, Y are ignored
-- Start (in the ROM browser) takes you to the options screen with the game pre-selected that was played last
-- Start (in the GameGenie code TXT or theme file browser) takes you back to the options screen/settings menu, respectively (i.e., Start acts just like B)
-- Start (in the SRAM browser) is ignored
 
 Options screen (this is where you add SRAM and/or GameGenie codes):
 - Hold left/right on the directional pad for fast horizontal GG code digit navigation

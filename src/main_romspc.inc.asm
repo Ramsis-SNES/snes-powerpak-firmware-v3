@@ -3,7 +3,7 @@
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
 ;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
 ;
-;	*** MAIN CODE SECTION: ROM BROWSER & LOADER ***
+;	*** MAIN CODE SECTION: INIT ROM BROWSER & LOADER ***
 ;	Code in this file based on v1.0X code written by:
 ;	- bunnyboy (SNES PowerPak creator), (c) 2009
 ;
@@ -11,7 +11,9 @@
 
 
 
-; ************************ ROM/SPC filebrowser *************************
+.INDEX 16
+
+; ************************ Init ROM/SPC browser ************************
 
 ; File extensions to look for, mapped to search variables:
 ;
@@ -23,13 +25,20 @@
 ; ------------------------------------------------------------------------------
 ; extMatch3 |  C  |  C  |  C  |  3  |  C  |  N  |  G  |     |     |     |     |
 ; ------------------------------------------------------------------------------
-;
-; When adding one or more extensions, don't forget to increase the value
-; of variable "extNum" a few lines below!
 
 
 
-GotoROMBrowser:
+InitROMBrowser:
+	rep #A_8BIT				; A = 16 bit
+
+	lda rootDirCluster			; start in root directory
+	sta sourceCluster
+
+	lda rootDirCluster+2
+	sta sourceCluster+2
+
+	sep #A_8BIT				; A = 8 bit
+
 	lda #$07				; number of file types to look for (7, see table above)
 	sta extNum
 	stz extNum+1
@@ -79,145 +88,19 @@ GotoROMBrowser:
 	lda #'N'
 	sta extMatch3+5
 
-	jsr InitFileBrowser
+	jsr FileBrowser
 
-	stz Joy1New				; reset input buttons
-	stz Joy1New+1
-	stz Joy1Press
-	stz Joy1Press+1
+	lda DP_SelectionFlags			; check if selection was made
+	and #%00000001
+	bne ROMorSPCselected			; yes, process file
 
-
-
-ROMBrowserLoop:
-	wai
-
-
-
-.IFDEF SHOWDEBUGMSGS
-	SetCursorPos 22, 24
-	PrintHexNum selectedEntry+1
-	PrintString "-"
-	PrintHexNum selectedEntry
-	stz BGPrintMon
-
-	SetCursorPos 23, 24
-	PrintHexNum filesInDir+1
-	PrintString "-"
-	PrintHexNum filesInDir
-	stz BGPrintMon
-.ENDIF
-
-
-
-	DpadUpHold2Scroll
-	DpadDownHold2Scroll
-	DpadLeftScrollUp
-	DpadRightScrollDown
-
-
-
-; -------------------------- check for left shoulder button = page up
-	lda Joy1New
-	and #%00100000
-	beq +
-
-	jsr PageUp
-
-+
-
-
-
-; -------------------------- check for right shoulder button = page down
-	lda Joy1New
-	and #%00010000
-	beq +
-
-	jsr PageDown
-
-+
-
-
-
-; -------------------------- check for A button = select file / load dir
-	lda Joy1New
-	and #%10000000
-	beq ++
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry				; get selected entry
-
-	lda tempEntry.tempFlags			; check for "dir" flag
-	and #$01
-	bne +
-
-	jmp SelectionMade
-
-+	jsr NextDir
-
-++
-
-
-
-; -------------------------- check for B button = go up one directory / return to intro
-	lda Joy1New+1
-	and #%10000000
-	beq ++
-
-	rep #A_8BIT				; A = 16 bit
-
-	lda sourceCluster			; check if current dir = root dir ...
-	cmp rootDirCluster
-	bne +
-
-	lda sourceCluster+2
-	cmp rootDirCluster+2
-	bne +
-
-	sep #A_8BIT				; A = 8 bit
-
-	jsr PrintClearScreen			; ... if so, back to intro screen
+	jsr PrintClearScreen			; no, go back to intro screen
 	jmp GotoIntroScreen
 
-+
-
-.ACCU 16
-
-	lda #$0001				; otherwise, load entry $0001, which is always "/.." (except for when in root dir)
-	sta selectedEntry
-
-	sep #A_8BIT				; A = 8 bit
-
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
-	sta CLDConfigFlags
-
-	jsr DirGetEntry
-	jsr NextDir
-
-++
 
 
-
-; -------------------------- check for Start button = load last game info
-	lda Joy1New+1
-	and #%00010000
-	beq +
-
-	jsr SpriteMessageLoading
-	jsr LoadLastGame
-
-	jmp GotoGameOptions
-
-+
-
-	jmp ROMBrowserLoop			; end of loop
-
-
-
-SelectionMade:
-;	jsr SpriteMessageLoading		; don't show loading message here, check for ROM or SPC first instead
-
+; -------------------------- process selected file --> check for ROM or SPC first
+ROMorSPCselected:
 	rep #A_8BIT				; A = 16 bit
 
 	lda sourceCluster			; backup current dir cluster (only relevant for SPC files)

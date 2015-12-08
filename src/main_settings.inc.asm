@@ -241,7 +241,7 @@ __ToggleDMADone:
 ++	cmp #cursorYsetmenu3			; line = select theme?
 	bne +
 
-	jmp SelectTheme
+	jmp InitTHMBrowser
 
 +	cmp #cursorYsetmenu5			; line = firmware update?
 	beq CheckForUpdate

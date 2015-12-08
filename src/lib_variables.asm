@@ -425,7 +425,7 @@
 	spcTimer		dsb 4		; 217 bytes and counting
 
 	BGPrintMon		db		; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
-	SelectionFlags		db		; rrrrrrrs [r = Reserved, s = SRM file was chosen if set]
+	DP_SelectionFlags	db		; rrrrrrrf [r = Reserved, f = file was chosen if set]
 
 	DP_HDMAchannels		db		; 21wbmr00 [2 = BG2 horizontal scroll offset, 1 = BG1 horizontal scroll offset, w = main/subscreen window, b = background color gradient, m = color math, r = Reserved, 0 = reserved for normal DMA]. Variable content is copied to $420C during Vblank.
 
