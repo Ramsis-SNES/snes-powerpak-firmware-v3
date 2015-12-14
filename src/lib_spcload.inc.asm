@@ -34,6 +34,8 @@ spc700_load:
 	jsr upload_low_ram			; Upload rest of ram
 	jsr restore_final			; Restore SPC700 state & start execution
 
+	lda REG_RDNMI				; clear NMI flag
+
 	lda #$81				; VBlank NMI + Auto Joypad Read
 	sta REG_NMITIMEN			; re-enable VBlank NMI
 

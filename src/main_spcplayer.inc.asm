@@ -394,12 +394,8 @@ __CalcTimerDone:
 
 	wai					; wait for HDMA register to clear
 
-	rep #A_8BIT				; A = 16 bit
-
-	tsc
-	sta DP_StackPointer_BAK			; back up stack pointer
-
-	sep #A_8BIT				; A = 8 bit
+	tsx
+	stx DP_StackPointer_BAK			; back up stack pointer
 
 	lda #%10000001
 	sta CONFIGWRITESTATUS			; reset PowerPak, stay in boot mode

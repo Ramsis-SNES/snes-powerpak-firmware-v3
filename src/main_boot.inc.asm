@@ -53,12 +53,8 @@ Main:
 
 ; ***************************** Warm boot ******************************
 
-	rep #A_8BIT				; A = 16 bit
-
-	lda DP_StackPointer_BAK			; restore stack pointer
-	tcs
-
-	sep #A_8BIT				; A = 8 bit
+	ldx DP_StackPointer_BAK			; restore stack pointer
+	txs
 
 	jsr WarmBootInit
 

@@ -567,7 +567,7 @@ PrintPage:
 
 	lda temp				; check if printY max reached, jump out
 	cmp #maxFiles
-	bne -
+	bcc -
 
 __PrintPageLoopDone:
 	sep #A_8BIT				; A = 8 bit

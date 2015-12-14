@@ -562,11 +562,11 @@ ScrollDown:
 
 	inc selectedEntry			; increment entry index
 
-	lda selectedEntry			; check if selectedEntry = filesInDir
+	lda selectedEntry			; check if selectedEntry >= filesInDir
 	cmp filesInDir
-	bne __ScrollDownCheckBottom
+	bcc __ScrollDownCheckBottom
 
-	stz selectedEntry			; if yes, overflow --> reset selectedEntry
+	stz selectedEntry			; yes, overflow --> reset selectedEntry
 
 	lda filesInDir				; check if filesInDir > maxFiles
 	cmp #maxFiles+1
