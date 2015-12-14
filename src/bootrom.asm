@@ -133,7 +133,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11317"
+	.DB "11325"
 
 STR_Firmware_BuildNum_End:
 
@@ -156,9 +156,6 @@ PTR_findEntry:
 
 PTR_tempEntry:
 	.DW tempEntry
-
-PTR_gameName:
-	.DW gameName
 
 CONST_Zeroes:
 	.DW 0

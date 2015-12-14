@@ -37,6 +37,8 @@ InitROMBrowser:
 	lda rootDirCluster+2
 	sta sourceCluster+2
 
+	stz DP_SubDirCounter			; reset subdirectory counter
+
 	sep #A_8BIT				; A = 8 bit
 
 	lda #$07				; number of file types to look for (7, see table above)
@@ -92,22 +94,16 @@ InitROMBrowser:
 
 	lda DP_SelectionFlags			; check if selection was made
 	and #%00000001
-	bne ROMorSPCselected			; yes, process file
+	bne __ROMselected			; yes, process file
 
 	jsr PrintClearScreen			; no, go back to intro screen
 	jmp GotoIntroScreen
 
 
 
-; -------------------------- process selected file --> check for ROM or SPC first
-ROMorSPCselected:
+; -------------------------- process selected ROM file
+__ROMselected:
 	rep #A_8BIT				; A = 16 bit
-
-	lda sourceCluster			; backup current dir cluster (only relevant for SPC files)
-	sta DP_sourceCluster_BAK
-
-	lda sourceCluster+2
-	sta DP_sourceCluster_BAK+2
 
 	ldy #$0000
 
@@ -118,102 +114,11 @@ ROMorSPCselected:
 	cpy #$0080				; 128 bytes
 	bne -
 
-	lda gameName.gCluster			; copy game cluster to source cluster
-	sta sourceCluster
-
-	lda gameName.gCluster+2
-	sta sourceCluster+2
-
 	sep #A_8BIT				; A = 8 bit
 
-	lda #<sectorBuffer1
-	sta destLo
-	lda #>sectorBuffer1
-	sta destHi				; put first sector into sector RAM
-	stz destBank
-
-	stz sectorCounter
-	stz bankCounter
-
-	jsr ClusterToLBA			; sourceCluster -> first sourceSector
-
-	lda #kDestWRAM
-	sta destType
-
-	jsr CardReadSector			; sector -> WRAM
-
-	ldy #$0000
-	
-	lda sectorBuffer1, y			; check for ASCII string "SNES-SPC700"
-	cmp #'S'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'N'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'E'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'S'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'-'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'S'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'P'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'C'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'7'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'0'
-	bne __FileIsNotSPC
-
-	iny
-
-	lda sectorBuffer1, y
-	cmp #'0'
-	bne __FileIsNotSPC
-
-	jmp GotoSPCplayer			; SPC file detected, load player
 
 
-
-; -------------------------- ROM file selected, attempt SRM auto-matching
-__FileIsNotSPC:
+; -------------------------- attempt SRM auto-matching
 	jsr SpriteMessageLoading
 
 	FindFile "SAVES.   "			; "SAVES" directory

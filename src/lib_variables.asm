@@ -209,6 +209,7 @@
 	.DEFINE minPrintX		2				; no. of "columns" by which to indent from the left, acknowledged by scrolling and print handler routines, and SetCursorPos macro
 	.DEFINE minPrintY		2				; no. of "lines" by which to indent from the top, acknowledged by ClearLine/SetCursorPos macros
 
+	.DEFINE cursorXfilebrowser	$0D
 	.DEFINE cursorYmin		minPrintY * 8 + 8		; for the cursor sprite, $08 = line 0, $10 = line 1, $18 = line 2, etc.
 	.DEFINE cursorYmax		(maxFiles + minPrintY) * 8	; 24 "lines" (max. no. of files), so $D0/208 in this case
 	.DEFINE insertStandardTop	(minPrintY - 1) & $1F		; tilemaps have 32 = $20 "lines", so $1F is the first possible "negative" value
@@ -370,7 +371,7 @@
 	scrollYUp		db
 	scrollYDown		db		; 140 bytes and counting
 
-	cursorX			db
+	cursorX			db		; cursorX/cursorY should be kept in consecutive order due to occasional 16-bit writes
 	cursorY			db
 	cursorYCounter		db
 	cursorYUp		db
@@ -402,10 +403,9 @@
 						; b = use SDRAM buffer if set, WRAM buffer if clear]
 						; The h flag is checked (& reset) in CardLoadDir only.
 						; The b flag is checked & reset in CardLoadDir,
-						; set & reset in DirPrintEntry, checked (not modified) in DirGetEntry,
-						; set in InitFileBrowser. (Note that supporting both buffers is
-						; mandatory because FPGA programming -- and thus, SDRAM unlocking --
-						; can only occur after TOPLEVEL.BIT has been loaded.)
+						; set & reset in DirPrintEntry, checked (not modified) in DirGetEntry.
+						; Reminder: Supporting both buffers is mandatory because FPGA programming --
+						; and thus, SDRAM unlocking -- can only occur after TOPLEVEL.BIT has been loaded.
 
 	dontUseDMA		db
 
@@ -436,6 +436,7 @@
 	DP_cursorY_BAK		db
 	DP_sourceCluster_BAK	dsb 4
 	DP_StackPointer_BAK	dw		; 231 bytes and counting
+	DP_SubDirCounter	dw		; used in the file browser
 
 	DP_ThemeFileClusterLo	dw		; cluster of selected theme file
 	DP_ThemeFileClusterHi	dw
@@ -449,7 +450,7 @@
 	spc_fwrite		db
 	spc_pr			dsb 4		; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE						; 253 of 256 bytes used
+.ENDE						; 255 of 256 bytes used
 
 
 

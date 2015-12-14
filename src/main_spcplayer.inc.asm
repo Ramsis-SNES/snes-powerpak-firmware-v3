@@ -152,7 +152,9 @@ GotoSPCplayer:
 ;	SetCursorPos 7+32, 12
 ;	PrintString "XX:XX:XX"			; placeholder for the timer
 
-	ldy #PTR_gameName			; gameName holds name of SPC file currently playing
+	stz tempEntry+58			; NUL-terminate entry string after 58 characters
+
+	ldy #PTR_tempEntry			; tempEntry holds name of SPC file currently playing
 
 	SetCursorPos 9+32, 0
 	PrintString "File name:\n%s"

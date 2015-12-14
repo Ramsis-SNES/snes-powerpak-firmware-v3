@@ -45,6 +45,10 @@ InitSRMBrowser:
 	lda #'M'
 	sta extMatch3
 
+	lda #2					; set subdirectory counter accordingly
+	sta DP_SubDirCounter
+	stz DP_SubDirCounter+1
+
 	jsr FileBrowser
 
 	lda DP_SelectionFlags			; check if file was selected

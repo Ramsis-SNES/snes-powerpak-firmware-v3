@@ -11,7 +11,6 @@
 
 
 
-.ACCU 8
 .INDEX 16
 
 ; **************************** File browser ****************************
@@ -26,6 +25,33 @@
 ; tain meaningful values.
 
 FileBrowser:
+	rep #A_8BIT				; A = 16 bit
+
+	lda DP_SubDirCounter			; check how much subdir data needs to be pushed onto stack
+	beq +					; don't push anyhing if counter = 0
+
+	pea (cursorYmin << 8) + cursorXfilebrowser	; push initial cursor position onto stack
+	pea $0000				; push initial selectedEntry (always zero)
+	pei (rootDirCluster+2)			; push source cluster of root directory
+	pei (rootDirCluster)
+
+	lda DP_SubDirCounter
+	cmp #$0001
+	beq +					; if counter = 1, don't push any more data
+
+	pea (cursorYmin << 8) + cursorXfilebrowser	; cursor position
+	pea $0000				; selectedEntry
+	pei (baseDirCluster+2)			; source cluster of "POWERPAK" directory
+	pei (baseDirCluster)
+
++	lda sourceCluster			; back up starting cluster of current dir
+	sta DP_sourceCluster_BAK
+
+	lda sourceCluster+2
+	sta DP_sourceCluster_BAK+2
+
+	sep #A_8BIT				; A = 8 bit
+
 	stz DP_SelectionFlags			; clear all selection-related flags
 
 	lda #%00000011				; use SDRAM buffer, skip hidden files
@@ -38,8 +64,11 @@ FileBrowser:
 	lda filesInDir				; check if dir contains relevant files
 	beq __FileBrowserDirEmpty
 
+	lda #(cursorYmin << 8) + cursorXfilebrowser
+	sta cursorX				; yes, put cursor at the top
+
 	sep #A_8BIT				; A = 8 bit
-	
+
 	jmp __FileBrowserContinue
 
 __FileBrowserDirEmpty:				; e.g. the edge case when no files/folders are in the root dir, and /POWERPAK is hidden
@@ -54,15 +83,21 @@ __FileBrowserDirEmpty:				; e.g. the edge case when no files/folders are in the 
 
 	WaitForUserInput
 
-	jmp __FileBrowserEnd
+	jmp __FileBrowserDone
 
 __FileBrowserContinue:
-	jsr DirPrintDir
+	stz selectedEntry			; reset entry index
+	stz selectedEntry+1
 
+	jsr PrintPage				; loop through entries 0 to #maxFiles or 0 to filesInDir
+
+	rep #A_8BIT				; A = 16 bit
+
+	stz selectedEntry			; reset entry index
 	stz Joy1New				; reset input buttons
-	stz Joy1New+1
 	stz Joy1Press
-	stz Joy1Press+1
+
+	sep #A_8BIT				; A = 8 bit
 
 
 
@@ -72,17 +107,28 @@ __FileBrowserLoop:
 
 
 .IFDEF SHOWDEBUGMSGS
-	SetCursorPos 22, 24
-	PrintHexNum selectedEntry+1
-	PrintString "-"
-	PrintHexNum selectedEntry
-	stz BGPrintMon
+;	SetCursorPos 22, 24
+;	PrintHexNum selectedEntry+1
+;	PrintString "-"
+;	PrintHexNum selectedEntry
+;	stz BGPrintMon
 
-	SetCursorPos 23, 24
-	PrintHexNum filesInDir+1
-	PrintString "-"
-	PrintHexNum filesInDir
-	stz BGPrintMon
+;	SetCursorPos 23, 24
+;	PrintHexNum filesInDir+1
+;	PrintString "-"
+;	PrintHexNum filesInDir
+;	stz BGPrintMon
+
+	SetCursorPos 0, 22
+
+	tsx
+	stx temp
+
+	PrintHexNum temp+1			; print stack pointer (initial value: $1FFF)
+	PrintHexNum temp
+
+	SetCursorPos 1, 23
+	PrintHexNum DP_SubDirCounter
 .ENDIF
 
 
@@ -280,7 +326,46 @@ __FileBrowserAorStartPressed:
 
 	jmp __FileBrowserFileSelected
 
-+	jsr NextDir
++	rep #A_8BIT				; A = 16 bit
+
+	lda DP_SubDirCounter			; check if in root dir ...
+	beq __FileBrowserSkipEntryHandler
+
+__FileBrowserEntryHandler:
+	lda selectedEntry
+	beq +					; ... no, don't push anything if selectedEntry = 0 (always /. when not in root dir)
+
+	cmp #$0001				; special case: selectedEntry = 1 (always /.. when not in root dir)
+	beq __FileBrowserDirLevelUp
+
+__FileBrowserSkipEntryHandler:
+	pei (cursorX)				; push current cursor position
+	pei (selectedEntry)			; push selectedEntry
+	pei (DP_sourceCluster_BAK+2)		; push source cluster of current directory
+	pei (DP_sourceCluster_BAK)
+
+	inc DP_SubDirCounter			; increment subdirectory counter
+
++	lda tempEntry.tempCluster		; copy cluster of new directory, and save backup copy
+	sta sourceCluster
+	sta DP_sourceCluster_BAK
+
+	lda tempEntry.tempCluster+2
+	sta sourceCluster+2
+	sta DP_sourceCluster_BAK+2
+
+	sep #A_8BIT				; A = 8 bit
+
+	jsr SpriteMessageLoading
+	jsr CardLoadDir
+
+	lda #cursorXfilebrowser			; put cursor at the top
+	sta cursorX
+
+	lda #cursorYmin
+	sta cursorY
+
+	jmp __FileBrowserContinue
 
 ++
 
@@ -289,38 +374,52 @@ __FileBrowserAorStartPressed:
 ; -------------------------- check for B button = go up one directory / return
 	lda Joy1New+1
 	and #%10000000
-	beq ++
+	beq +
 
 	rep #A_8BIT				; A = 16 bit
 
-	lda sourceCluster			; check if current dir = root dir ...
-	cmp rootDirCluster
-	bne +
-
-	lda sourceCluster+2
-	cmp rootDirCluster+2
-	bne +
+	lda DP_SubDirCounter			; check if in root dir ...
+	bne __FileBrowserDirLevelUp
 
 	sep #A_8BIT				; A = 8 bit
 
-	jmp __FileBrowserEnd			; ... if so, return
+	jmp __FileBrowserDone			; ... if so, return
 
-+
+__FileBrowserDirLevelUp:
 
 .ACCU 16
 
-	lda #$0001				; otherwise, load entry $0001, which is always "/.." (except for when in root dir)
-	sta selectedEntry
+	pla					; load previous dir, save copy of starting cluster
+	sta sourceCluster
+	sta DP_sourceCluster_BAK
+
+	pla
+	sta sourceCluster+2
+	sta DP_sourceCluster_BAK+2
 
 	sep #A_8BIT				; A = 8 bit
 
-	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
+	lda #%00000011				; use SDRAM buffer, skip hidden files
 	sta CLDConfigFlags
 
-	jsr DirGetEntry
-	jsr NextDir
+	jsr SpriteMessageLoading
+	jsr CardLoadDir
 
-++
+	rep #A_8BIT				; A = 16 bit
+
+	dec DP_SubDirCounter			; decrement subdirectory counter
+
+	lda #(cursorYmin << 8) + cursorXfilebrowser
+	sta cursorX				; put cursor at the top
+
+	pla					; selectedEntry // FIXME, do something wih these
+	pla					; cursorXY
+
+	sep #A_8BIT				; A = 8 bit
+
+	jmp __FileBrowserContinue
+
++
 
 
 
@@ -335,33 +434,127 @@ __FileBrowserAorStartPressed:
 
 
 
+; -------------------------- file selected, check for SPC file
 __FileBrowserFileSelected:
-	lda #%00000001				; set "file selected" flag
+	rep #A_8BIT				; A = 16 bit
+
+	lda tempEntry.tempCluster		; copy file cluster to source cluster
+	sta sourceCluster
+
+	lda tempEntry.tempCluster+2
+	sta sourceCluster+2
+
+	sep #A_8BIT				; A = 8 bit
+
+	lda #<sectorBuffer1
+	sta destLo
+	lda #>sectorBuffer1
+	sta destHi				; put first sector into sector RAM
+	stz destBank
+
+	stz sectorCounter
+	stz bankCounter
+
+	jsr ClusterToLBA			; sourceCluster -> first sourceSector
+
+	lda #kDestWRAM
+	sta destType
+
+	jsr CardReadSector			; sector -> WRAM
+
+	ldy #$0000
+	
+	lda sectorBuffer1, y			; check for ASCII string "SNES-SPC700"
+	cmp #'S'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'N'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'E'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'S'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'-'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'S'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'P'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'C'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'7'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'0'
+	bne +
+
+	iny
+
+	lda sectorBuffer1, y
+	cmp #'0'
+	bne +
+
+	jmp GotoSPCplayer			; SPC file detected, load player (from a user perspective, we aren't leaving the file browser anyway)
+
++	lda #%00000001				; file is not SPC, set "file selected" flag
 	sta DP_SelectionFlags
 
+__FileBrowserDone:
+	rep #A_8BIT				; A = 16 bit
 
+	lda DP_SubDirCounter
+	beq +					; don't pull anything if in root dir
 
-__FileBrowserEnd:
+	tax
 
+-	pla					; clean up the stack
+	pla
+	pla
+	pla
+
+	dex					; bytes to pull = DP_SubDirCounter * 8
+	bne -
+
++	sep #A_8BIT				; A = 8 bit
 rts
 
 
 
-; -------------------------- print directory content
-DirPrintDir:
-	stz selectedEntry			; reset entry index
-	stz selectedEntry+1
-
-	jsr PrintPage				; loop through entries 0 to #maxFiles or 0 to filesInDir
-
-	lda #$0D				; horizontal cursor position (in 1-pixel steps)
-	sta cursorX
-
-	stz selectedEntry			; reset entry index
-	stz selectedEntry+1
-rts
-
-
+; ********************** Print directory content ***********************
 
 DirPrintEntry:
 	lda #%00000001				; use SDRAM buffer
@@ -386,39 +579,6 @@ __PrintFileOnly:
 __DirPrintEntryDone:
 
 	stz CLDConfigFlags			; reset CLDConfigFlags
-rts
-
-
-
-; *********************** Load another directory ***********************
-
-NextDir:
-	rep #A_8BIT				; A = 16 bit
-
-	lda tempEntry.tempCluster
-	sta sourceCluster
-	bne __NotRootDir			; check if cluster = root dir
-
-	lda tempEntry.tempCluster+2
-	bne __NextDirDone
-
-	lda rootDirCluster			; if yes, load root dir
-	sta sourceCluster
-
-	lda rootDirCluster+2
-	bra __NextDirDone
-
-__NotRootDir:
-	lda tempEntry.tempCluster+2
-
-__NextDirDone:
-	sta sourceCluster+2
-
-	sep #A_8BIT				; A = 8 bit
-
-	jsr SpriteMessageLoading
-	jsr CardLoadDir
-	jsr DirPrintDir				; this includes PrintClearScreen / SetCursorPos 0, 0
 rts
 
 
@@ -572,10 +732,7 @@ PrintPage:
 __PrintPageLoopDone:
 	sep #A_8BIT				; A = 8 bit
 
-	lda #cursorYmin				; put cursor at the top
-	sta cursorY
-
-	lda #insertStandardTop
+	lda #insertStandardTop			; standard values for scrolling
 	sta insertTop
 
 	lda #insertStandardBottom

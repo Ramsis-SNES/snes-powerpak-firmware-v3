@@ -37,6 +37,8 @@ InitTXTBrowser:
 	lda rootDirCluster+2
 	sta sourceCluster+2
 
+	stz DP_SubDirCounter			; reset subdirectory counter
+
 	sep #A_8BIT				; A = 8 bit
 
 	lda #$01				; number of file types to look for (1, TXT only)

@@ -64,16 +64,6 @@ Main:
 	lda DP_cursorY_BAK
 	sta cursorY
 
-	rep #A_8BIT				; A = 16 bit
-
-	lda DP_sourceCluster_BAK		; restore current dir cluster
-	sta sourceCluster
-
-	lda DP_sourceCluster_BAK+2
-	sta sourceCluster+2
-
-	sep #A_8BIT				; A = 8 bit
-
 	lda #%00110000				; activate HDMA channels 4 and 5 (BG color gradient, windowing)
 	sta DP_HDMAchannels
 
