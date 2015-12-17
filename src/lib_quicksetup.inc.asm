@@ -21,6 +21,15 @@ VBlank:
 	phk					; set Data Bank = Program Bank
 	plb
 
+	lda temp+6				; push temp variables on the stack (used in scrolling routines)
+	pha
+	lda temp+4
+	pha
+	lda temp+2
+	pha
+	lda temp
+	pha
+
 	sep #A_8BIT				; A = 8 bit
 
 	jsr DoScrolling
@@ -106,6 +115,15 @@ VBlank:
 	lda REG_RDNMI				; clear NMI flag (just to be sure)
 
 	rep #AXY_8BIT				; A/X/Y = 16 bit
+
+	pla					; restore temp variables
+	sta temp
+	pla
+	sta temp+2
+	pla
+	sta temp+4
+	pla
+	sta temp+6
 
 	ply					; restore 16 bit registers
 	plx
