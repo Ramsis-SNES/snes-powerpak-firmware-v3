@@ -285,7 +285,7 @@ __FileBrowserDownCheckDone:
 
 +
 
-
+/* ############## disabled broken p-b-p navigation
 
 ; -------------------------- check for left shoulder button = page up
 	lda Joy1New
@@ -307,7 +307,7 @@ __FileBrowserDownCheckDone:
 
 +
 
-
+############## disabled broken p-b-p navigation */
 
 ; -------------------------- check for A button = select file / load dir
 	lda Joy1New

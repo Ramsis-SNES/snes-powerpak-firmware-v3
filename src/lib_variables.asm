@@ -432,7 +432,7 @@
 	DP_SprTextMon		dw		; keeps track of sprite-based text buffer filling level
 	DP_SprTextPalette	db		; holds palette to use when printing sprite-based text
 
-	DP_cursorX_BAK		db		; backup variables for warm boot
+	DP_cursorX_BAK		db		; backup variables for warm boot and/or file browser
 	DP_cursorY_BAK		db
 	DP_sourceCluster_BAK	dsb 4
 	DP_StackPointer_BAK	dw		; 231 bytes and counting
