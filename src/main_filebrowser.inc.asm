@@ -62,19 +62,11 @@ FileBrowser:
 	rep #A_8BIT				; A = 16 bit
 
 	lda filesInDir				; check if dir contains relevant files
-	beq __FileBrowserDirEmpty
-
-	lda #(cursorYmin << 8) + cursorXfilebrowser
-	sta cursorX				; yes, put cursor at the top
+	bne +
 
 	sep #A_8BIT				; A = 8 bit
 
-	jmp __FileBrowserContinue
-
-__FileBrowserDirEmpty:				; e.g. the edge case when no files/folders are in the root dir, and /POWERPAK is hidden
-	sep #A_8BIT				; A = 8 bit
-
-	jsr ClearSpriteText
+	jsr ClearSpriteText			; edge case: no files/folders in root dir, and /POWERPAK is hidden
 	jsr SpriteMessageError
 
 	SetCursorPos 21, 1
@@ -85,15 +77,24 @@ __FileBrowserDirEmpty:				; e.g. the edge case when no files/folders are in the 
 
 	jmp __FileBrowserDone
 
-__FileBrowserContinue:
-	stz selectedEntry			; reset entry index
-	stz selectedEntry+1
+.ACCU 16
 
-	jsr PrintPage				; loop through entries 0 to #maxFiles or 0 to filesInDir
++	lda #(cursorYmin << 8) + cursorXfilebrowser
+	sta DP_cursorX_BAK			; initial cursor position
+
+	stz selectedEntry			; reset entry index
+
+	sep #A_8BIT				; A = 8 bit
+
+__FileBrowserContinue:
+	jsr PrintPage
 
 	rep #A_8BIT				; A = 16 bit
 
-	stz selectedEntry			; reset entry index
+__FileBrowserContinue2:
+	lda DP_cursorX_BAK			; restore cursor position
+	sta cursorX
+
 	stz Joy1New				; reset input buttons
 	stz Joy1Press
 
@@ -107,28 +108,28 @@ __FileBrowserLoop:
 
 
 .IFDEF SHOWDEBUGMSGS
-;	SetCursorPos 22, 24
-;	PrintHexNum selectedEntry+1
-;	PrintString "-"
-;	PrintHexNum selectedEntry
-;	stz BGPrintMon
+	SetCursorPos 22, 24
+	PrintHexNum selectedEntry+1
+	PrintString "-"
+	PrintHexNum selectedEntry
+	stz BGPrintMon
 
-;	SetCursorPos 23, 24
-;	PrintHexNum filesInDir+1
-;	PrintString "-"
-;	PrintHexNum filesInDir
-;	stz BGPrintMon
+	SetCursorPos 23, 24
+	PrintHexNum filesInDir+1
+	PrintString "-"
+	PrintHexNum filesInDir
+	stz BGPrintMon
 
-	SetCursorPos 0, 22
+;	SetCursorPos 0, 22
 
-	tsx
-	stx temp
+;	tsx
+;	stx temp
 
-	PrintHexNum temp+1			; print stack pointer (initial value: $1FFF)
-	PrintHexNum temp
+;	PrintHexNum temp+1			; print stack pointer (initial value: $1FFF)
+;	PrintHexNum temp
 
-	SetCursorPos 1, 23
-	PrintHexNum DP_SubDirCounter
+;	SetCursorPos 1, 23
+;	PrintHexNum DP_SubDirCounter
 .ENDIF
 
 
@@ -285,14 +286,32 @@ __FileBrowserDownCheckDone:
 
 +
 
-/* ############## disabled broken p-b-p navigation
+
 
 ; -------------------------- check for left shoulder button = page up
 	lda Joy1New
 	and #%00100000
 	beq +
 
-	jsr PageUp
+	rep #A_8BIT				; A = 16 bit
+
+	lda filesInDir				; if filesInDir <= maxFiles (i.e., there's only one "page"),
+	cmp #maxFiles+1
+	bcc __PgUpDone				; then do nothing at all
+
+	pei (selectedEntry)			; preserve selectedEntry (16 bit)
+
+	jsr SyncPage				; make selectedEntry = entry no. of file at top of screen
+	jsr SelEntryDecPage
+	jsr PrintPage				; new parameters set, print previous page
+
+	pla					; restore selectedEntry (16 bit)
+	sta selectedEntry
+
+	jsr SelEntryDecPage
+
+__PgUpDone:
+	sep #A_8BIT				; A = 8 bit
 
 +
 
@@ -303,11 +322,29 @@ __FileBrowserDownCheckDone:
 	and #%00010000
 	beq +
 
-	jsr PageDown
+	rep #A_8BIT				; A = 16 bit
+
+	lda filesInDir				; if filesInDir <= maxFiles (i.e., there's only one "page"),
+	cmp #maxFiles+1
+	bcc __PgDnDone				; then do nothing at all
+
+	pei (selectedEntry)			; preserve selectedEntry (16 bit)
+
+	jsr SyncPage				; make selectedEntry = entry no. of file at top of screen
+	jsr SelEntryIncPage
+	jsr PrintPage				; new parameters set, print next page
+
+	pla					; restore selectedEntry (16 bit)
+	sta selectedEntry
+
+	jsr SelEntryIncPage
+
+__PgDnDone:
+	sep #A_8BIT				; A = 8 bit
 
 +
 
-############## disabled broken p-b-p navigation */
+
 
 ; -------------------------- check for A button = select file / load dir
 	lda Joy1New
@@ -360,10 +397,10 @@ __FileBrowserSkipEntryHandler:
 	jsr CardLoadDir
 
 	lda #cursorXfilebrowser			; put cursor at the top
-	sta cursorX
+	sta DP_cursorX_BAK
 
 	lda #cursorYmin
-	sta cursorY
+	sta DP_cursorY_BAK
 
 	jmp __FileBrowserContinue
 
@@ -374,7 +411,7 @@ __FileBrowserSkipEntryHandler:
 ; -------------------------- check for B button = go up one directory / return
 	lda Joy1New+1
 	and #%10000000
-	beq +
+	beq ++
 
 	rep #A_8BIT				; A = 16 bit
 
@@ -409,17 +446,49 @@ __FileBrowserDirLevelUp:
 
 	dec DP_SubDirCounter			; decrement subdirectory counter
 
-	lda #(cursorYmin << 8) + cursorXfilebrowser
-	sta cursorX				; put cursor at the top
+	pla					; restore previous selectedEntry
+	sta selectedEntry
 
-	pla					; selectedEntry // FIXME, do something wih these
-	pla					; cursorXY
+	pla					; restore previous cursor position
+	sta DP_cursorX_BAK
+
+	pei (selectedEntry)			; preserve previous selectedEntry as current selectedEntry
 
 	sep #A_8BIT				; A = 8 bit
 
-	jmp __FileBrowserContinue
+	lda DP_cursorY_BAK			; the following code snippet does essentially the same as SyncPage, but with the backed-up cursor position
+	sec
+	sbc #cursorYmin				; subtract indention
+	lsr a
+	lsr a					; divide by 8 to get the difference between selectedEntry
+	lsr a					; and entry no. of the file at the top of the screen
+	sta temp
+	stz temp+1
 
-+
+	rep #A_8BIT				; A = 16 bit
+
+	lda selectedEntry
+	sec					; make selectedEntry = file at the top of the screen
+	sbc temp
+	bcs +					; carry set --> new selectedEntry > 0
+
+	eor #$FFFF				; carry clear --> underflow, selectedEntry < 0
+	inc a					; make subtraction result positive
+	sta temp
+
+	lda filesInDir				; subtract underflow from filesInDir
+	sec
+	sbc temp
++	sta selectedEntry
+
+	jsr PrintPage				; new (old) parameters set, print page
+
+	pla					; restore selectedEntry
+	sta selectedEntry
+
+	jmp __FileBrowserContinue2
+
+++
 
 
 
@@ -554,7 +623,65 @@ rts
 
 
 
-; ********************** Print directory content ***********************
+; ********************** File browser subroutines **********************
+
+PrintPage:
+	php
+
+	rep #A_8BIT				; A = 16 bit
+
+	pei (selectedEntry)			; preserve selectedEntry (16 bit)
+
+	sep #A_8BIT				; A = 8 bit
+
+	stz temp				; reset file counter
+
+	jsr PrintClearScreen
+
+	SetCursorPos 0, 0
+
+-	inc temp				; increment file counter
+
+	jsr DirPrintEntry
+
+	rep #A_8BIT				; A = 16 bit
+
+	inc selectedEntry			; increment entry index
+
+	lda selectedEntry
+	cmp filesInDir				; check if last file reached
+	bcc +
+
+	lda filesInDir				; yes, check if dir contains less files than can be put on the screen
+	cmp #maxFiles+1
+	bcc __PrintPageLoopDone
+
+	stz selectedEntry			; there are more files, reset selectedEntry so that it "wraps around" 
+
++	sep #A_8BIT				; A = 8 bit
+
+	lda temp				; check if printY max reached
+	cmp #maxFiles
+	bcc -
+
+__PrintPageLoopDone:
+	rep #A_8BIT				; A = 16 bit
+
+	pla					; restore selectedEntry (16 bit)
+	sta selectedEntry
+
+	sep #A_8BIT				; A = 8 bit
+
+	lda #insertStandardTop			; standard values for scrolling
+	sta insertTop
+
+	lda #insertStandardBottom
+	sta insertBottom
+
+	plp					; restore processor status
+rts
+
+
 
 DirPrintEntry:
 	lda #%00000001				; use SDRAM buffer
@@ -583,89 +710,36 @@ rts
 
 
 
-; ********************** Page-by-page navigation ***********************
-
-PageDown:
-	rep #A_8BIT				; A = 16 bit
-
-	lda filesInDir				; if filesInDir <= maxFiles (i.e., there's only one "page"),
-	cmp #maxFiles+1
-	bcc __PgDnDone				; then do nothing at all
-
-	sec
-	sbc #maxFiles
-	sta temp+2				; save filesInDir - maxFiles to temp var
-	cmp selectedEntry			; check if selectedEntry is within the last "page"
-	bcc __PgDnNextPage			; if so, show "last" page
-
-	jsr SyncPage				; otherwise, make selectedEntry = entry no. of file at top of screen
-
 .ACCU 16
 
+SelEntryDecPage:				; decrement selectedEntry by one "page", wrap around zero if necessary
 	lda selectedEntry
-	clc
-	adc #maxFiles				; add maxFiles for "next page"
-	bcs __PgDnOverflow			; carry set means new selectedEntry > $FFFF
+	sec
+	sbc #maxFiles				; subtract maxFiles for "previous page"
+	bcs +					; carry set --> new selectedEntry >= 0
 
-	cmp temp+2				; check if new selectedEntry > filesInDir - maxFiles
-	bcc __PgDnNextPage
+	eor #$FFFF				; carry clear --> underflow, selectedEntry < 0
+	inc a					; make subtraction result positive
+	sta temp+4
 
-__PgDnOverflow:
-	lda temp+2				; overflow, set selectedEntry = filesInDir - maxFiles ("last" page)
-
-__PgDnNextPage:
-	sta selectedEntry
-
-	pha					; push selectedEntry (16 bit) onto stack
-
-	jsr PrintPage				; new parameters set, print next page
-
-.ACCU 16
-
-	pla					; pull selectedEntry (16 bit) from stack
-	sta selectedEntry
-
-__PgDnDone:
-
-	sep #A_8BIT				; A = 8 bit
+	lda filesInDir				; subtract underflow from filesInDir
+	sec
+	sbc temp+4
++	sta selectedEntry			; e.g. if selectedEntry was $FFFE after the first subtraction, then it is now (filesInDir-2)
 rts
 
 
 
-PageUp:
-	rep #A_8BIT				; A = 16 bit
-
-	lda filesInDir				; if filesInDir <= maxFiles (i.e., there's only one "page"),
-	cmp #maxFiles+1
-	bcc __PgUpDone				; then do nothing at all
-
-	jsr SyncPage				; make selectedEntry = entry no. of file at top of screen
-
-.ACCU 16
-
+SelEntryIncPage:				; increment selectedEntry by one "page", wrap around zero if necessary
 	lda selectedEntry
-	sec
-	sbc #maxFiles				; subtract maxFiles for "previous page"
-	bcs __PgUpNextPage			; carry set means no borrow required, continue
+	clc
+	adc #maxFiles				; add maxFiles for "next page"
+	cmp filesInDir
+	bcc +					; new selectedEntry < filesInDir
 
-__PgUpUnderflow:				; carry clear --> underflow, selectedEntry < $0000
-	lda #$0000				; set selectedEntry = $0000 for "first" page
-
-__PgUpNextPage:
-	sta selectedEntry
-
-	pha					; push selectedEntry (16 bit) onto stack
-
-	jsr PrintPage				; new parameters set, print previous page
-
-.ACCU 16
-
-	pla					; pull selectedEntry (16 bit) from stack
-	sta selectedEntry
-
-__PgUpDone:
-
-	sep #A_8BIT				; A = 8 bit
+;	sec					; carry set (and thus, sec intentionally commented out) --> overflow, selectedEntry >= filesInDir
+	sbc filesInDir				; subtract filesInDir
++	sta selectedEntry			; e.g. if selectedEntry was (filesInDir+5) after the first addition, then it is now $0005)
 rts
 
 
@@ -682,7 +756,6 @@ SyncPage:
 	lsr a					; divide by 8 to get the difference between selectedEntry
 	lsr a					; and entry no. of the file at the top of the screen
 	sta temp
-
 	stz temp+1
 
 	rep #A_8BIT				; A = 16 bit
@@ -690,53 +763,16 @@ SyncPage:
 	lda selectedEntry
 	sec					; subtract difference so that selectedEntry now corresponds
 	sbc temp				; to the file at the top of the screen
-	bcs +					; carry set means no borrow, continue
-	lda #$0000				; carry clear --> underflow, selectedEntry < $0000, reset selectedEntry
+	bcs +					; carry set --> new selectedEntry > 0
 
+	eor #$FFFF				; carry clear --> underflow, selectedEntry < 0
+	inc a					; make subtraction result positive
+	sta temp
+
+	lda filesInDir				; subtract underflow from filesInDir
+	sec
+	sbc temp
 +	sta selectedEntry
-
-	plp					; restore processor status
-rts
-
-
-
-PrintPage:
-	php
-
-	sep #A_8BIT				; A = 8 bit
-
-	stz temp				; reset file counter
-
-	jsr PrintClearScreen
-
-	SetCursorPos 0, 0
-
--	inc temp				; increment file counter
-
-	jsr DirPrintEntry
-
-	rep #A_8BIT				; A = 16 bit
-
-	inc selectedEntry			; increment entry index
-
-	lda selectedEntry
-	cmp filesInDir				; check if last file reached, jump out
-	beq __PrintPageLoopDone
-
-	sep #A_8BIT				; A = 8 bit
-
-	lda temp				; check if printY max reached, jump out
-	cmp #maxFiles
-	bcc -
-
-__PrintPageLoopDone:
-	sep #A_8BIT				; A = 8 bit
-
-	lda #insertStandardTop			; standard values for scrolling
-	sta insertTop
-
-	lda #insertStandardBottom
-	sta insertBottom
 
 	plp					; restore processor status
 rts

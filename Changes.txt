@@ -13,6 +13,8 @@ CHANGES IN V3.01 "MUFASA" (UNRELEASED WIP BUILD):
 ______________________________________________________________________
 
 - merged all file browsing routines (there were 4 by now) into a single subroutine, this makes planned additions/corrections to the file browser much easier :-)
+- rewrote page-by-page navigation, you can now flip through the "pages" of a directory indefinitely (i.e., no forced "stop" at the beginning and end of the file listing)
+- added feature: when you return to a directory's parent directory, the cursor will automatically be placed on the subdirectory you left for convenience. :-) Caveat: The stack is used to preserve the necessary data (8 bytes per directory), so the amount of subfolder levels is limited (still well over 500 though ... :D )
 - added a file size check to the directory loading routine, 0-byte files are skipped now instead of producing a CF card error
 - fixed a potentially critical bug related to accumulator size in the same routine (SDRAM buffering portion)
 - added a hint to the settings menu alerting the user to return there and save the settings after selecting a new theme
