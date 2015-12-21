@@ -142,6 +142,7 @@ __FileBrowserLoop:
 __UpPressed:
 	lda cursorYCounter
 	bne __FileBrowserUpCheckDone
+
 	lda scrollYCounter
 	bne __FileBrowserUpCheckDone
 
@@ -195,6 +196,7 @@ __FileBrowserUpCheckDone:
 __DownPressed:
 	lda cursorYCounter
 	bne __FileBrowserDownCheckDone
+
 	lda scrollYCounter
 	bne __FileBrowserDownCheckDone
 
@@ -243,12 +245,13 @@ __FileBrowserDownCheckDone:
 ; -------------------------- check for d-pad pressed left, scroll up very fast
 	lda Joy1Press+1
 	and #%00000010
-	beq +
+	beq __FileBrowserLeftCheckDone
 
 	lda cursorYCounter
-	bne +
+	bne __FileBrowserLeftCheckDone
+
 	lda scrollYCounter
-	bne +
+	bne __FileBrowserLeftCheckDone
 
 	lda #$08
 ;	lda #$04
@@ -260,19 +263,20 @@ __FileBrowserDownCheckDone:
 
 	jsr ScrollUp
 
-+
+__FileBrowserLeftCheckDone:
 
 
 
 ; -------------------------- check for d-pad pressed right, scroll down very fast
 	lda Joy1Press+1
 	and #%00000001
-	beq +
+	beq __FileBrowserRightCheckDone
 
 	lda cursorYCounter
-	bne +
+	bne __FileBrowserRightCheckDone
+
 	lda scrollYCounter
-	bne +
+	bne __FileBrowserRightCheckDone
 
 	lda #$08
 ;	lda #$04
@@ -284,14 +288,14 @@ __FileBrowserDownCheckDone:
 
 	jsr ScrollDown
 
-+
+__FileBrowserRightCheckDone:
 
 
 
 ; -------------------------- check for left shoulder button = page up
 	lda Joy1New
 	and #%00100000
-	beq +
+	beq __FileBrowserLCheckDone
 
 	rep #A_8BIT				; A = 16 bit
 
@@ -313,14 +317,14 @@ __FileBrowserDownCheckDone:
 __PgUpDone:
 	sep #A_8BIT				; A = 8 bit
 
-+
+__FileBrowserLCheckDone:
 
 
 
 ; -------------------------- check for right shoulder button = page down
 	lda Joy1New
 	and #%00010000
-	beq +
+	beq __FileBrowserRCheckDone
 
 	rep #A_8BIT				; A = 16 bit
 
@@ -342,14 +346,14 @@ __PgUpDone:
 __PgDnDone:
 	sep #A_8BIT				; A = 8 bit
 
-+
+__FileBrowserRCheckDone:
 
 
 
 ; -------------------------- check for A button = select file / load dir
 	lda Joy1New
 	and #%10000000
-	beq ++
+	beq __FileBrowserACheckDone
 
 __FileBrowserAorStartPressed:
 	lda #%00000011				; use SDRAM buffer, skip hidden files in next dir
@@ -404,14 +408,14 @@ __FileBrowserSkipEntryHandler:
 
 	jmp __FileBrowserContinue
 
-++
+__FileBrowserACheckDone:
 
 
 
 ; -------------------------- check for B button = go up one directory / return
 	lda Joy1New+1
 	and #%10000000
-	beq ++
+	beq __FileBrowserBCheckDone
 
 	rep #A_8BIT				; A = 16 bit
 
@@ -488,18 +492,20 @@ __FileBrowserDirLevelUp:
 
 	jmp __FileBrowserContinue2
 
-++
+__FileBrowserBCheckDone:
 
 
 
 ; -------------------------- check for Start button = select file / load dir
 	lda Joy1New+1
 	and #%00010000
-	beq +
+	beq __FileBrowserStartCheckDone
 
 	jmp __FileBrowserAorStartPressed
 
-+	jmp __FileBrowserLoop			; end of loop
+__FileBrowserStartCheckDone:
+
+	jmp __FileBrowserLoop			; end of loop
 
 
 
