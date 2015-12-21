@@ -58,42 +58,16 @@ FileBrowser:
 	sta CLDConfigFlags
 
 	jsr CardLoadDir				; load content of directory selected via sourceCluster (32-bit)
-
-	rep #A_8BIT				; A = 16 bit
-
-	lda filesInDir				; check if dir contains relevant files
-	bne +
-
-	sep #A_8BIT				; A = 8 bit
-
-	jsr ClearSpriteText			; edge case: no files/folders in root dir, and /POWERPAK is hidden
-	jsr SpriteMessageError
-
-	SetCursorPos 21, 1
-	PrintString "No relevant files/folders found!\n"
-	PrintString "  Press any button to return."
-
-	WaitForUserInput
-
-	jmp __FileBrowserDone
+	jsr FileBrowserCheckDirEmpty
 
 .ACCU 16
 
-+	lda #(cursorYmin << 8) + cursorXfilebrowser
-	sta DP_cursorX_BAK			; initial cursor position
+	lda #(cursorYmin << 8) + cursorXfilebrowser
+	sta cursorX				; initial cursor position
 
 	stz selectedEntry			; reset entry index
 
-	sep #A_8BIT				; A = 8 bit
-
-__FileBrowserContinue:
 	jsr PrintPage
-
-	rep #A_8BIT				; A = 16 bit
-
-__FileBrowserContinue2:
-	lda DP_cursorX_BAK			; restore cursor position
-	sta cursorX
 
 	stz Joy1New				; reset input buttons
 	stz Joy1Press
@@ -398,15 +372,19 @@ __FileBrowserSkipEntryHandler:
 	sep #A_8BIT				; A = 8 bit
 
 	jsr SpriteMessageLoading
-	jsr CardLoadDir
+	jsr CardLoadDir				; CLDConfigFlags already set above
+;	jsr FileBrowserCheckDirEmpty		; don't bother, subdirectories are never empty (they always contain /. and /.. entries)
 
-	lda #cursorXfilebrowser			; put cursor at the top
-	sta DP_cursorX_BAK
+	rep #A_8BIT				; A = 16 bit
 
-	lda #cursorYmin
-	sta DP_cursorY_BAK
+	stz selectedEntry			; reset entry index
 
-	jmp __FileBrowserContinue
+	jsr PrintPage
+
+	lda #(cursorYmin << 8) + cursorXfilebrowser
+	sta cursorX				; initial cursor position
+
+	sep #A_8BIT				; A = 8 bit
 
 __FileBrowserACheckDone:
 
@@ -456,11 +434,17 @@ __FileBrowserDirLevelUp:
 	pla					; restore previous cursor position
 	sta DP_cursorX_BAK
 
+	sep #A_8BIT				; A = 8 bit
+
+	jsr FileBrowserCheckDirEmpty		; reminder: only do this here in order not to end up with a corrupted stack
+
+	rep #A_8BIT				; A = 16 bit
+
 	pei (selectedEntry)			; preserve previous selectedEntry as current selectedEntry
 
 	sep #A_8BIT				; A = 8 bit
 
-	lda DP_cursorY_BAK			; the following code snippet does essentially the same as SyncPage, but with the backed-up cursor position
+	lda DP_cursorY_BAK			; the following code snippet does essentially the same as SyncPage, but with the backed-up cursor position (we don't want the cursor to appear on the screen yet)
 	sec
 	sbc #cursorYmin				; subtract indention
 	lsr a
@@ -490,7 +474,10 @@ __FileBrowserDirLevelUp:
 	pla					; restore selectedEntry
 	sta selectedEntry
 
-	jmp __FileBrowserContinue2
+	lda DP_cursorX_BAK			; make cursor appear on the screen
+	sta cursorX
+
+	sep #A_8BIT				; A = 8 bit
 
 __FileBrowserBCheckDone:
 
@@ -630,6 +617,30 @@ rts
 
 
 ; ********************** File browser subroutines **********************
+
+FileBrowserCheckDirEmpty:
+	rep #A_8BIT				; A = 16 bit
+
+	lda filesInDir				; check if dir contains relevant files
+	beq +
+rts
+
++	pla					; clean up the stack (no rts from jsr FileBrowserCheckDirEmpty)
+
+	sep #A_8BIT				; A = 8 bit
+
+	jsr ClearSpriteText			; edge case: no files/folders in root dir, and /POWERPAK is hidden
+	jsr SpriteMessageError
+
+	SetCursorPos 21, 1
+	PrintString "No files/folders to display!\n"
+	PrintString "  Press any button to return."
+
+	WaitForUserInput
+
+	bra __FileBrowserDone
+
+
 
 PrintPage:
 	php
