@@ -937,18 +937,16 @@ LoadGameGenie:
 __ResetSystemNow:
 	jsr SaveLastGame
 
-;lda #$00
-;sta $4200    ;;turn off nmi
-;sta $420B    ;;turn off dma
-
 	lda #$80				; enter forced blank, this should help suppress annoying effects
 	sta $2100
 
-	sei					; disable NMI & IRQ so we can permanently reset DMA registers before the game starts
+	sei					; disable NMI & IRQ so we can reset DMA registers before the game starts
 	stz REG_NMITIMEN
 
-	lda #$FF				; clear DMA registers, this fixes Nightmare Busters (Beta ROM) crash upon boot
+	stz $420B				; turn off DMA & HDMA
+	stz $420C
 
+	lda #$FF				; fill DMA registers with initial values, this fixes Nightmare Busters (Beta ROM) crash upon boot
 	ldx #$0000
 
 -	sta $4300, x
@@ -961,7 +959,7 @@ __ResetSystemNow:
 	sta $4370, x
 
 	inx
-	cpx #$000B				; regs $43x0 through $43xA re-initiated?
+	cpx #$000B				; regs $43x0 through $43xA initialized?
 	bne -
 
 	stz $420D				; turn off FastROM
