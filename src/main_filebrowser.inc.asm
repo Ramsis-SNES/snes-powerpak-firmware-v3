@@ -62,12 +62,12 @@ FileBrowser:
 
 .ACCU 16
 
-	lda #(cursorYmin << 8) + cursorXfilebrowser
-	sta cursorX				; initial cursor position
-
 	stz selectedEntry			; reset entry index
 
 	jsr PrintPage
+
+	lda #(cursorYmin << 8) + cursorXfilebrowser
+	sta cursorX				; initial cursor position
 
 	stz Joy1New				; reset input buttons
 	stz Joy1Press
