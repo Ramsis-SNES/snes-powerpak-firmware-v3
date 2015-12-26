@@ -45,6 +45,11 @@ WarmBootInit:
 
 	cli					; enable interrupts
 
+	jsl apu_ram_init
+
+	phk					; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
+	plb
+
 	jsr SpriteInit				; reinitialize OAM
 	jsr __WarmBootGFXsetup			; reinitialize GFX registers
 	jsr JoyInit				; reinitialize joypads, enable NMI

@@ -681,4 +681,56 @@ transfer:			; .org $0002
 
 
 
+; ********************* Init APU RAM (by ikari_01) *********************
+
+apu_ram_init:
+	php
+
+	sep #$20
+	rep #$10
+
+	phk					; set data bank = program bank
+	plb
+
+	ldy #$0002
+	jsr spc_begin_upload
+	ldx #$0000
+
+-	lda.w apu_ram_init_code, x
+	jsr spc_upload_byte
+	inx
+	cpx #20
+	bne -
+
+	ldx #$0002
+	stx REG_APUIO2
+	stz REG_APUIO1
+	lda REG_APUIO0
+	inc a
+	inc a
+	sta REG_APUIO0
+-	cmp REG_APUIO0
+	bne -
+
+	plp
+rtl
+
+
+
+apu_ram_init_code:        ; .org $0002
+	.byt $e8,$aa      ; mov a, #$aa
+	.byt $8d,$00      ; mov y, #$00
+	.byt $cd,$fe      ; mov x, #$fe
+	; loop:
+	.byt $d6,$00,$01  ; mov !$0100+y, a
+	.byt $fc          ; inc y
+	.byt $d0,-6       ; bne loop
+	.byt $ab,$0a      ; inc loop+2
+	.byt $1d          ; dec x
+	.byt $d0,-11      ; bne loop
+	; Re-run IPL
+	.byt $5f,$c0,$ff  ; jmp $ffc0
+
+
+
 ; ******************************** EOF *********************************

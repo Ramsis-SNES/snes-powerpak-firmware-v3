@@ -83,6 +83,11 @@ __ColdBoot:
 	txs
 
 	jsr InitSNES				; initialize SNES hardware
+	jsl apu_ram_init
+
+	phk					; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
+	plb
+
 	jsr SpriteInit				; set up sprite buffer
 	jsr QuickSetup				; set up VRAM, video mode, background and character pointers
 	jsr JoyInit				; initialize joypads and enable NMI
