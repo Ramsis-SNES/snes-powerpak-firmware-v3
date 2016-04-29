@@ -1,7 +1,7 @@
 ===========================================================================================
 |
 |   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-|   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+|   (c) 2012-2016 by ManuLöwe (http://www.manuloewe.de/)
 |
 |	*** CHANGES LIST ***
 |
@@ -9,19 +9,21 @@
 
 
 
-CHANGES IN V3.01 "MUFASA" (UNRELEASED WIP BUILD):
+CHANGES IN V3.00 "MUFASA" BUILD #11331 (RELEASED APRIL 29, 2016):
 ______________________________________________________________________
 
-- merged all file browsing routines (there were 4 by now) into a single subroutine, this makes planned additions/corrections to the file browser much easier :-)
+- merged all file browsing routines (there were 4 by now) into a single subroutine, this makes future additions/corrections to the file browser much easier :-)
 - rewrote page-by-page navigation, you can now flip through the "pages" of a directory indefinitely (i.e., no forced "stop" at the beginning and end of the file listing)
 - added feature: when you return to a directory's parent directory, the cursor will automatically be placed on the subdirectory you left for convenience. :-) Caveat: The stack is used to preserve the necessary data (8 bytes per directory), so the amount of subfolder levels is limited (still well over 500 though ... :D )
 - added a file size check to the directory loading routine, 0-byte files are skipped now instead of producing a CF card error
+- added ikari's fix for Soul Blazer intro music
+- fixed a DMA issue causing problems (at least) with Bust-a-Move/Puzzle Bobble, King of Dragons, and Super Mario Allstars & World
 - fixed a potentially critical bug related to accumulator size in the same routine (SDRAM buffering portion)
 - added a hint to the settings menu alerting the user to return there and save the settings after selecting a new theme
 
 
 
-CHANGES IN V3.00 "MUFASA" (RELEASED MAY 24, 2015):
+CHANGES IN V3.00 "MUFASA" BUILD #11310 (RELEASED MAY 24, 2015):
 ______________________________________________________________________
 
 - no more CF module mess, the concept of which has been obsolete ever since the introduction of my in-system flasher anyway. :p Instead, all loading routines have been integrated into the boot ROM itself. Not only does this offer yet another overall speed boost, but it also makes it easier to relocate flags and variables without having to worry about "old version boot ROM" vs. "new version CF modules" variable clashes whenever a new version is released :D
