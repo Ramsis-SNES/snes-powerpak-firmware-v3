@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** MAIN CODE SECTION: THEME FILE HANDLER ***
 ;
@@ -160,7 +160,7 @@ __BuildFontFromThemeBG1:
 
 	ldy #0
 
--	stz $2118				; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16×8 tiles
+-	stz $2118				; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16Ã—8 tiles
 	stz $2119
 	iny					; and 2 blank tiles because BG1 is 4bpp)
 	cpy #24					; 16 bytes (8 double bytes) per tile
@@ -182,7 +182,7 @@ __BuildFontFromThemeBG1:
 __BuildFontFromThemeBG2:
 	ldy #0
 
--	stz $2118				; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
+-	stz $2118				; first, add 1 blank tile (Mode 5 forces 16Ã—8 tiles,
 	stz $2119
 	iny					; no more blank tiles because BG2 is 2bpp)
 	cpy #8					; 16 bytes (8 double bytes) per tile
@@ -190,7 +190,7 @@ __BuildFontFromThemeBG2:
 
 	ldy #0
 
--	lda DMAREADDATA				; next, copy 8×8 font tile (font tiles sit on the "right")
+-	lda DMAREADDATA				; next, copy 8Ã—8 font tile (font tiles sit on the "right")
 	sta $2118
 	lda DMAREADDATA
 	sta $2119

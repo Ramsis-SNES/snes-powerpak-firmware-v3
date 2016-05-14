@@ -1,7 +1,7 @@
 ===========================================================================================
 |
 |   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-|   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+|   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 |
 |	*** INSTALLATION & USAGE ***
 |
@@ -14,7 +14,7 @@ ______________________________________________________________________
 
 Despite thorough testing, this software is NOT guaranteed to be bug-free. There are likely even critical issues in this software which might at worst corrupt data on your CF card and/or render your SNES PowerPak useless and/or damage your SNES control deck, as well as any accessory connected to it (like joypads, your TV set, etc.).
 
-The developer, ManuLöwe, will NOT be held responsible for any harm directly or indirectly caused by this software and/or the documents accompanying it, which you agree upon by downloading, installing and using this software. For more information, please read the disclaimer further below.
+The developer, ManuLÃ¶we, will NOT be held responsible for any harm directly or indirectly caused by this software and/or the documents accompanying it, which you agree upon by downloading, installing and using this software. For more information, please read the disclaimer further below.
 
 Most importantly, this being unofficial software, you will definitely void the five-year replacement warranty granted by the manufacturer of your SNES PowerPak!
 
@@ -123,10 +123,10 @@ Next, here is a desription of the theme (*.THM) file format introduced in v3.00:
 -------------------------------------------------------------------------------------------------------------
 BIN FILE NO. - DATA			SIZE (in bytes)		NOTES
 -------------------------------------------------------------------------------------------------------------
-#01 - "Small" BG font			2,048	($800)		2bpp ASCII font (128×64 px, 4 colors)
-#02 - "Big" sprite-based font		4,096	($1000)		4bpp ASCII font (128×64 px, 16 colors)
-#03 - Sprite-based main GFX		8,192	($2000)		4bpp image (128×128 px, 16 colors)
-#04 - Cursor/buttons sprite GFX		2,048	($800)		4bpp image (128×32 px, 16 colors)
+#01 - "Small" BG font			2,048	($800)		2bpp ASCII font (128Ã—64 px, 4 colors)
+#02 - "Big" sprite-based font		4,096	($1000)		4bpp ASCII font (128Ã—64 px, 16 colors)
+#03 - Sprite-based main GFX		8,192	($2000)		4bpp image (128Ã—128 px, 16 colors)
+#04 - Cursor/buttons sprite GFX		2,048	($800)		4bpp image (128Ã—32 px, 16 colors)
 #05 - BG font palette			8	($8)		4 colors
 #06 - Main GFX palette			32	($20)		16 colors
 #07 - Cursor/buttons palette		32	($20)		16 colors
@@ -140,9 +140,9 @@ Total theme file size:			17,194	($432A)
 
 Further notes on theme data:
 
-#01: The BG font is an 8×8 fixed-width font (FWF), so characters should be centered within their 8×8 tiles. Keep in mind that BG font tiles are "scaled" horizontally (to 4×8 pixels), so your font will look different on the screen as compared to the original image data. Also note that tiles $10-$16 are used as border tiles. Check the DrawFrame macro for details -- the tile numbers in there must however be divided by 2 to get the correct tile number in the PCX/PIC image. If you don't want frame borders in your theme at all, simply leave tiles $10-$16 blank (i.e., fill them with the first color in your palette, which is the transparent color).
+#01: The BG font is an 8Ã—8 fixed-width font (FWF), so characters should be centered within their 8Ã—8 tiles. Keep in mind that BG font tiles are "scaled" horizontally (to 4Ã—8 pixels), so your font will look different on the screen as compared to the original image data. Also note that tiles $10-$16 are used as border tiles. Check the DrawFrame macro for details -- the tile numbers in there must however be divided by 2 to get the correct tile number in the PCX/PIC image. If you don't want frame borders in your theme at all, simply leave tiles $10-$16 blank (i.e., fill them with the first color in your palette, which is the transparent color).
 
-#02: The sprite font is an 8×8 variable-width font (VWF), so characters should be aligned left within their 8×8 tiles (unless you want the sprite font to mimic an FWF, as I did in the "Retrousb" theme). When choosing or designing your sprite font, keep in mind that string positions are hard-coded (i.e., not affected by theme data), so an especially bold/broad font might result in an awkward screen layout. BTW, the font width table is theme data part #10.
+#02: The sprite font is an 8Ã—8 variable-width font (VWF), so characters should be aligned left within their 8Ã—8 tiles (unless you want the sprite font to mimic an FWF, as I did in the "Retrousb" theme). When choosing or designing your sprite font, keep in mind that string positions are hard-coded (i.e., not affected by theme data), so an especially bold/broad font might result in an awkward screen layout. BTW, the font width table is theme data part #10.
 
 #03-04: Nothing special here. Check the theme data files in the firmware package for examples (the D-pad graphics are unused at this time).
 
@@ -192,8 +192,8 @@ ______________________________________________________________________
 
 All trademarks mentioned in this readme file are the property of their respective owners.
 
-This software is freeware. It is provided "as is" and without express or implied warranty of any kind. ManuLöwe will not be held liable or responsible for any losses, damages, injuries, and/or legal consequences due to the misuse and/or illegal use of any of the files contained within this archive. 
+This software is freeware. It is provided "as is" and without express or implied warranty of any kind. ManuLÃ¶we will not be held liable or responsible for any losses, damages, injuries, and/or legal consequences due to the misuse and/or illegal use of any of the files contained within this archive. 
 
 The archive may be redistributed freely under the circumstance that no file(s) is/are added, changed, and/or removed.
 
-ManuLöwe is not affiliated in any way with The Retrozone / RetroUSB or Nintendo.
+ManuLÃ¶we is not affiliated in any way with The Retrozone / RetroUSB or Nintendo.

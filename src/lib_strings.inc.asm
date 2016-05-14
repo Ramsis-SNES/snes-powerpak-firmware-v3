@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** PRINT HANDLER ***
 ;	Code in this file based on v1.0X code written by:
@@ -150,7 +150,7 @@ rts
 ; The ASCII values need to be doubled because both fonts have empty 8x8
 ; tiles before or after each character. By not advancing the text cursor
 ; position when using BG1, all of this makes it possible to work around
-; Mode 5's 16×8 tile size limitation, with the main drawback that the
+; Mode 5's 16Ã—8 tile size limitation, with the main drawback that the
 ; text engine uses up both available BG layers.
 
 ; In: A -- ASCII code to print
@@ -172,7 +172,7 @@ __FillTextBufferBG1:
 
 	ldx Cursor
 
-	asl					; character code × 2 so it matches hi-res font tile location
+	asl					; character code Ã— 2 so it matches hi-res font tile location
 	sta TextBuffer.BG1, x			; write it to the BG1 text buffer
 
 	bra __FillTextBufferDone		; ... and done
@@ -185,7 +185,7 @@ __FillTextBufferBG2:
 
 	ldx Cursor
 
-	asl					; character code × 2
+	asl					; character code Ã— 2
 	sta TextBuffer.BG2, x			; write it to the BG2 text buffer
 	inx					; ... and advance text cursor position
 	stx Cursor
@@ -198,7 +198,7 @@ rts
 
 ; *********************** Sprite-based printing ************************
 
-; Added for v3.00 by ManuLöwe.
+; Added for v3.00 by ManuLÃ¶we.
 
 ; A very basic sprite-based font renderer that allows us to print
 ; messages in window-masked areas (e.g., above/below a file listing).
@@ -435,7 +435,7 @@ PrintClearScreen:
 	sta TextBuffer.BG2, x
 	inx
 	inx
-	cpx #$0400				; 1024 bytes (lower 32×32 tilemaps only)
+	cpx #$0400				; 1024 bytes (lower 32Ã—32 tilemaps only)
 	bne -
 
 	sep #A_8BIT				; A = 8 bit

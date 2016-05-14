@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** SNES INITIALIZATION ***
 ;
@@ -11,7 +11,7 @@
 
 ; ********************** Warm boot initialization **********************
 
-; Added for v3.00 by ManuLöwe
+; Added for v3.00 by ManuLÃ¶we
 
 .ACCU 8
 .INDEX 16

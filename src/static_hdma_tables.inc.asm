@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** HDMA TABLES ***
 ;
@@ -40,7 +40,7 @@ HDMA_ColMath_End:
 ; *************************** Scroll offsets ***************************
 
 ; Ensures the SPC player "window" is centered vertically, and allows
-; its content to be placed on the upper 32×32 tilemap so the lower one
+; its content to be placed on the upper 32Ã—32 tilemap so the lower one
 ; (containing the directory listing) remains intact.
 
 HDMA_Scroll:
@@ -49,7 +49,7 @@ HDMA_Scroll:
 	.DB $00, $00	; +3 patchme scrollY
 
 	.DB $80					; for $80 + $08 = 136 scanlines (size of SPC player "window"),
-	.DB $00, $01				; horizontal scroll offset = $0100 (upper 32×32 tile map)
+	.DB $00, $01				; horizontal scroll offset = $0100 (upper 32Ã—32 tile map)
 	.DB $00, $00	; v-scroll = 0
 	.DB $08
 	.DB $00, $01

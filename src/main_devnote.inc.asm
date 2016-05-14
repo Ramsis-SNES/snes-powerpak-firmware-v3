@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** DEVELOPER'S NOTE ***
 ;
@@ -17,11 +17,11 @@ GotoDevNote:
 
 
 
-; -------------------------- clear upper 32×32 tilemap in case the SPC player was used
+; -------------------------- clear upper 32Ã—32 tilemap in case the SPC player was used
 	rep #A_8BIT				; A = 16 bit
 
 	lda #$4040				; overwrite 2 tiles at once ($40 = space)
-	ldx #$0400				; start at upper 32×32 tilemap
+	ldx #$0400				; start at upper 32Ã—32 tilemap
 
 -	sta TextBuffer.BG1, x
 	sta TextBuffer.BG2, x
@@ -44,7 +44,7 @@ GotoDevNote:
 
 
 ; -------------------------- wall of text
- 	SetCursorPos 1, 0			; "page" 1 in lower 32×32 tilemap
+ 	SetCursorPos 1, 0			; "page" 1 in lower 32Ã—32 tilemap
 
 	PrintString "Greetings, fellow SNES gamer! :-)\n\n"
 	PrintString "Thank you so much for downloading and installing my\n"
@@ -70,7 +70,7 @@ GotoDevNote:
 	SetCursorPos 23, 4
 	PrintString "Start/stop music"
 
- 	SetCursorPos 1+32, 0			; "page" 2 in upper 32×32 tilemap
+ 	SetCursorPos 1+32, 0			; "page" 2 in upper 32Ã—32 tilemap
 
 	PrintString "I'm proud to say that v3 \"MUFASA\" takes your SNES\n"
 	PrintString "PowerPak to yet another dimension. :D Not only is this\n"

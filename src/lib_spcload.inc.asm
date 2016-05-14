@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** MAIN CODE SECTION: SPC PLAYER ***
 ;	Code in this file based on v1.0X code written by:
@@ -531,7 +531,7 @@ rts
 
 ; ************************* Build WRAM buffer **************************
 
-; WRAM buffering (added by ManuLöwe) to avoid having to fiddle around
+; WRAM buffering (added by ManuLÃ¶we) to avoid having to fiddle around
 ; with the PowerPak DMA port within the SPC uploading routine itself,
 ; which would break the timing.
 

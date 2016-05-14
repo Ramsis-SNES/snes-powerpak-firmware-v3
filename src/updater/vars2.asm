@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** UPDATER (V2) VARIABLE DEFINITIONS ***
 ;	Code in this file based on v1.0X code written by:
@@ -39,7 +39,7 @@
 
 ; KNOWN BOARD REVISIONS:
 ; revC ??????? (source: original PowerPak creator's comment just above)
-; revD 8/ 9/09 (source: ManuLöwe's PowerPak :p)
+; revD 8/ 9/09 (source: ManuLÃ¶we's PowerPak :p)
 ; revE 2/23/10 (source: http://forums.nesdev.com/viewtopic.php?p=97596#p97596)
 ; revH 8/14/11 (source: http://forums.nesdev.com/viewtopic.php?p=106411#p106411)
 
@@ -328,7 +328,7 @@ END_STRlabel\@:
 
 
 
-; Macro FindFile by ManuLöwe
+; Macro FindFile by ManuLÃ¶we
 
 ; Puts first cluster of FILE.EXT into sourceCluster.
 
@@ -402,7 +402,7 @@ END_FindFile\@:
 
 
 
-; Macro WaitTwoFrames by ManuLöwe (added for v3.00)
+; Macro WaitTwoFrames by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: WaitTwoFrames
 ; Effect: Waits for two Vblanks to pass (used in flashing routines only, where NMI/IRQ is disabled).
@@ -428,7 +428,7 @@ __WaitForVblankEnd2\@:
 
 
 
-; Macro CheckToggleBit by ManuLöwe (added for v3.00)
+; Macro CheckToggleBit by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: CheckToggleBit
 ; Effect: Waits until DQ6 bit toggling stops after writing a flash ROM sector.

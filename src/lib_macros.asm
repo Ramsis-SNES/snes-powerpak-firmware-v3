@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** GLOBAL MACROS ***
 ;	Code in this file based on v1.0X code written by:
@@ -34,7 +34,7 @@
 
 
 
-.MACRO PrintString				; shortened for v3.00 by ManuLöwe
+.MACRO PrintString				; shortened for v3.00 by ManuLÃ¶we
 	jsr PrintF
 
 	.DB \1, 0				; instead of a return address (-1), the string address (-1) gets pushed onto the stack
@@ -63,7 +63,7 @@
 
 
 
-; Macro WaitForUserInput by ManuLöwe (added for v3.00)
+; Macro WaitForUserInput by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: WaitForUserInput
 ; Effect: Waits for the user to press any button (d-pad is ignored).
@@ -84,7 +84,7 @@ __CheckJoypad\@:
 
 
 
-; Macro DelayFor by ManuLöwe (added for v3.00, debug sections only)
+; Macro DelayFor by ManuLÃ¶we (added for v3.00, debug sections only)
 ;
 ; Usage: DelayFor <number_of_frames>
 ; Effect: Waits for the given amount of frames.
@@ -100,7 +100,7 @@ __FrameDelay\@:
 
 
 
-; Macro DrawFrame by ManuLöwe (added for v3.00)
+; Macro DrawFrame by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: DrawFrame <x_start>, <y_start>, <width>, <height>
 ; Effect: Draws a frame using the BGX text buffer (caveat: window masking applies).
@@ -197,7 +197,7 @@ __DrawLowerBorder\@:
 
 
 
-; Macro PrintSpriteText by ManuLöwe (added for v3.00)
+; Macro PrintSpriteText by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: PrintSpriteText <y_coordinate>, <x_coordinate>, "Lorem ipsum ...", <font_color>
 ; Effect: Prints a sprite-based 8*8 VWF text string (max length: 32 characters). Coordinate values work as with SetCursorPos, but no indention is added (0, 0 = upper left screen corner). Valid font colors are palette numbers 3 (white), 4 (red), 5 (green), 6 (blue), or 7 (yellow).
@@ -216,7 +216,7 @@ __DrawLowerBorder\@:
 
 
 
-; Macro HideCursorSprite by ManuLöwe (added for v3.00)
+; Macro HideCursorSprite by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: HideCursorSprite
 ; Effect: Moves cursor sprite graphics off the screen.
@@ -231,7 +231,7 @@ __DrawLowerBorder\@:
 
 
 
-; DMA macro by ManuLöwe (added for v2.01)
+; DMA macro by ManuLÃ¶we (added for v2.01)
 ;
 ; Usage: DMA_CH0 mode[8bit], A_bus_bank[8bit], A_bus_src[16bit], B_bus_register[8bit], length[16bit]
 ; Effect: Transfers data via DMA channel 0. For use during Vblank/Forced Blank only.
@@ -260,7 +260,7 @@ __DrawLowerBorder\@:
 
 
 
-; DMA (with wait-for-Hblank) macro by ManuLöwe (added for v2.01)
+; DMA (with wait-for-Hblank) macro by ManuLÃ¶we (added for v2.01)
 ;
 ; Usage: DMA_WaitHblank mode[8bit], A_bus_bank[8bit], A_bus_src_hi[8bit], A_bus_src_lo[8bit], B_bus_register[8bit], length[16bit variable]
 ;
@@ -302,7 +302,7 @@ __WaitForHblank\@:
 
 
 
-; Macro FindFile by ManuLöwe (added for v2.00)
+; Macro FindFile by ManuLÃ¶we (added for v2.00)
 ;
 ; Usage (files): FindFile "FILE.EXT"
 ; Usage (dirs) : FindFile "DIRNAME.   "
@@ -383,7 +383,7 @@ __FileName_End\@:
 
 
 
-; Macro IncrementSectorNum by ManuLöwe (added for v2.02)
+; Macro IncrementSectorNum by ManuLÃ¶we (added for v2.02)
 ;
 ; Usage: IncrementSectorNum
 ; Effect: Increments source sector. Used by 4 routines in main code.
@@ -437,7 +437,7 @@ __NextSector\@:
 
 
 
-; Macro WaitTwoFrames by ManuLöwe (added for v3.00)
+; Macro WaitTwoFrames by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: WaitTwoFrames
 ; Effect: Waits for two Vblanks to pass (used in flashing routines only, where NMI/IRQ is disabled).
@@ -463,7 +463,7 @@ __WaitForVblankEnd2\@:
 
 
 
-; Macro CheckToggleBit by ManuLöwe (added for v3.00)
+; Macro CheckToggleBit by ManuLÃ¶we (added for v3.00)
 ;
 ; Usage: CheckToggleBit
 ; Effect: Waits until DQ6 bit toggling stops after writing a flash ROM sector.

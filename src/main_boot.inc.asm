@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** MAIN CODE SECTION: BOOTLOADER ***
 ;	Code in this file based on v1.0X code written by:
@@ -730,7 +730,7 @@ rts
 ; ************************ Show main sprite GFX ************************
 
 ; To fill OAM most efficiently, there is an "inner loop" for each row
-; of 8 large (16×16) sprites, and an "outer loop" for the imagined
+; of 8 large (16Ã—16) sprites, and an "outer loop" for the imagined
 ; "carriage returns".
 
 ; X: $08 $18 $28 $38 $48 $58 $68 $78 in "inner loop", then reset value in "outer loop"
@@ -740,7 +740,7 @@ rts
 ShowMainGFX:
 	rep #A_8BIT				; A = 16 bit
 
-	lda #$0808				; Y, X start values of upper left corner of 128×128 main GFX
+	lda #$0808				; Y, X start values of upper left corner of 128Ã—128 main GFX
 	sta temp
 
 	lda #$0080				; tile properties (fixed), tile num (start value)
@@ -775,7 +775,7 @@ ShowMainGFX:
 
 	lda temp+2
 	clc
-	adc #$0010				; tile num += 16 (i.e., skip one row of 8×8 tiles)
+	adc #$0010				; tile num += 16 (i.e., skip one row of 8Ã—8 tiles)
 	sta temp+2
 
 	cpx #$0100				; 256 / 4 = 64 (large) sprites done?
@@ -805,11 +805,11 @@ rts
 ; the 128-byte-long entry to the tempEntry variable.
 ;
 ; WRAM procedure (using the upper 64K only):
-; sourceEntryLo[16bit] = selectedEntry[16bit] × 128
+; sourceEntryLo[16bit] = selectedEntry[16bit] Ã— 128
 ; max. 512 entries, last entry's address = $FF80 (in bank $7F)
 ;
 ; SDRAM procedure (using the lower 8MB only):
-; DMAWRITELO[24bit] = selectedEntry[16bit] × 128
+; DMAWRITELO[24bit] = selectedEntry[16bit] Ã— 128
 ; max. 65535 entries, last entry's address = $7FFF80
 ;
 ; Calculation code using bitwise operations is based on a code snippet
@@ -1218,7 +1218,7 @@ LogScreen:
 	sta $2180
 
 	inx
-	cpx #$0400				; 1024 bytes per BG (lower 32×32 tilemaps only)
+	cpx #$0400				; 1024 bytes per BG (lower 32Ã—32 tilemaps only)
 	bne -
 
 	FindFile "ERROR.LOG"			; save to file

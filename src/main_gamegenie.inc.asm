@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** GAME GENIE CODE ***
 ;	Code in this file based on v1.0X code written by:
@@ -166,7 +166,7 @@ NextCode:
 
 NextGGChar:
 	inx					; next GG char
-	cpx #$0028				; 40 GG chars = 5 codes × 8 chars
+	cpx #$0028				; 40 GG chars = 5 codes Ã— 8 chars
 	beq ReadLoopDone
 
 NextChar:
@@ -234,7 +234,7 @@ GameGenieClearAll:				; clears out all GG codes at once
 -	sta GameGenie.Codes, y
 	iny
 	iny
-	cpy #$0028				; 5×8 = 40 characters
+	cpy #$0028				; 5Ã—8 = 40 characters
 	bne -
 
 	sep #A_8BIT				; A = 8 bit
@@ -276,7 +276,7 @@ GameGeniePrint:					; code to print already set to Y
 	sta tempEntry, x
 	inx
 
-	cpx #$0020				; (1 char + 3 spaces) × 8 = 32 chars to print
+	cpx #$0020				; (1 char + 3 spaces) Ã— 8 = 32 chars to print
 	bne -
 
 	stz tempEntry, x			; NUL-terminator

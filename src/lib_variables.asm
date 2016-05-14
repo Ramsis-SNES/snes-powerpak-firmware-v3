@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** VARIABLE DEFINITIONS ***
 ;	Code in this file based on v1.0X code written by:
@@ -54,7 +54,7 @@
 
 ; KNOWN BOARD REVISIONS:
 ; revC ??????? (source: original PowerPak creator's comment just above)
-; revD 8/ 9/09 (source: ManuLöwe's PowerPak :p)
+; revD 8/ 9/09 (source: ManuLÃ¶we's PowerPak :p)
 ; revE 2/23/10 (source: http://forums.nesdev.com/viewtopic.php?p=97596#p97596)
 ; revH 8/14/11 (source: http://forums.nesdev.com/viewtopic.php?p=106411#p106411)
 
@@ -194,7 +194,7 @@
 	.DEFINE ADDR_CGRAM_MAIN_GFX	$80
 	.DEFINE ADDR_CGRAM_FONT_SPR	$B0
 
-	.DEFINE ADDR_VRAM_BG1_TILEMAP	$0000	; reminder: each tilemap is 64×32 (2048) tiles = 4096 bytes in size
+	.DEFINE ADDR_VRAM_BG1_TILEMAP	$0000	; reminder: each tilemap is 64Ã—32 (2048) tiles = 4096 bytes in size
 	.DEFINE ADDR_VRAM_BG2_TILEMAP	$0800
 	.DEFINE ADDR_VRAM_BG1_TILES	$2000
 	.DEFINE ADDR_VRAM_BG2_TILES	$4000
@@ -278,7 +278,7 @@
 
 
 ; -------------------------- Cold-boot check
-; Added for v3.00 by ManuLöwe. Basically, any seven 8-bit-values will do.
+; Added for v3.00 by ManuLÃ¶we. Basically, any seven 8-bit-values will do.
 
 .ENUM $25
 	kWarmBoot1			dsb 6	; $25
@@ -475,7 +475,7 @@
 
 
 .STRUCT oam_low
-	Cursor			dsb 16		; only 4 lower bytes (one 16×16 sprite) used
+	Cursor			dsb 16		; only 4 lower bytes (one 16Ã—16 sprite) used
 	Buttons			dsb 48
 	PowerPakLogo		dsb 64
 	MainGFX			dsb 256
@@ -485,7 +485,7 @@
 
 
 .STRUCT oam_high
-	Cursor			db		; only 2 lower bits (one 16×16 sprite) used
+	Cursor			db		; only 2 lower bits (one 16Ã—16 sprite) used
 	Buttons			dsb 3
 	PowerPakLogo		dsb 4
 	MainGFX			dsb 16
@@ -620,7 +620,7 @@
 
 
 .ENUM $7F0000
-	dirBuffer	dsb 65536		; 64 KiB (512×128 bytes) for directory buffering, also used as a buffer for high RAM of SPC files
+	dirBuffer	dsb 65536		; 64 KiB (512Ã—128 bytes) for directory buffering, also used as a buffer for high RAM of SPC files
 .ENDE
 
 

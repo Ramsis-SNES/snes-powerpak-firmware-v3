@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2015 by ManuLÃ¶we (http://www.manuloewe.de/)
 ;
 ;	*** VIDEO SETUP & NMI HANDLER ***
 ;	Code in this file based on v1.0X code written by:
@@ -239,7 +239,7 @@ __BuildFontBG1:
 
 	ldy #$0000
 
--	stz $2118				; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16×8 tiles
+-	stz $2118				; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16Ã—8 tiles
 	iny					; and 2 blank tiles because BG1 is 4bpp)
 	cpy #$0018				; 16 bytes (8 double bytes) per tile
 	bne -
@@ -255,14 +255,14 @@ __BuildFontBG1:
 __BuildFontBG2:
 	ldy #$0000
 
--	stz $2118				; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
+-	stz $2118				; first, add 1 blank tile (Mode 5 forces 16Ã—8 tiles,
 	iny					; no more blank tiles because BG2 is 2bpp)
 	cpy #$0008				; 16 bytes (8 double bytes) per tile
 	bne -
 
 	ldy #$0000
 
--	lda.l Font, x				; next, copy 8×8 font tile (font tiles sit on the "right")
+-	lda.l Font, x				; next, copy 8Ã—8 font tile (font tiles sit on the "right")
 	sta $2118
 	inx
 	inx
@@ -300,7 +300,7 @@ __BuildFontBG2:
 
 	lda #%00100000				; set the priority bit of all tilemap entries
 
-	ldx #$0800				; set BG1's tilemap size (64×32 = 2048 tiles)
+	ldx #$0800				; set BG1's tilemap size (64Ã—32 = 2048 tiles)
 
 -	sta $2119				; set priority bit
 	dex
@@ -309,7 +309,7 @@ __BuildFontBG2:
 	ldx #ADDR_VRAM_BG2_TILEMAP		; set VRAM address to BG2 tilemap
 	stx $2116
 
-	ldx #$0800				; set BG2's tilemap size (64×32 = 2048 tiles)
+	ldx #$0800				; set BG2's tilemap size (64Ã—32 = 2048 tiles)
 
 -	sta $2119				; set priority bit
 	dex
@@ -319,7 +319,7 @@ __BuildFontBG2:
 
 ; -------------------------- set up the screen
 __WarmBootGFXsetup:
-	lda #%00000011				; 8×8 (small) / 16×16 (large) sprites, character data at $6000
+	lda #%00000011				; 8Ã—8 (small) / 16Ã—16 (large) sprites, character data at $6000
 	sta $2101
 
 	lda #$05				; set BG mode 5 for horizontal high resolution :-)
@@ -328,10 +328,10 @@ __WarmBootGFXsetup:
 ;	lda #$08				; never mind (unless a BGMODE change would occur mid-frame)
 ;	sta $2133
 
-	lda #%00000001				; BG1 tilemap VRAM address ($0000) & tilemap size (64×32 tiles)
+	lda #%00000001				; BG1 tilemap VRAM address ($0000) & tilemap size (64Ã—32 tiles)
 	sta $2107
 
-	lda #%00001001				; BG2 tilemap VRAM address ($0800) & tilemap size (64×32 tiles)
+	lda #%00001001				; BG2 tilemap VRAM address ($0800) & tilemap size (64Ã—32 tiles)
 	sta $2108
 
 	lda #%01000010				; set BG1's Character VRAM offset to $2000
