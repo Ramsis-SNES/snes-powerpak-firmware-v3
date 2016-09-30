@@ -144,7 +144,7 @@ upload_high_ram:
 	lda.l transfer,x
 	jsr spc_upload_byte
 	inx
-	cpy #43					; size of transfer routine
+	cpy #44					; size of transfer routine
 	bne -
 
 	ldx #$023f				; prepare transfer address
@@ -488,10 +488,10 @@ exec_instr:
         ; isn't needed, as this avoids such tight timing
         ; requirements.
 
-;	phd ;4
-;	pld ;5
-;	phd ;4
-;	pld ;5
+	phd ;4
+	pld ;5
+	phd ;4
+	pld ;5
 
         ; Patch loop to skip first two bytes
 	lda #$FE        ; 16
@@ -667,15 +667,16 @@ transfer:			; .org $0002
 	.byt $E4,$F7		;	mov a,$F7	; tell S-CPU we're ready for more
 	.byt $CB,$F7		;	mov $F7,Y
 	.byt $D6,$C0,$02	; mov3: mov !$02C0+y,a
+	.byt $00		;  nop ; give some time for S-CPU HDMA / WRAM refresh
 	.byt $DC 		;	dec y
-	.byt $10,-25		;	bpl quad
+	.byt $10,-26		;	bpl quad
 	; Increment MSBs of addresses
 	.byt $AB,$0A		;	inc mov0+2
 	.byt $AB,$0F		;	inc mov1+2
 	.byt $AB,$14		;	inc mov2+2
 	.byt $AB,$1B		;	inc mov3+2
 	.byt $1D    		;	dec x
-	.byt $D0,-38		;	bne page
+	.byt $D0,-39		;	bne page
 	; Rerun loader
 	.byt $5F,$C0,$FF	;	jmp $FFC0
 
@@ -699,7 +700,7 @@ apu_ram_init:
 -	lda.w apu_ram_init_code, x
 	jsr spc_upload_byte
 	inx
-	cpx #20
+	cpx #38
 	bne -
 
 	ldx #$0002
@@ -717,10 +718,13 @@ rtl
 
 
 
-apu_ram_init_code:        ; .org $0002
+; All SPC700 routines in SPC700 machine code below this line
+
+apu_ram_init_code:  ; .org $0002
+	; part1: fill $0100-$03ff with #$aa
 	.byt $e8,$aa      ; mov a, #$aa
 	.byt $8d,$00      ; mov y, #$00
-	.byt $cd,$fe      ; mov x, #$fe
+	.byt $cd,$03      ; mov x, #$03
 	; loop:
 	.byt $d6,$00,$01  ; mov !$0100+y, a
 	.byt $fc          ; inc y
@@ -728,8 +732,20 @@ apu_ram_init_code:        ; .org $0002
 	.byt $ab,$0a      ; inc loop+2
 	.byt $1d          ; dec x
 	.byt $d0,-11      ; bne loop
+	; part2: zero $0400-$ffff
+	.byt $e8,$00      ; mov a, #$00
+	.byt $cd,$fc      ; mov x, #$fc
+	; loop2:
+	.byt $d6,$00,$04  ; mov !$0400+y, a
+	.byt $fc          ; inc y
+	.byt $d0,-6       ; bne loop2
+	.byt $ab,$19      ; inc loop2+2
+	.byt $1d          ; dec x
+	.byt $d0,-11      ; bne loop2
+	; make sure IPL ROM is mapped, reset input latches 0+1
+	.byt $8f,$90,$f1  ; mov $f1, #$90
 	; Re-run IPL
-	.byt $5f,$c0,$ff  ; jmp $ffc0
+	.byt $5f,$c0,$ff ; jmp $ffc0
 
 
 
