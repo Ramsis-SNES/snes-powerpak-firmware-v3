@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
 ;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+;   (c) 2012-2016 by ManuLöwe (http://manuloewe.de/)
 ;
 ;	*** MAIN CODE SECTION: SRAM HANDLER ***
 ;	Code in this file based on v1.0X code written by:
