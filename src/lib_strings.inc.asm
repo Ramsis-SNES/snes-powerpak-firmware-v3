@@ -38,8 +38,8 @@ PrintF:
 PrintFStart:
 	php					; preserve processor status
 
-	rep #XY_8BIT				; X/Y = 16 bit
-	sep #A_8BIT				; A = 8 bit
+	Accu8
+	Index16
 
 PrintFLoop:
 	LDA $0000,X				; read next format string character
@@ -67,19 +67,25 @@ PrintFControl:
 	INX					; increment input pointer
 	CMP #'n'
 _cn:	BNE _ct
-	rep #$30				; 16b mem, 16b X
+
+	AccuIndex16
+
 	LDA Cursor				; get current position
 	CLC
 	ADC #$0020				; move to the next line
 	AND #$FFE0
 	ora #minPrintX				; add horizontal indention
 	STA Cursor				; save new position
-	sep #A_8BIT				; 8b mem, 16b X
+
+	Accu8				; 8b mem, 16b X
+
 	stz BGPrintMon				; reset BG monitor value
 	BRA PrintFLoop
 _ct:	CMP #'t'
 	BNE _defaultC
-	rep #$30				; 16b mem, 16b X
+
+	AccuIndex16
+
 	LDA Cursor				; get current position
 	CLC
 ;	ADC #$0008				; move to the next tab
@@ -89,7 +95,9 @@ _ct:	CMP #'t'
 ;	adc #$0002				; use this instead for even smaller tabs
 ;	and #$fffe
 	STA Cursor				; save new position
-	sep #A_8BIT				; 8b mem, 16b X
+
+	Accu8				; 8b mem, 16b X
+
 	stz BGPrintMon				; reset BG monitor value
 	BRA PrintFLoop
 _defaultC:
@@ -212,8 +220,8 @@ PrintSpriteText:
 
 	php					; preserve processor status
 
-	rep #XY_8BIT				; A/mem=8bit, X/Y=16bit
-	sep #A_8BIT
+	Accu8
+	Index16
 
 	ldy DP_SprTextMon			; start where there is some unused sprite text buffer
 
@@ -225,12 +233,12 @@ __PrintSpriteTextLoop:
 	phx					; preserve input pointer
 	pha					; preserve ASCII value
 
-	rep #A_8BIT
+	Accu16
 
 	and #$00FF				; mask off whatever is stored in B
 	tax
 
-	sep #A_8BIT
+	Accu8
 
 	lda Cursor
 	sta SpriteBuf1.Text, y			; X position
@@ -426,7 +434,7 @@ rts
 
 
 PrintClearScreen:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$4040				; overwrite 2 tiles at once ($40 = space)
 	ldx #$0000
@@ -438,7 +446,7 @@ PrintClearScreen:
 	cpx #$0400				; 1024 bytes (lower 32×32 tilemaps only)
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	stz cursorYCounter			; reset scrolling parameters
 	stz cursorYUp
@@ -450,7 +458,7 @@ PrintClearScreen:
 	stz scrollYDown
 
 ClearSpriteText:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$F0F0
 	ldy #$0000
@@ -465,7 +473,7 @@ ClearSpriteText:
 
 	stz DP_SprTextMon			; reset filling level
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 

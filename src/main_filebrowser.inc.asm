@@ -25,7 +25,7 @@
 ; tain meaningful values.
 
 FileBrowser:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda DP_SubDirCounter			; check how much subdir data needs to be pushed onto stack
 	beq +					; don't push anyhing if counter = 0
@@ -50,7 +50,7 @@ FileBrowser:
 	lda sourceCluster+2
 	sta DP_sourceCluster_BAK+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	stz DP_SelectionFlags			; clear all selection-related flags
 
@@ -72,7 +72,7 @@ FileBrowser:
 	stz Joy1New				; reset input buttons
 	stz Joy1Press
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -271,7 +271,7 @@ __FileBrowserRightCheckDone:
 	and #%00100000
 	beq __FileBrowserLCheckDone
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda filesInDir				; if filesInDir <= maxFiles (i.e., there's only one "page"),
 	cmp #maxFiles+1
@@ -289,7 +289,7 @@ __FileBrowserRightCheckDone:
 	jsr SelEntryDecPage
 
 __PgUpDone:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 __FileBrowserLCheckDone:
 
@@ -300,7 +300,7 @@ __FileBrowserLCheckDone:
 	and #%00010000
 	beq __FileBrowserRCheckDone
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda filesInDir				; if filesInDir <= maxFiles (i.e., there's only one "page"),
 	cmp #maxFiles+1
@@ -318,7 +318,7 @@ __FileBrowserLCheckDone:
 	jsr SelEntryIncPage
 
 __PgDnDone:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 __FileBrowserRCheckDone:
 
@@ -341,7 +341,7 @@ __FileBrowserAorStartPressed:
 
 	jmp __FileBrowserFileSelected
 
-+	rep #A_8BIT				; A = 16 bit
++	Accu16
 
 	lda DP_SubDirCounter			; check if in root dir ...
 	beq __FileBrowserSkipEntryHandler
@@ -369,13 +369,13 @@ __FileBrowserSkipEntryHandler:
 	sta sourceCluster+2
 	sta DP_sourceCluster_BAK+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr SpriteMessageLoading
 	jsr CardLoadDir				; CLDConfigFlags already set above
 ;	jsr FileBrowserCheckDirEmpty		; don't bother, subdirectories are never empty (they always contain /. and /.. entries)
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz selectedEntry			; reset entry index
 
@@ -384,7 +384,7 @@ __FileBrowserSkipEntryHandler:
 	lda #(cursorYmin << 8) + cursorXfilebrowser
 	sta cursorX				; initial cursor position
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 __FileBrowserACheckDone:
 
@@ -395,12 +395,12 @@ __FileBrowserACheckDone:
 	and #%10000000
 	beq __FileBrowserBCheckDone
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda DP_SubDirCounter			; check if in root dir ...
 	bne __FileBrowserDirLevelUp
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jmp __FileBrowserDone			; ... if so, return
 
@@ -416,7 +416,7 @@ __FileBrowserDirLevelUp:
 	sta sourceCluster+2
 	sta DP_sourceCluster_BAK+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #%00000011				; use SDRAM buffer, skip hidden files
 	sta CLDConfigFlags
@@ -424,7 +424,7 @@ __FileBrowserDirLevelUp:
 	jsr SpriteMessageLoading
 	jsr CardLoadDir
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	dec DP_SubDirCounter			; decrement subdirectory counter
 
@@ -434,15 +434,15 @@ __FileBrowserDirLevelUp:
 	pla					; restore previous cursor position
 	sta DP_cursorX_BAK
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr FileBrowserCheckDirEmpty		; reminder: only do this here in order not to end up with a corrupted stack
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	pei (selectedEntry)			; preserve previous selectedEntry as current selectedEntry
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda DP_cursorY_BAK			; the following code snippet does essentially the same as SyncPage, but with the backed-up cursor position (we don't want the cursor to appear on the screen yet)
 	sec
@@ -453,7 +453,7 @@ __FileBrowserDirLevelUp:
 	sta temp
 	stz temp+1
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda selectedEntry
 	sec					; make selectedEntry = file at the top of the screen
@@ -477,7 +477,7 @@ __FileBrowserDirLevelUp:
 	lda DP_cursorX_BAK			; make cursor appear on the screen
 	sta cursorX
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 __FileBrowserBCheckDone:
 
@@ -498,7 +498,7 @@ __FileBrowserStartCheckDone:
 
 ; -------------------------- file selected, check for SPC file
 __FileBrowserFileSelected:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda tempEntry.tempCluster		; copy file cluster to source cluster
 	sta sourceCluster
@@ -506,7 +506,7 @@ __FileBrowserFileSelected:
 	lda tempEntry.tempCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #<sectorBuffer1
 	sta destLo
@@ -596,7 +596,7 @@ __FileBrowserFileSelected:
 	sta DP_SelectionFlags
 
 __FileBrowserDone:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda DP_SubDirCounter
 	beq +					; don't pull anything if in root dir
@@ -611,7 +611,7 @@ __FileBrowserDone:
 	dex					; bytes to pull = DP_SubDirCounter * 8
 	bne -
 
-+	sep #A_8BIT				; A = 8 bit
++	Accu8
 rts
 
 
@@ -619,7 +619,7 @@ rts
 ; ********************** File browser subroutines **********************
 
 FileBrowserCheckDirEmpty:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda filesInDir				; check if dir contains relevant files
 	beq +
@@ -627,7 +627,7 @@ rts
 
 +	pla					; clean up the stack (no rts from jsr FileBrowserCheckDirEmpty)
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr ClearSpriteText			; edge case: no files/folders in root dir, and /POWERPAK is hidden
 	jsr SpriteMessageError
@@ -645,11 +645,11 @@ rts
 PrintPage:
 	php
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	pei (selectedEntry)			; preserve selectedEntry (16 bit)
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	stz temp				; reset file counter
 
@@ -661,7 +661,7 @@ PrintPage:
 
 	jsr DirPrintEntry
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc selectedEntry			; increment entry index
 
@@ -675,19 +675,19 @@ PrintPage:
 
 	stz selectedEntry			; there are more files, reset selectedEntry so that it "wraps around" 
 
-+	sep #A_8BIT				; A = 8 bit
++	Accu8
 
 	lda temp				; check if printY max reached
 	cmp #maxFiles
 	bcc -
 
 __PrintPageLoopDone:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	pla					; restore selectedEntry (16 bit)
 	sta selectedEntry
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #insertStandardTop			; standard values for scrolling
 	sta insertTop
@@ -764,7 +764,7 @@ rts
 SyncPage:
 	php
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda cursorY
 	sec
@@ -775,7 +775,7 @@ SyncPage:
 	sta temp
 	stz temp+1
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda selectedEntry
 	sec					; subtract difference so that selectedEntry now corresponds

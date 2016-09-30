@@ -10,15 +10,15 @@
 
 
 GotoDevNote:
-	sep #A_8BIT				; 8 bit Accumulator, 16 bit X/Y
-	rep #XY_8BIT
+	Accu8
+	Index16
 
 	jsr ClearSpriteText			; remove "Loading ..." message
 
 
 
 ; -------------------------- clear upper 32×32 tilemap in case the SPC player was used
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$4040				; overwrite 2 tiles at once ($40 = space)
 	ldx #$0400				; start at upper 32×32 tilemap
@@ -30,7 +30,7 @@ GotoDevNote:
 	cpx #$0800				; 1024 bytes
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -115,7 +115,7 @@ GotoDevNote:
 
 
 ; -------------------------- show button hints
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$B014				; Y, X
 	sta SpriteBuf1.Buttons
@@ -141,7 +141,7 @@ GotoDevNote:
 	lda #$03AC				; tile properties, tile num for Start button highlighted
 	sta SpriteBuf1.Buttons+14
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$01				; page 1
 	sta temp+7
@@ -261,7 +261,7 @@ GotoDevNotePage1:
 
 
 ; -------------------------- hide PowerPak logo sprites
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$F0F0
 	ldx #$0000
@@ -274,7 +274,7 @@ GotoDevNotePage1:
 	cpx #$0040				; 16 tiles
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -329,7 +329,7 @@ GotoDevNotePage2:
 
 
 ; -------------------------- Show PowerPak logo sprites
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$889A				; Y, X
 	sta temp
@@ -375,7 +375,7 @@ GotoDevNotePage2:
 +	cpx #$0040				; 64 / 4 = 16 (large) sprites done?
 	bne -					; "outer" loop
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 

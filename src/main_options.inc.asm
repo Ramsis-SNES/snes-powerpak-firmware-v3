@@ -53,7 +53,7 @@ GotoGameOptions:
 
 	PrintSpriteText 3, mainSelX+2, "Play this game:", 3
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 
@@ -64,7 +64,7 @@ GotoGameOptions:
 	cpy #$0038				; only copy 56 characters
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	SetCursorPos 2, 1
 	jsr PrintTempEntry
@@ -76,7 +76,7 @@ GotoGameOptions:
 
 	PrintSpriteText 6, mainSelX+2, "Load savegame ...", 3
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 
@@ -87,7 +87,7 @@ GotoGameOptions:
 	cpy #$0038				; only copy 56 characters
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	SetCursorPos 5, 1
 	jsr PrintTempEntry
@@ -858,7 +858,7 @@ ShowHelpGeneral:
 
 
 ; -------------------------- show button hints
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$B014				; Y, X
 	sta SpriteBuf1.Buttons
@@ -896,7 +896,7 @@ ShowHelpGeneral:
 	lda #$03AE				; tile properties, tile num for Select button highlighted
 	sta SpriteBuf1.Buttons+22
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -907,7 +907,7 @@ ShowHelpGGcodeEdit:
 	SetCursorPos 21, 4
 	PrintString "+Digit\t   -Digit     L+R: Clear this code"
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$B020				; Y, X for X button
 	sta SpriteBuf1.Buttons+4
@@ -915,7 +915,7 @@ ShowHelpGGcodeEdit:
 	lda #$B05C				; Y, X for Y button
 	sta SpriteBuf1.Buttons+12
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 

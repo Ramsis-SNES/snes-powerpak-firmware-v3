@@ -20,12 +20,12 @@ WarmBootInit:
 	phk					; set Data Bank = Program Bank
 	plb
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$0000				; set Direct Page = $0000
 	tcd
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$80				; enter forced blank
 	sta $2100
@@ -63,7 +63,7 @@ InitSNES:
 	phk					; set Data Bank = Program Bank
 	plb
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$0000				; set Direct Page = $0000
 	tcd
@@ -71,7 +71,7 @@ InitSNES:
 	lda 1, s				; preserve return address (using a DMA register that won't get overwritten when WRAM is cleared)
 	sta $4372
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -221,12 +221,12 @@ InitSNES:
 
 	cli					; enable interrupts
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda $4372				; restore return address
 	sta 1, s
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 

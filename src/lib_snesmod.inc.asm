@@ -213,10 +213,12 @@ rtl
 spcLoad:
 ;----------------------------------------------------------------------
 
-;	rep #$30
+;	Accu16
+
 ;	lda	6,s		; module_id
 ;	tax
-;	sep #A_8BIT
+
+;	Accu8
 
 	phx			; flush fifo!
 	jsr	xspcFlush	;
@@ -684,12 +686,14 @@ spcSetModuleVolume:
 spcFadeModuleVolume:
 ;**********************************************************************
 
-;	rep #A_8BIT
+;	Accu16
+
 ;	lda	6,s	; speed
 ;	tay
 ;	lda	8,s	; target volume
 ;	tax
-;	sep #A_8BIT
+
+;	Accu8
 	
 	txa				;queue:
 	sta	spc1+1			; id xx yy

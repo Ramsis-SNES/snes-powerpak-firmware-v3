@@ -29,7 +29,7 @@
 
 
 InitTXTBrowser:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda rootDirCluster			; start in root directory
 	sta sourceCluster
@@ -39,7 +39,7 @@ InitTXTBrowser:
 
 	stz DP_SubDirCounter			; reset subdirectory counter
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$01				; number of file types to look for (1, TXT only)
 	sta extNum
@@ -65,7 +65,7 @@ InitTXTBrowser:
 GGCodeListSelected:
 	jsr GameGenieClearAll			; clear out all previously entered codes
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda tempEntry.tempCluster		; copy TXT file cluster to source cluster
 	sta sourceCluster
@@ -73,7 +73,7 @@ GGCodeListSelected:
 	lda tempEntry.tempCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #<sectorBuffer1
 	sta destLo
@@ -226,7 +226,7 @@ rts
 
 
 GameGenieClearAll:				; clears out all GG codes at once
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 	lda #$1010				; $10 = underscore on GG code display
@@ -237,7 +237,7 @@ GameGenieClearAll:				; clears out all GG codes at once
 	cpy #$0028				; 5×8 = 40 characters
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -340,7 +340,7 @@ GameGenieDecode:				; code to decode set to Y
 ; ijklqrst opabcduv wxefghmn --> Genie ADDR (i = bit 23 ... n = bit 0)
 ; abcdefgh ijklmnop qrstuvwx --> SNES ADDR (a = bit 23 ... x = bit 0)
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda GameGenie.Scratchpad+2		; wxefghmn opabcduv
 	pha
@@ -353,7 +353,7 @@ GameGenieDecode:				; code to decode set to Y
 
 	pla					; wxefghmn opabcduv
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	xba					; wxefghmn
 	lsr a
@@ -365,14 +365,14 @@ GameGenieDecode:				; code to decode set to Y
 	and #$F0				; ijkl0000
 	sta temp+1
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda GameGenie.Scratchpad+2		; efghmnop abcduvwx
 	and #$0FF0				; 0000mnop abcd0000
 	ora temp				; ijklmnop abcdefgh
 	sta GameGenie.Decoded+1, y
 	
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda GameGenie.Scratchpad+1		; ijklqrst
 	asl a

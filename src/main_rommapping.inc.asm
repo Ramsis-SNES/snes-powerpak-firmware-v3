@@ -37,7 +37,7 @@ ClearBanks:
 	stz headerType
 	stz fixheader
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda gameName.gCluster
 	sta sourceCluster
@@ -45,7 +45,7 @@ ClearBanks:
 	lda gameName.gCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #<sectorBuffer1
 	sta destLo
@@ -131,7 +131,7 @@ FixMbitsDone:
 LoadSave:
 	PrintString "\nChecking savegame ... "
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda saveName.sCluster
 	bne LoadSaveStart
@@ -139,7 +139,7 @@ LoadSave:
 	lda saveName.sCluster+2
 	bne LoadSaveStart
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	PrintString "no SRAM file found."
 
@@ -155,7 +155,7 @@ LoadSaveStart:
 	lda saveName.sCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$F8				; load SRAM to SDRAM location $F80000
 	sta DMAWRITEBANK

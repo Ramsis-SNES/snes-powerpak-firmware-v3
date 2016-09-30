@@ -17,9 +17,9 @@ Main:
 	sei					; disable interrupts
 	clc
 	xce					; switch to native mode
+	rep #XY_8BIT|DEC_MODE			; X/Y = 16 bit, decimal mode off
 
-	rep #$18				; X/Y = 16 bit, decimal mode off
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda DP_ColdBootCheck1			; perform cold-boot check
 	cmp #kWarmBoot1
@@ -92,8 +92,8 @@ __ColdBoot:
 	jsr QuickSetup				; set up VRAM, video mode, background and character pointers
 	jsr JoyInit				; initialize joypads and enable NMI
 
-	rep #XY_8BIT				; X/Y = 16 bit
-	sep #A_8BIT				; A = 8 bit
+	Accu8
+	Index16
 
 .IFDEF DEMOMODE
 	jmp __InDemoModeToIntroScreen
@@ -130,7 +130,7 @@ __ColdBoot:
 
 	jsr DirFindEntry			; "POWERPAK" dir into tempEntry
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda tempEntry.tempCluster		; "POWERPAK" dir found, save cluster
 	sta baseDirCluster
@@ -138,7 +138,7 @@ __ColdBoot:
 	lda tempEntry.tempCluster+2
 	sta baseDirCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 .IFDEF DEBUG
 	PrintString "baseDirCluster $"
@@ -174,7 +174,7 @@ __ColdBoot:
 
 	iny
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda sectorBuffer1, y			; read theme file cluster
 	sta DP_ThemeFileClusterLo
@@ -229,7 +229,7 @@ __NoThemeFileSaved:
 	jsr CardLoadDir				; "THEMES" directory into WRAM buffer,
 	jsr DirFindEntry			; "MUFASA.THM" file into tempEntry
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda tempEntry.tempCluster		; "MUFASA.THM" file found, save cluster
 	sta DP_ThemeFileClusterLo
@@ -238,7 +238,7 @@ __NoThemeFileSaved:
 	sta DP_ThemeFileClusterHi
 
 __ThemeFileClusterSet:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -283,9 +283,6 @@ __ThemeFileClusterSet:
 
 
 ConfigureFPGA:
-;	lda #$FF
-;	sta $420d				; turn on FastROM
-
 	lda #$01
 	sta FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
 
@@ -343,7 +340,7 @@ GotoIntroScreen:
 	lda #$00
 	sta CONFIGWRITEDSP			; turn off DSP chip
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000				; clear out game name, save name, and clusters
 	lda #$2020				; ASCII = 2 spaces (caveat: WLA DX assembles "lda #'  '" into "LDA #$0020"!)
@@ -364,7 +361,7 @@ GotoIntroScreen:
 	stz Joy1New				; reset input buttons
 	stz Joy1Press
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr GameGenieClearAll			; clear out Game Genie codes
 
@@ -380,7 +377,7 @@ GotoIntroScreen:
 
 
 ; -------------------------- show joypad button hints
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$9898				; Y, X
 	sta SpriteBuf1.Buttons
@@ -400,18 +397,18 @@ GotoIntroScreen:
 	lda #$03AC				; tile properties, tile num for Start button highlighted
 	sta SpriteBuf1.Buttons+10
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
 .IFDEF SHOWDEBUGMSGS
 	SetCursorPos 0, 22
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	tsc					; print stack pointer (initial value: $1FFF)
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	xba
 	sta temp
@@ -668,11 +665,11 @@ __60hz:
 
 	SetCursorPos 0, 22
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	tya
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	xba
 	sta temp
@@ -738,7 +735,7 @@ rts
 ; tile num: $X0 $X2 $X4 $X6 $X8 $XA $XC $XE in "inner loop", $0X $2X $4X $6X $8X $AX $CX $EX in "outer loop"
 
 ShowMainGFX:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$0808				; Y, X start values of upper left corner of 128×128 main GFX
 	sta temp
@@ -794,7 +791,7 @@ ShowMainGFX:
 	cpx #$0010
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -876,7 +873,7 @@ rts
 ; ************************ Find specific entry *************************
 
 DirFindEntry:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz selectedEntry			; reset selectedEntry
 
@@ -884,7 +881,7 @@ DirFindEntry:
 	beq __DirFindEntryFailed
 
 __DirFindEntryLoop:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr DirGetEntry
 
@@ -901,7 +898,7 @@ __DirFindEntryCharLoop:				; check if entry matches, only look at first 8 chars
 rts						; all 8 chars match
 
 __DirFindEntryNext:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc selectedEntry			; increment to next entry index
 
@@ -910,7 +907,7 @@ __DirFindEntryNext:
 	bne __DirFindEntryLoop
 
 __DirFindEntryFailed:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr PrintClearScreen
 	jsr HideButtonSprites
@@ -978,7 +975,7 @@ LoadLastGame:
 
 	jsr CardReadSector			; sector -> WRAM
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 	ldx #$0000
@@ -1018,7 +1015,7 @@ LoadLastGameGenieLoop:				; GameGenie codes
 	cpx #$0028
 	bne LoadLastGameGenieLoop
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 __LoadLastEmptyLOG:				; zeroes within GG code list detected --> LOG file must be empty
@@ -1027,7 +1024,7 @@ __LoadLastEmptyLOG:				; zeroes within GG code list detected --> LOG file must b
 
 	pla					; clean up the stack as there's no rts from "jsr LoadLastGame" in case of an error
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr PrintClearScreen
 	jsr SpriteMessageError
@@ -1046,7 +1043,7 @@ __LoadLastEmptyLOG:				; zeroes within GG code list detected --> LOG file must b
 SaveLastGame:
 	FindFile "LASTGAME.LOG"
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 	ldx #$0000
@@ -1092,7 +1089,7 @@ SaveLastGameGenieLoop:				; GameGenie codes
 	cpy #$0200				; 512 bytes total
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #<sectorBuffer1
 	sta sourceLo
@@ -1136,7 +1133,7 @@ CardLoadFPGALoop:
 	jsr CardReadSector			; sector -> FPGA
 	jsr LoadNextSectorNum
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 ; check for last sector
 ; FAT32 last cluster = 0x0FFFFFFF
@@ -1162,12 +1159,12 @@ __FPGALastClusterMaskDone:			; if cluster = last cluster, jump to last entry fou
 	cmp temp+2
 	bne __FPGANextSector
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	bra __LoadFPGADone			; last cluster, jump out
 
 __FPGANextSector:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	inc bankCounter
 
@@ -1186,7 +1183,7 @@ rts
 ; ************************* Clear "find entry" *************************
 
 ClearFindEntry:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$2020				; ASCII = 2 spaces (caveat #1: WLA DX assembles "lda #'  '" to "LDA #$0020"!)
 	sta findEntry				; Caveat #2: It's crucially important to clear out findEntry with spaces (not zeroes)
@@ -1194,7 +1191,7 @@ ClearFindEntry:
 	sta findEntry+4
 	sta findEntry+6
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -1247,13 +1244,13 @@ ShowConsoleVersion:
 	and #$0F				; mask off Vblank NMI flag and open bus (bits 4-6)
 	sta temp
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda $213E				; PPU1/2 revisions
 	and #$0F0F				; mask off other/open bus flags
 	sta temp+1
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	ldy #temp
 

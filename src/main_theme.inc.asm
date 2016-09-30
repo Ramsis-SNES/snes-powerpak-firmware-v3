@@ -86,7 +86,7 @@ ThemeFileSelected:				; THM file selected --> load new theme, and return to intr
 						; and use DMAs of any transfer length (not possible with HDMA active on
 	wai					; rev1 CPU consoles)
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda tempEntry.tempCluster		; copy file cluster
 	sta DP_ThemeFileClusterLo
@@ -94,7 +94,7 @@ ThemeFileSelected:				; THM file selected --> load new theme, and return to intr
 	lda tempEntry.tempCluster+2
 	sta DP_ThemeFileClusterHi
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr LoadTheme
 	jsr PrintClearScreen
@@ -103,7 +103,7 @@ ThemeFileSelected:				; THM file selected --> load new theme, and return to intr
 
 
 LoadTheme:					; expects that we're in forced blank & HDMA is off!
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda DP_ThemeFileClusterLo		; load cluster of selected theme file
 	sta sourceCluster
@@ -111,7 +111,7 @@ LoadTheme:					; expects that we're in forced blank & HDMA is off!
 	lda DP_ThemeFileClusterHi
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$00				; reset SDRAM address
 	sta DMAWRITEBANK

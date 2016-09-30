@@ -22,8 +22,8 @@ spc700_load:
 	phk					; set data bank = program bank (required because spc700_load was relocated
 	plb					; to ROM bank 2 for v3.00)
 
-	sep #A_8BIT
-	rep #XY_8BIT
+	Accu8
+	Index16
 
 	sei					; Disable NMI & IRQ
 	stz REG_NMITIMEN			; The SPC player code is really timing sensitive ;)
@@ -184,11 +184,13 @@ inner_transfer_loop:
 	dey					; 2 |
 	bpl inner_transfer_loop			; 3 >> 14 cycles
 
-	rep #$21				; 3 |
+	rep #$21				; 3 | // Accu16, clear carry
 	txa					; 2 |
 	adc #$140				; 3 |
 	tax					; 2 |
-	sep #$20				; 3 |
+
+	Accu8					; 3 |
+
 	cpx #$003f				; 3 |
 	bne outer_transfer_loop			; 3 >> 19 cycles
 
@@ -339,13 +341,15 @@ restore_final:
 
 ;---- restore IO ports $f4 - $f7
 
-	rep #$20
+	Accu16
+
 	lda.l spcIOPorts
 	tax
 	lda.l spcIOPorts+2
 	sta REG_APUIO2
 	stx REG_APUIO0				; last to avoid overwriting RETI before run
-	sep #$20
+
+	Accu8
 
 ;	lda #$01
 ;	sta $420d				; restore FAST CPU operation
@@ -687,8 +691,8 @@ transfer:			; .org $0002
 apu_ram_init:
 	php
 
-	sep #$20
-	rep #$10
+	Accu8
+	Index16
 
 	phk					; set data bank = program bank
 	plb

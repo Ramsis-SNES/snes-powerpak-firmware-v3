@@ -85,6 +85,7 @@
 ; *************************** SNES registers ***************************
 
 ; -------------------------- processor status bits
+	.DEFINE DEC_MODE		$08
 	.DEFINE XY_8BIT			$10
 	.DEFINE A_8BIT			$20
 	.DEFINE AXY_8BIT		$30

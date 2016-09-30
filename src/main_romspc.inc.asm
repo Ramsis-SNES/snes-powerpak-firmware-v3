@@ -29,7 +29,7 @@
 
 
 InitROMBrowser:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda rootDirCluster			; start in root directory
 	sta sourceCluster
@@ -39,7 +39,7 @@ InitROMBrowser:
 
 	stz DP_SubDirCounter			; reset subdirectory counter
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$07				; number of file types to look for (7, see table above)
 	sta extNum
@@ -103,7 +103,7 @@ InitROMBrowser:
 
 ; -------------------------- process selected ROM file
 __ROMselected:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 
@@ -114,7 +114,7 @@ __ROMselected:
 	cpy #$0080				; 128 bytes
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -256,7 +256,7 @@ __CopySaveName:
 	dey
 	bpl __CopySaveName
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda tempEntry.tempCluster		; copy save cluster
 	sta saveName.sCluster
@@ -264,7 +264,7 @@ __CopySaveName:
 	lda tempEntry.tempCluster+2
 	sta saveName.sCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jmp GotoGameOptions
 
@@ -273,7 +273,7 @@ __CopySaveName:
 ; ************************** DirFindEntryLong **************************
 
 DirFindEntryLong:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz selectedEntry			; reset selectedEntry
 
@@ -283,7 +283,7 @@ DirFindEntryLong:
 
 
 __DirFindEntryLongLoop:
-	sep #A_8BIT
+	Accu8
 
 	lda #%00000001				; use SDRAM buffer (h flag not relevant in this case)
 	sta CLDConfigFlags
@@ -323,7 +323,7 @@ rts						; all chars match
 
 
 __IncrementEntryIdx:
-	rep #A_8BIT
+	Accu16
 
 	inc selectedEntry			; increment entry index
 
@@ -336,7 +336,7 @@ __IncrementEntryIdx:
 __DirFindEntryLongFailed:
 	pla					; clean up the stack as there's no rts from "jsr DirFindEntryLong" if no entry was found
 
-	sep #A_8BIT
+	Accu8
 
 	jmp GotoGameOptions
 

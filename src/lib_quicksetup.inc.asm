@@ -12,7 +12,7 @@
 
 
 VBlank:
-	rep #AXY_8BIT				; A/X/Y = 16 bit
+	AccuIndex16
 
 	pha					; preserve 16 bit registers
 	phx
@@ -30,7 +30,7 @@ VBlank:
 	lda temp
 	pha
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr DoScrolling
 
@@ -114,7 +114,7 @@ VBlank:
 
 	lda REG_RDNMI				; clear NMI flag (just to be sure)
 
-	rep #AXY_8BIT				; A/X/Y = 16 bit
+	AccuIndex16
 
 	pla					; restore temp variables
 	sta temp
@@ -135,8 +135,8 @@ rti
 ; ***************************** Set up GFX *****************************
 
 QuickSetup:
-	rep #XY_8BIT				; X/Y = 16 bit
-	sep #A_8BIT				; A = 8 bit
+	Accu8
+	Index16
 
 
 
@@ -222,7 +222,7 @@ QuickSetup:
 	ldx #ADDR_VRAM_BG1_TILES		; set VRAM address for BG1 font tiles
 	stx $2116
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldx #$0000
 
@@ -273,7 +273,7 @@ __BuildFontBG2:
 	cpx #$0800				; 2 KiB font done?
 	bne __BuildFontBG2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
@@ -481,7 +481,7 @@ rts
 
 
 ScrollUp:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	dec selectedEntry			; decrement entry index
 
@@ -497,7 +497,7 @@ ScrollUp:
 	cmp #maxFiles+1				; reminder: "+1" needed due to the way CMP affects the carry bit
 	bcs __ScrollUpCheckTop
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda filesInDir
 	asl a
@@ -510,7 +510,7 @@ ScrollUp:
 	bra __ScrollUpCheckMiddle
 
 __ScrollUpCheckTop:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda cursorY
 	cmp #cursorYmin				; check if cursor at top
@@ -576,7 +576,7 @@ rts
 
 
 ScrollDown:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc selectedEntry			; increment entry index
 
@@ -590,7 +590,7 @@ ScrollDown:
 	cmp #maxFiles+1
 	bcs __ScrollDownCheckBottom
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #cursorYmin-$08			; put cursor at top of screen
 	sta cursorY				; (subtraction necessary because it "scrolls in" from one line above)
@@ -598,7 +598,7 @@ ScrollDown:
 	bra __ScrollDownCheckMiddle
 
 __ScrollDownCheckBottom:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda cursorY
 	cmp #cursorYmax				; check if cursor at bottom

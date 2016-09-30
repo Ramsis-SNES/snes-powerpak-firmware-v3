@@ -27,7 +27,7 @@
 SpriteInit:
 	php	
 
-	rep #AXY_8BIT				; A/X/Y = 16 bit
+	AccuIndex16
 
 	ldx #$0000
 
@@ -46,7 +46,7 @@ __Init_OAM_lo:
 	cpx #$0200
 	bne __Init_OAM_lo
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #%10101010				; large sprites for everything except the sprite font
 

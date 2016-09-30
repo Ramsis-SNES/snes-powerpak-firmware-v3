@@ -48,7 +48,7 @@ __ReturnFromMenuSection:
 
 
 ; -------------------------- Show button hints
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$9898				; Y, X
 	sta SpriteBuf1.Buttons
@@ -68,7 +68,7 @@ __ReturnFromMenuSection:
 	lda #$03AC				; tile properties, tile num for Start button highlighted
 	sta SpriteBuf1.Buttons+10
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	SetCursorPos 18, 19
 	PrintString "Accept"
@@ -84,11 +84,11 @@ __ReturnFromMenuSection:
 .IFDEF SHOWDEBUGMSGS
 	SetCursorPos 0, 22
 
-	rep #A_8BIT
+	Accu16
 
 	tsc					; print stack pointer (initial value: $1FFF)
 
-	sep #A_8BIT
+	Accu8
 
 	xba
 	sta temp
@@ -280,7 +280,7 @@ CheckForUpdate:
 
 	jsr CardReadSector			; sector -> WRAM
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #STR_Firmware_Codename		; look for "MUFASA"
 	and #$0FFF				; mask off SNES LoROM address gap ($8000)
@@ -305,7 +305,7 @@ CheckForUpdate:
 	cmp #$4153				; SA
 	beq __UpdateRomIsValid
 
-+	sep #A_8BIT				; A = 8 bit
++	Accu8
 
 	jsr ClearSpriteText			; remove "Loading ..." message
 	jsr SpriteMessageError
@@ -325,7 +325,7 @@ __UpdateRomIsValid:
 	and #$0FFF				; mask off SNES LoROM address gap
 	tay
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 -	lda $0000, x				; compare major release version
 	cmp sectorBuffer1, y
@@ -339,7 +339,7 @@ __UpdateRomIsValid:
 	cpx #STR_Firmware_VerNum_End
 	bne -
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #STR_Firmware_BuildNum
 	tax
@@ -347,7 +347,7 @@ __UpdateRomIsValid:
 	and #$0FFF				; mask off SNES LoROM address gap
 	tay
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 -	lda $0000, x				; compare build no.
 	cmp sectorBuffer1, y
@@ -469,7 +469,7 @@ SaveConfig:
 
 	iny
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda DP_ThemeFileClusterLo		; save theme file cluster
 	sta sectorBuffer1, y
@@ -483,7 +483,7 @@ SaveConfig:
 	iny
 	iny
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$00				; zero out the rest of POWERPAK.CFG
 -	sta sectorBuffer1, y
@@ -513,7 +513,7 @@ MemCheck:
 	SetCursorPos 17, 1
 	PrintString "SDRAM check:"
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$9898				; Y, X
 	sta SpriteBuf1.Buttons
@@ -521,7 +521,7 @@ MemCheck:
 	lda #$03A2				; tile properties, tile num for B button
 	sta SpriteBuf1.Buttons+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	SetCursorPos 18, 19
 	PrintString "Cancel"
@@ -560,14 +560,14 @@ MemCheckWriteLoop:
 	lda temp+2
 	sta temp+3
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda temp
 	clc
 	adc #$000F
 	sta temp
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda temp+2
 	adc #$00
@@ -618,14 +618,14 @@ MemCheckReadLoop:
 	lda temp+2
 	sta temp+3
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda temp
 	clc
 	adc #$000F
 	sta temp
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda temp+2
 	adc #$00

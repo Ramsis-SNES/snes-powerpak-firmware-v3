@@ -63,7 +63,7 @@ InitSRMBrowser:
 ;	lda #%00000001				; SRM file selected
 ;	sta DP_SelectionFlags
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$0000
 
@@ -74,7 +74,7 @@ InitSRMBrowser:
 	cpy #$0080				; 128 bytes
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 __SRAMBrowserEnd:
 
@@ -338,7 +338,7 @@ rts
 SaveSRAMFile:
 	jsr SpriteInit				; purge OAM to suppress sprite artifacts // FIXME, prob. unnecessary (use HideCursorSprite)
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda saveName.sCluster			; copy save cluster to source cluster
 	sta sourceCluster
@@ -346,7 +346,7 @@ SaveSRAMFile:
 	lda saveName.sCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$00
 	sta DMAWRITELO

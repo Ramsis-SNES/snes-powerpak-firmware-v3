@@ -16,7 +16,7 @@
 ; ************************ Begin CF interaction ************************
 
 AccessCFcard:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz gameName.gCluster			; clear out cluster info
 	stz gameName.gCluster+2
@@ -24,7 +24,7 @@ AccessCFcard:
 	stz saveName.sCluster
 	stz saveName.sCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr CardReset
 
@@ -151,14 +151,14 @@ CardFormatCheckLoop:
 	cmp #$0E				; 0Eh = FAT16 with LBA1 13h Extensions
 	beq CardGoodFormat
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	txa					; increment index to next partition entry
 	clc
 	adc #16
 	tax
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	iny
 	cpy #4					; all 4 partition entries checked?
@@ -273,7 +273,7 @@ CardCopyRootDirEntries16:			; copy max root directory entries from offset 17
 
 
 CardCopyFatBeginLBA:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	clc					; fatBeginLBA(4) = partitionLBABegin(4) + reservedSectors(2)
 	lda reservedSectors
@@ -295,7 +295,7 @@ CardCopyFatBeginLBA:
 	asl clusterBeginLBA			; clusterBeginLBA(4) = fatBeginLBA(4) + (2 * sectorPerFat(4))
 	rol clusterBeginLBA+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	clc					; FAT16 = 32 sectors       FAT32 = 0 sectors
 	lda clusterBeginLBA			; clusterBeginLBA(4) = clusterBeginLBA(4) + fat16RootSectors(1)
@@ -306,7 +306,7 @@ CardCopyFatBeginLBA:
 	adc #$00
 	sta clusterBeginLBA+1
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda clusterBeginLBA+2
 	adc #$0000
@@ -327,7 +327,7 @@ CardCopyFatBeginLBA:
 	lda rootDirCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
  ; PrintString "\n"
  ; PrintHexNum sectorsPerCluster
@@ -746,7 +746,7 @@ rts
 
 
 CardReadGameFill:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz gameSize
 
@@ -757,7 +757,7 @@ __CRGF_Reiterate:
 	lda gameName.gCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	stz sectorCounter
 	stz bankCounter
@@ -774,11 +774,11 @@ __CRGF_ReadSector:
 
 	jsr CardReadSector
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc gameSize				; keep track of game size, skipping header sectors
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 __CRGF_NextSector:
 	IncrementSectorNum
@@ -794,7 +794,7 @@ __	lda gameSize+1
 	bcc +					; (probably in order to "improve" support for smaller ROMs ??)
 rts
 
-+	rep #A_8BIT				; A = 16 bit
++	Accu16
 
 	jmp __CRGF_Reiterate
 
@@ -815,11 +815,11 @@ __CardReadFileLoop:
 ;  PrintHexNum sourceSector+0
 ;  PrintString "."
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc gameSize				; keep track of game size
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #kDestSDRAM
 	sta destType
@@ -942,7 +942,7 @@ rts
 
 ; cluster->lba     lba_addr(4) = clusterBeginLBA(4) + (cluster_number(2)-2 * sectorsPerCluster(1))
 ClusterToLBA:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	sec
 	lda sourceCluster
@@ -953,7 +953,7 @@ ClusterToLBA:
 	sbc #$0000
 	sta sourceSector+2			; sourceSector = sourceCluster - 2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda sectorsPerCluster
 	sta source256
@@ -962,17 +962,17 @@ ClusterToLBA:
 	beq +					; handle 1 sector per cluster
 
 __ClusterToLBALoop:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	asl sourceSector
 	rol sourceSector+2			; sourceSector = sourceSector * sectorsPerCluster
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lsr source256
 	bne __ClusterToLBALoop
 
-+	rep #A_8BIT				; A = 16 bit
++	Accu16
 
 	clc
 	lda sourceSector
@@ -983,7 +983,7 @@ __ClusterToLBALoop:
 	adc clusterBeginLBA+2
 	sta sourceSector+2			; sourceSector = sourceSector(4) + clusterBeginLBA(4)
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -1020,19 +1020,19 @@ CardLoadDir:
 	sta DMAWRITEHI
 	sta DMAWRITEBANK
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz filesInDir
 	stz temp
 	stz selectedEntry
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	stz sectorCounter
 
 	jsr ClusterToLBA			; sourceCluster -> first sourceSector
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda fat32Enabled
 	and #$0001
@@ -1046,7 +1046,7 @@ CardLoadDir:
 	cmp rootDirCluster+2
 	bne __CLD_ReadSector
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	sec
 	lda clusterBeginLBA			; FAT16 sourceSector = root dir first sector => clusterLBABegin(4) - fat16RootSectors(1)
@@ -1057,14 +1057,14 @@ CardLoadDir:
 	sbc #$00
 	sta sourceSector+1
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda clusterBeginLBA+2
 	sbc #$0000
 	sta sourceSector+2
 
 __CLD_ReadSector:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #kDestWRAM
 	sta destType
@@ -1130,7 +1130,7 @@ __CLD_EntryPrepareLoadLFN:
 	lda #$0D				; LFNs consist of 13 unicode characters
 	sta $211C
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 ;	nop					; give 2 cycles of extra time (seems unneccessary)
 
@@ -1140,7 +1140,7 @@ __CLD_EntryPrepareLoadLFN:
 
 	tax					; transfer to X register
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr CLD_LoadLFN				; load LFN entry, store characters to tempEntry
 	jmp __CLD_NextEntry
@@ -1230,7 +1230,7 @@ __CLD_EntryExtensionMatch:
 
 
 ; -------------------------- check file size
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$001E
 
@@ -1242,24 +1242,24 @@ __CLD_EntryExtensionMatch:
 	lda [sourceEntryLo], y			; lower 16 bit of file size
 	bne __CLD_FileSizeNotZero
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr CLD_ClearEntryName			; file size = 0, skip entry
 	jmp __CLD_NextEntry
 
 __CLD_FileSizeNotZero:
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
 ; -------------------------- load long/short dir or entry with matching ext. and size not zero
 __CLD_ProcessMatchingEntry:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc filesInDir				; increment file counter
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda lfnFound
 	cmp #$01
@@ -1296,7 +1296,7 @@ __CLD_ProcessMatchingEntry:
 	sta tempEntry+$B
 
 __CLD_PrepareSaveEntry:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldy #$001A
 
@@ -1308,7 +1308,7 @@ __CLD_PrepareSaveEntry:
 	lda [sourceEntryLo], y
 	sta tempEntry.tempCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	ldy #$0000				; reset Y for upcoming loop
 
@@ -1318,18 +1318,18 @@ __CLD_PrepareSaveEntry:
 
 	jsr CLD_SaveEntryToWRAM
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda filesInDir				; check if file counter has reached 512
 	cmp #$0200
 	bcc __CLD_WRAMcontinue
 
-	sep #A_8BIT				; if so, A = 8 bit
+	Accu8					; if so, A = 8 bit
 
 	jmp __CLD_LastEntryFound		; ... and don't process any more entries
 
 __CLD_WRAMcontinue:
-	sep #A_8BIT				; otherwise, A = 8 bit, and continue
+	Accu8					; otherwise, A = 8 bit, and continue
 
 	jsr CLD_ClearEntryName
 	bra __CLD_NextEntry
@@ -1343,7 +1343,7 @@ __CLD_UseSDRAMbuffer:
 	and #%00000010				; yes, check for "hidden" flag
 	beq __CLD_SaveEntryToSDRAM
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	dec filesInDir				; hidden dir/file found, decrement file counter ...
 
@@ -1358,18 +1358,18 @@ __CLD_SaveEntryToSDRAM:
 	cpy #$0080
 	bne __CLD_SaveEntryToSDRAM
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda filesInDir
 	cmp #$FFFF				; check if file counter has reached 65535
 	bcc __CLD_SDRAMcontinue
 
-	sep #A_8BIT				; if so, A = 8 bit
+	Accu8					; if so, A = 8 bit
 
 	jmp __CLD_LastEntryFound		; ... and don't process any more entries
 
 __CLD_SDRAMcontinue:
-	sep #A_8BIT				; otherwise, A = 8 bit, and continue
+	Accu8					; otherwise, A = 8 bit, and continue
 
 	jsr CLD_ClearEntryName
 
@@ -1377,14 +1377,14 @@ __CLD_SDRAMcontinue:
 
 ; -------------------------- finally, increment to next entry, and loop
 __CLD_NextEntry:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	clc					; increment entry source address
 	lda sourceEntryLo			; sourceEntry += 32 in 0200-0400
 	adc #$0020
 	sta sourceEntryLo
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda sourceEntryHi			; if source overflows, get next sector
 	cmp #>sectorBuffer1+$02			; LAST CHANGE
@@ -1396,7 +1396,7 @@ __CLD_NextEntry:
 
 ; -------------------------- if necessary, increment source sector
 __CLD_NextSector:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	clc
 	lda sourceSector
@@ -1419,7 +1419,7 @@ __CLD_NextSector:
 	cmp rootDirCluster+2
 	bne __CLD_SectorIncrement
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	inc sectorCounter			; FAT16 root dir all sequential sectors
 
@@ -1430,7 +1430,7 @@ __CLD_NextSector:
 	bra __CLD_LoadNextSector		; FAT16 skip cluster lookup when max root sectors not reached
 
 __CLD_SectorIncrement:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	inc sectorCounter			; one more sector
 
@@ -1440,7 +1440,7 @@ __CLD_SectorIncrement:
 
 	jsr NextCluster				; move to next cluster
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 ; check for last sector
 ; FAT32 last cluster = 0x0FFFFFFF
@@ -1466,12 +1466,12 @@ __CLD_LastClusterMaskDone:			; if cluster = last cluster, jump to last entry fou
 	cmp temp+2
 	bne __CLD_NextSectorNum
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	bra __CLD_LastEntryFound		; last cluster, jump out
 
 __CLD_NextSectorNum:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jsr ClusterToLBA			; sourceCluster -> first sourceSector
 
@@ -1558,7 +1558,7 @@ rts
 
 ; -------------------------- CardLoadDir subroutine: save entry to WRAM buffer
 CLD_SaveEntryToWRAM:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 -	lda tempEntry, y			; Y was reset before
 	sta [destEntryLo], y
@@ -1572,7 +1572,7 @@ CLD_SaveEntryToWRAM:
 	adc #$0080
 	sta destEntryLo
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -1581,7 +1581,7 @@ rts
 CLD_ClearEntryName:
 	stz lfnFound
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$0000
 	ldy #$0000
@@ -1592,7 +1592,7 @@ CLD_ClearEntryName:
 	cpy #$0080
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 rts
 
 
@@ -1603,7 +1603,7 @@ rts
 ; sourceSector.
 
 NextCluster:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	asl sourceCluster			; FAT16: offset = clusternum << 1
 	rol sourceCluster+2			; mask = 00 00 ff ff
@@ -1619,14 +1619,14 @@ NextClusterSectorNum:				; FAT sector num = fatBeginLBA + (offset / 512) || clus
 	lda sourceCluster+1			; first, divide by 256 by shifting sourceCluster 8 bits right,
 	sta sourceSector+0			; and store to sourceSector
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda sourceCluster+3
 	sta sourceSector+2
 
 	stz sourceSector+3			; division by 256 done || sector = 02
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lsr sourceSector+2			; next, shift sourceSector 1 more bit right (div. by 512) || sector = 01
 	ror sourceSector+0
@@ -1640,7 +1640,7 @@ NextClusterSectorNum:				; FAT sector num = fatBeginLBA + (offset / 512) || clus
 	adc fatBeginLBA+2
 	sta sourceSector+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #>sectorBuffer1			; load FAT sector
 	sta destHi
@@ -1702,7 +1702,7 @@ rts
 ; ************************** Get next sector ***************************
 
 LoadNextSectorNum:				; get next sector, use sectorCounter to check if next cluster needed
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	clc
 	lda sourceSector
@@ -1713,7 +1713,7 @@ LoadNextSectorNum:				; get next sector, use sectorCounter to check if next clus
 	adc #$0000
 	sta sourceSector+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	inc sectorCounter			; one more sector
 
@@ -1790,7 +1790,7 @@ GotoSRMTest:
 
 	PrintString "\n\nSearching for free sector within FAT ...\nSector no. $"
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda fatBeginLBA				; first FAT sector --> sourceSector for sector reading
 	sta sourceSector
@@ -1798,7 +1798,7 @@ GotoSRMTest:
 	lda fatBeginLBA+2
 	sta sourceSector+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 FindFreeSector:
 	lda #$E0				; mask off upper 3 bits (set in CardLoadLBA, reason unknown ??)
@@ -1822,7 +1822,7 @@ FindFreeSector:
 
 	jsr CardReadSector			; read FAT sector to WRAM
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	ldx #$0000
 
@@ -1833,7 +1833,7 @@ FindFreeSector:
 	cpx #512
 	bne -
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	PrintString "\nEmpty sector found!"
 
@@ -1841,18 +1841,18 @@ FindFreeSector:
 ;	jmp FindFreeSector
 
 __SectorNotEmpty:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	inc sourceSector
 	lda sourceSector
 	cmp #$21CB ; fatBeginLBA + sectorsPerFat on 4GB Sandisk card
 	beq +
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	jmp FindFreeSector
 
-+	sep #A_8BIT				; A = 8 bit
++	Accu8
 
 	PrintSpriteText 19, 2, "Error!", 4
 

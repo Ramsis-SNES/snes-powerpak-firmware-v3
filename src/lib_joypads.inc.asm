@@ -18,8 +18,8 @@
 JoyInit:
 	php
 
-	rep #XY_8BIT				; A = 8 bit, X/Y = 16 bit
-	sep #A_8BIT
+	Accu8
+	Index16
 
 	lda #$C0				; have the automatic read of the SNES read the first pair of JoyPads
 	sta REG_WRIO
@@ -41,14 +41,14 @@ rts
 GetInput:
 	php
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	lda #$01
 
 _W1:	bit REG_HVBJOY
 	bne _W1					; wait till automatic JoyPort read is complete
 
-	rep #AXY_8BIT				; A/X/Y = 16 bit
+	AccuIndex16
 
 ; ********** get Joypads 1, 2
 
@@ -78,7 +78,7 @@ _W1:	bit REG_HVBJOY
 
 ; ********** make sure Joypads 1, 2 are valid
 
-	sep #AXY_8BIT				; A/X/Y = 8 bit
+	AccuIndex8
 
 	lda REG_JOYSER0
 	eor #$01
@@ -94,7 +94,7 @@ _W1:	bit REG_HVBJOY
 
 ; ********** change all invalid joypads to have a state of no button presses
 
-	rep #AXY_8BIT				; A/X/Y = 16 bit
+	AccuIndex16
 
 	ldx #$0001
 	lda #$000F

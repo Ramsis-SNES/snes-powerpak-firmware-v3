@@ -14,9 +14,48 @@
 
 ; ******************************* Macros *******************************
 
-; SetCursorPos  y, x
+; -------------------------- A/X/Y register control
+.MACRO Accu8
+	sep	#$20
+.ENDM
 
-.MACRO SetCursorPos
+
+
+.MACRO Accu16
+	rep	#$20
+.ENDM
+
+
+
+.MACRO AccuIndex8
+	sep	#$30
+.ENDM
+
+
+
+.MACRO AccuIndex16
+	rep	#$30
+.ENDM
+
+
+
+.MACRO Index8
+	sep	#$10
+.ENDM
+
+
+
+.MACRO Index16
+	rep	#$10
+.ENDM
+
+
+
+; -------------------------- frequently-used "code snippet" macros
+.ACCU 8
+.INDEX 16
+
+.MACRO SetCursorPos				; SetCursorPos  y, x
 	ldx #32*\1+32*minPrintY + \2+minPrintX	; add values of indention constants
 	stx Cursor
 	stz BGPrintMon				; reset BG monitor value to zero (start on BG1)
@@ -69,7 +108,7 @@
 ; Effect: Waits for the user to press any button (d-pad is ignored).
 
 .MACRO WaitForUserInput
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 __CheckJoypad\@:
 	wai
@@ -79,7 +118,7 @@ __CheckJoypad\@:
 
 	beq __CheckJoypad\@
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 .ENDM
 
 
@@ -135,14 +174,14 @@ __DrawLRBorder\@:
 	lda #$26				; left vertical line
 	sta TextBuffer.BG1, x
 
-;	rep #A_8BIT				; A = 16 bit
+;	Accu16
 
 ;	txa
 ;	clc
 ;	adc #\3					; go to right border
 ;	tax
 
-;	sep #A_8BIT				; A = 8 bit
+;	Accu8
 
 	lda #$40				; space
 
@@ -163,14 +202,14 @@ __ClearTextInsideFrame\@:
 	sta TextBuffer.BG2, x
 
 __GoToNextLine\@:
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	txa
 	clc
 	adc #32 - \3				; go to next line
 	tax
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	cpx #32*(\2+\4) + \1
 	bne __DrawLRBorder\@
@@ -347,7 +386,7 @@ __FileNameComplete\@:
 	lda.w FileName\@, x
 	sta extMatch3
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda baseDirCluster			; "POWERPAK" dir start
 	sta sourceCluster
@@ -355,14 +394,14 @@ __FileNameComplete\@:
 	lda baseDirCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	stz CLDConfigFlags			; use WRAM buffer, don't skip hidden files
 
 	jsr CardLoadDir				; "POWERPAK" dir
 	jsr DirFindEntry			; get first cluster of file to look for
 
-	rep #A_8BIT
+	Accu16
 
 	lda tempEntry.tempCluster
 	sta sourceCluster
@@ -370,7 +409,7 @@ __FileNameComplete\@:
 	lda tempEntry.tempCluster+2
 	sta sourceCluster+2
 
-	sep #A_8BIT
+	Accu8
 
 	bra __FileName_End\@
 
@@ -397,7 +436,7 @@ __FileName_End\@:
 
 	jsr LoadNextSectorNum
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	pla					; pull destLo/destHi from stack
 	sta destLo
@@ -426,12 +465,12 @@ __LastClusterMaskDone\@:			; if cluster = last cluster, jump to last entry found
 	cmp temp+2
 	bne __NextSector\@
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	bra _f					; last cluster (intentional forward jump, "beyond" of the macro)
 
 __NextSector\@:
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 .ENDM
 

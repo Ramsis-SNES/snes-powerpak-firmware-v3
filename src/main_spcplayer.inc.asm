@@ -270,7 +270,7 @@ CopyDate:					; date
 	SetCursorPos 17+32, 0
 	PrintString "Datestamp : %s"
 
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	lda #$A070				; Y, X
 	sta SpriteBuf1.Buttons
@@ -278,7 +278,7 @@ CopyDate:					; date
 	lda #$03A2				; tile properties, tile num for B button
 	sta SpriteBuf1.Buttons+2
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 	SetCursorPos 19+32, 14
 	PrintString "Back"
@@ -286,7 +286,7 @@ CopyDate:					; date
 
 
 ; -------------------------- reset some variables
-	rep #A_8BIT				; A = 16 bit
+	Accu16
 
 	stz spcTimer				; frame counter / timer seconds
 	stz spcTimer+2				; timer minutes / unused
@@ -294,7 +294,7 @@ CopyDate:					; date
 	stz Joy1New				; input buttons
 	stz Joy1Press
 
-	sep #A_8BIT				; A = 8 bit
+	Accu8
 
 
 
