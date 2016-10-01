@@ -380,18 +380,6 @@ __CalcTimerDone:
 	lda #kWarmBoot3
 	sta DP_ColdBootCheck3
 
-	lda #kWarmBoot4
-	sta VAR_ColdBootCheck4
-
-	lda #kWarmBoot5
-	sta.l VAR_ColdBootCheck5
-
-	lda #kWarmBoot6
-	sta.l VAR_ColdBootCheck6
-
-	lda #kWarmBoot7
-	sta.l VAR_ColdBootCheck7
-
 	stz DP_HDMAchannels			; disable HDMA (background color gradient channel might destroy the palette on 50 Hz)
 
 	wai					; wait for HDMA register to clear

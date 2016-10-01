@@ -166,9 +166,7 @@ CONST_Zeroes:
 
 .SECTION "libs" SEMIFREE
 
-	.INCLUDE "lib_initsnes.inc.asm"		; SNES initialization routines
 	.INCLUDE "lib_joypads.inc.asm"		; SNES joypad routines
-	.INCLUDE "lib_quicksetup.inc.asm"	; SNES screen setup/Vblank/scrolling routines
 	.INCLUDE "lib_sprites.inc.asm"		; SNES sprite setup routines
 
 .ENDS
@@ -181,6 +179,7 @@ CONST_Zeroes:
 	.INCLUDE "main_boot.inc.asm"		; main bootloader code
 	.INCLUDE "main_cf_interface.inc.asm"
 	.INCLUDE "main_filebrowser.inc.asm"
+	.INCLUDE "main_gfxsetup.inc.asm"	; SNES screen setup/Vblank/scrolling routines
 	.INCLUDE "main_romspc.inc.asm"
 	.INCLUDE "main_options.inc.asm"
 	.INCLUDE "main_gamegenie.inc.asm"

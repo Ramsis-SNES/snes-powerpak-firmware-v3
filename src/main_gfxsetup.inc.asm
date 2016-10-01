@@ -134,7 +134,7 @@ rti
 
 ; ***************************** Set up GFX *****************************
 
-QuickSetup:
+GFXsetup:
 	Accu8
 	Index16
 
@@ -318,7 +318,7 @@ __BuildFontBG2:
 
 
 ; -------------------------- set up the screen
-__WarmBootGFXsetup:
+GFXsetup2:
 	lda #%00000011				; 8×8 (small) / 16×16 (large) sprites, character data at $6000
 	sta $2101
 

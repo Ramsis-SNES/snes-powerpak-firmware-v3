@@ -17,11 +17,14 @@ Main:
 	sei					; disable interrupts
 	clc
 	xce					; switch to native mode
-	rep #XY_8BIT|DEC_MODE			; X/Y = 16 bit, decimal mode off
+	rep #AXY_8BIT|DEC_MODE			; A/X/Y = 16 bit, decimal mode off
+
+	lda #$0000				; set Direct Page = $0000
+	tcd
 
 	Accu8
 
-	lda DP_ColdBootCheck1			; perform cold-boot check
+	lda DP_ColdBootCheck1			; check for warm-boot signature
 	cmp #kWarmBoot1
 	bne __ColdBoot
 
@@ -33,22 +36,6 @@ Main:
 	cmp #kWarmBoot3
 	bne __ColdBoot
 
-	lda VAR_ColdBootCheck4
-	cmp #kWarmBoot4
-	bne __ColdBoot
-
-	lda VAR_ColdBootCheck5
-	cmp #kWarmBoot5
-	bne __ColdBoot
-
-	lda VAR_ColdBootCheck6
-	cmp #kWarmBoot6
-	bne __ColdBoot
-
-	lda VAR_ColdBootCheck7
-	cmp #kWarmBoot7
-	bne __ColdBoot
-
 
 
 ; ***************************** Warm boot ******************************
@@ -56,7 +43,33 @@ Main:
 	ldx DP_StackPointer_BAK			; restore stack pointer
 	txs
 
-	jsr WarmBootInit
+	Accu16
+
+	lda #$0000				; set Direct Page = $0000
+	tcd
+
+	Accu8
+
+	lda #$80				; enter forced blank
+	sta $2100
+
+	stz $420B				; disable DMA
+	stz $420C				; disable HDMA
+
+	stz DP_ColdBootCheck1			; remove warm boot signature
+	stz DP_ColdBootCheck2
+	stz DP_ColdBootCheck3
+
+	cli					; enable interrupts
+
+	jsl apu_ram_init			; initialize sound RAM
+
+	phk					; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
+	plb
+
+	jsr SpriteInit				; reinitialize OAM
+	jsr GFXsetup2				; reinitialize GFX registers
+	jsr JoyInit				; reinitialize joypads, enable NMI
 
 	lda DP_cursorX_BAK			; restore cursor position
 	sta cursorX
@@ -82,14 +95,167 @@ __ColdBoot:
 	ldx #$1FFF				; set up the stack
 	txs
 
-	jsr InitSNES				; initialize SNES hardware
-	jsl apu_ram_init
+	phk					; set Data Bank = Program Bank
+	plb
+
+	Accu16
+
+	lda #$2100				; set Direct Page to PPU registers
+	tcd
+
+	Accu8
+
+
+
+; -------------------------- initialize registers
+	lda	#$8F							; INIDISP (Display Control 1): forced blank
+	sta	$00
+	stz	$01							; regs $2101-$210C: set sprite, character, tile sizes to lowest, and set addresses to $0000
+	stz	$02
+	stz	$03
+
+	; reg $2104: OAM data write
+
+	stz	$05
+	stz	$06
+	stz	$07
+	stz	$08
+	stz	$09
+	stz	$0A
+	stz	$0B
+	stz	$0C
+	stz	$0D							; regs $210D-$2114: set all BG scroll values to $0000
+	stz	$0D
+	stz	$0E
+	stz	$0E
+	stz	$0F
+	stz	$0F
+	stz	$10
+	stz	$10
+	stz	$11
+	stz	$11
+	stz	$12
+	stz	$12
+	stz	$13
+	stz	$13
+	stz	$14
+	stz	$14
+	lda	#$80							; increment VRAM address by 1 after writing to $2119
+	sta	$15
+	stz	$16							; regs $2116-$2117: VRAM address
+	stz	$17
+
+	; regs $2118-2119: VRAM data write
+
+	stz	$1A
+	stz	$1B							; regs $211B-$2120: Mode7 matrix values
+	lda	#$01
+	sta	$1B
+	stz	$1C
+	stz	$1C
+	stz	$1D
+	stz	$1D
+	stz	$1E
+;	lda	#$01							; never mind, 8-bit Accu still contains $01
+	sta	$1E
+	stz	$1F
+	stz	$1F
+	stz	$20
+	stz	$20
+	stz	$21
+
+	; reg $2122: CGRAM data write
+
+	stz	$23							; regs $2123-$2133: turn off windows, main screens, sub screens, color addition,
+	stz	$24							; fixed color = $00, no super-impose (external synchronization), no interlace, normal resolution
+	stz	$25
+	stz	$26
+	stz	$27
+	stz	$28
+	stz	$29
+	stz	$2A
+	stz	$2B
+	stz	$2C
+	stz	$2D
+	stz	$2E
+	stz	$2F
+	lda	#$30
+	sta	$30
+	stz	$31
+	lda	#$E0
+	sta	$32
+	stz	$33
+
+	; regs $2134-$213F: PPU read registers, no initialization needed
+	; regs $2140-$2143: APU communication regs, no initialization required
+	; reg $2180: WRAM data read/write
+
+	stz	$81							; regs $2181-$2183: WRAM address
+	stz	$82
+	stz	$83
+
+	; regs $4016-$4017: serial JoyPad read registers, no need to initialize
+
+	Accu16
+
+	lda #$4200				; set Direct Page to CPU registers
+	tcd
+
+	Accu8
+
+	stz	$00							; reg $4200: disable timers, NMI, and auto-joyread
+	lda	#$FF
+	sta	$01							; reg $4201: programmable I/O write port, initalize to allow reading at in-port
+	stz	$02							; regs $4202-$4203: multiplication registers
+	stz	$03
+	stz	$04							; regs $4204-$4206: division registers
+	stz	$05
+	stz	$06
+	stz	$07							; regs $4207-$4208: Horizontal-IRQ timer setting
+	stz	$08
+	stz	$09							; regs $4209-$420A: Vertical-IRQ timer setting
+	stz	$0A
+	stz	$0B							; reg $420B: turn off all general DMA channels
+	stz	$0C							; reg $420C: turn off all HDMA channels
+	stz	$0D							; reg $420D: set Memory-2 area to slow (2.68Mhz)
+
+	; regs $420E-$420F: unused registers
+	; reg $4210: RDNMI (R)
+	; reg $4211: IRQ status, no need to initialize
+	; reg $4212: H/V blank and JoyRead status, no need to initialize
+	; reg $4213: programmable I/O inport, no need to initialize
+	; regs $4214-$4215: divide results, no need to initialize
+	; regs $4216-$4217: multiplication or remainder results, no need to initialize
+	; regs $4218-$421f: JoyPad read registers, no need to initialize
+	; regs $4300-$437F: DMA/HDMA parameters, unused registers
+
+
+
+; -------------------------- clear all directly accessible RAM areas (with parameters/addresses set/reset above)
+	Accu16
+
+	lda #$0000				; set Direct Page = $0000
+	tcd
+
+	Accu8
+
+	DMA_CH0 $09, :CONST_Zeroes, CONST_Zeroes, $18, 0	; VRAM (length $0000 = 65536 bytes)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $22, 512	; CGRAM (512 bytes)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $04, 512+32	; OAM (low+high OAM tables = 512+32 bytes)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0	; WRAM (length $0000 = 65536 bytes = lower 64K of WRAM)
+
+	lda #%00000001				; WRAM address in $2181-$2183 has reached $10000 now,
+	sta $420B				; so re-initiate DMA transfer for the upper 64K of WRAM
+
+	cli					; enable interrupts
+
+	jsl apu_ram_init			; initialize sound RAM
 
 	phk					; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 
 	jsr SpriteInit				; set up sprite buffer
-	jsr QuickSetup				; set up VRAM, video mode, background and character pointers
+	jsr GFXsetup				; set up VRAM, video mode, background and character pointers
 	jsr JoyInit				; initialize joypads and enable NMI
 
 	Accu8

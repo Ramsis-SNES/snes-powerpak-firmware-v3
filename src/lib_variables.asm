@@ -257,6 +257,15 @@
 
 
 
+; -------------------------- warm-boot signature
+; Added for v3.00 by ManuLöwe. Basically, any three 8-bit-values will do.
+
+	.DEFINE kWarmBoot1		$2A
+	.DEFINE kWarmBoot2		$97
+	.DEFINE kWarmBoot3		$BD
+
+
+
 ; -------------------------- CF interface stuff
 .ENUM $00
 	kDestNoDMA			db
@@ -274,21 +283,6 @@
 	kSourceFPGA			db
 	kSourceSDRAM			db
 	kSourceSDRAMNoDMA		db
-.ENDE
-
-
-
-; -------------------------- Cold-boot check
-; Added for v3.00 by ManuLöwe. Basically, any seven 8-bit-values will do.
-
-.ENUM $25
-	kWarmBoot1			dsb 6	; $25
-	kWarmBoot2			dsb 6	; $2B
-	kWarmBoot3			dsb 6	; $31
-	kWarmBoot4			dsb 6	; $37
-	kWarmBoot5			dsb 6	; $3D
-	kWarmBoot6			dsb 6	; $43
-	kWarmBoot7			dsb 6	; $49
 .ENDE
 
 
@@ -543,8 +537,6 @@
 	codeBuffer		dsb 1024	; 1 KiB for WRAM flashing routines
 	sectorBuffer1		dsb 512
 
-	VAR_ColdBootCheck4	db
-
 	tempEntry	INSTANCEOF temp_entry	; 128 bytes
 	gameName	INSTANCEOF game_name	; ditto
 	saveName	INSTANCEOF save_name	; ditto
@@ -602,20 +594,6 @@
 	LogBuffer		dsb 2048	; for writing error messages to ERROR.LOG
 	HDMAtable	INSTANCEOF hdma_tables	; 1186 bytes
 	SpriteFWT		dsb 128		; font width table for sprite-based font
-
-	VAR_ColdBootCheck5	db
-.ENDE
-
-
-
-.ENUM $7E4800					; random location #6
-	VAR_ColdBootCheck6	db
-.ENDE
-
-
-
-.ENUM $7E76D2					; random location #7
-	VAR_ColdBootCheck7	db
 .ENDE
 
 
