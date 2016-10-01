@@ -129,7 +129,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11334"
+	.DB "11335"
 
 STR_Firmware_BuildNum_End:
 	.DB 0
@@ -174,7 +174,8 @@ CONST_Zeroes:
 .INCLUDE "main_boot.inc.asm"						; main bootloader code
 .INCLUDE "main_cf_interface.inc.asm"
 .INCLUDE "main_filebrowser.inc.asm"
-.INCLUDE "main_gfxsetup.inc.asm"					; SNES screen setup/Vblank/scrolling routines
+.INCLUDE "main_gfxsetup.inc.asm"					; SNES graphics & screen setup
+.INCLUDE "main_vblank.inc.asm"						; Vblank NMI routines
 .INCLUDE "main_romspc.inc.asm"
 .INCLUDE "main_options.inc.asm"
 .INCLUDE "main_gamegenie.inc.asm"

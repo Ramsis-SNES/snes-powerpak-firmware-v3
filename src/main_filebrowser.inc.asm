@@ -621,6 +621,153 @@ __DirPrintEntryDone:
 
 
 
+ScrollDown:
+	Accu16
+
+	inc	selectedEntry						; increment entry index
+	lda	selectedEntry						; check if selectedEntry >= filesInDir
+	cmp	filesInDir
+	bcc	__ScrollDownCheckBottom
+	stz	selectedEntry						; yes, overflow --> reset selectedEntry
+	lda	filesInDir						; check if filesInDir > maxFiles
+	cmp	#maxFiles+1
+	bcs	__ScrollDownCheckBottom
+
+	Accu8
+
+	lda	#cursorYmin-$08						; put cursor at top of screen
+	sta	cursorY							; (subtraction necessary because it "scrolls in" from one line above)
+	bra	__ScrollDownCheckMiddle
+
+__ScrollDownCheckBottom:
+	Accu8
+
+	lda	cursorY
+	cmp	#cursorYmax						; check if cursor at bottom
+	bne	__ScrollDownCheckMiddle
+	lda	speedCounter						; cursor at bottom, move background, leave cursor
+	sta	scrollYCounter						; set scrollYCounter (8 or 4)
+	lda	speedScroll
+	sta	scrollYDown						; set scrollYDown to speed (1 or 2)
+	stz	scrollYUp
+	lda	insertBottom
+	sta	temp
+	jsr	PrintClearLine
+	lda	temp
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+	ora	#minPrintX						; add horizontal indention
+	sta	Cursor
+	lda	temp
+	lsr	a
+	lsr	a
+	lsr	a
+	sta	Cursor+1
+	jsr	DirPrintEntry
+	lda	insertBottom
+	clc
+	adc	#$01
+	and	#%00011111
+	sta	insertBottom
+	lda	insertTop
+	clc
+	adc	#$01
+	and	#%00011111
+	sta	insertTop
+	bra	__ScrollDownDone
+
+__ScrollDownCheckMiddle:
+	lda	speedCounter
+	sta	cursorYCounter
+	lda	speedScroll
+	sta	cursorYDown
+	stz	cursorYUp
+
+__ScrollDownDone:
+	rts
+
+
+
+ScrollUp:
+	Accu16
+
+	dec	selectedEntry						; decrement entry index
+	lda	selectedEntry
+	cmp	#$FFFF							; check for underflow
+	bne	__ScrollUpCheckTop
+	lda	filesInDir						; underflow, set selectedEntry = filesInDir - 1
+	dec	a
+	sta	selectedEntry
+	lda	filesInDir						; check if filesInDir > maxFiles, which the cursor is restricted to, too
+	cmp	#maxFiles+1						; reminder: "+1" needed due to the way CMP affects the carry bit
+	bcs	__ScrollUpCheckTop
+
+	Accu8
+
+	lda	filesInDir
+	asl	a
+	asl	a
+	asl	a							; multiply by 8 for sprite height
+	clc
+	adc	#cursorYmin						; add Y indention
+	sta	cursorY							; put cursor at bottom of list
+	bra	__ScrollUpCheckMiddle
+
+__ScrollUpCheckTop:
+	Accu8
+
+	lda	cursorY
+	cmp	#cursorYmin						; check if cursor at top
+	bne	__ScrollUpCheckMiddle
+	lda	speedCounter
+	sta	scrollYCounter						; cursor at top, scroll background, leave cursor
+	lda	speedScroll
+	sta	scrollYUp
+	stz	scrollYDown
+	lda	insertTop
+	sta	temp
+	jsr	PrintClearLine
+	lda	temp
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+	ora	#minPrintX						; add horizontal indention
+	sta	Cursor
+	lda	temp
+	lsr	a
+	lsr	a
+	lsr	a
+	sta	Cursor+1
+	jsr	DirPrintEntry
+	lda	insertBottom
+	sec
+	sbc	#$01
+	and	#%00011111
+	sta	insertBottom
+	lda	insertTop
+	sec
+	sbc	#$01
+	and	#%00011111
+	sta	insertTop
+	bra	__ScrollUpDone
+
+__ScrollUpCheckMiddle:
+	lda	speedCounter
+	sta	cursorYCounter
+	lda	speedScroll
+	sta	cursorYUp
+	stz	cursorYDown
+
+__ScrollUpDone:
+	rts
+
+
+
 .ACCU 16
 
 SelEntryDecPage:							; decrement selectedEntry by one "page", wrap around zero if necessary
