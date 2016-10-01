@@ -31,21 +31,21 @@
 InitROMBrowser:
 	Accu16
 
-	lda	rootDirCluster			; start in root directory
+	lda	rootDirCluster						; start in root directory
 	sta	sourceCluster
 
 	lda	rootDirCluster+2
 	sta	sourceCluster+2
 
-	stz	DP_SubDirCounter			; reset subdirectory counter
+	stz	DP_SubDirCounter					; reset subdirectory counter
 
 	Accu8
 
-	lda	#$07				; number of file types to look for (7, see table above)
+	lda	#$07							; number of file types to look for (7, see table above)
 	sta	extNum
 	stz	extNum+1
 
-	lda	#'S'				; using the least possible amount of lda/sta commands
+	lda	#'S'							; using the least possible amount of lda/sta commands
 	sta	extMatch1
 	sta	extMatch1+1
 	sta	extMatch1+2
@@ -92,11 +92,11 @@ InitROMBrowser:
 
 	jsr	FileBrowser
 
-	lda	DP_SelectionFlags			; check if selection was made
+	lda	DP_SelectionFlags					; check if selection was made
 	and	#%00000001
-	bne	__ROMselected			; yes, process file
+	bne	__ROMselected						; yes, process file
 
-	jsr	PrintClearScreen			; no, go back to intro screen
+	jsr	PrintClearScreen					; no, go back to intro screen
 	jmp	GotoIntroScreen
 
 
@@ -107,11 +107,11 @@ __ROMselected:
 
 	ldy	#$0000
 
--	lda	tempEntry, y			; copy game name
+-	lda	tempEntry, y						; copy game name
 	sta	gameName, y
 	iny
 	iny
-	cpy	#$0080				; 128 bytes
+	cpy	#$0080							; 128 bytes
 	bne	-
 
 	Accu8
@@ -121,7 +121,7 @@ __ROMselected:
 ; -------------------------- attempt SRM auto-matching
 	jsr	SpriteMessageLoading
 
-	FindFile "SAVES.   "			; "SAVES" directory
+	FindFile "SAVES.   "						; "SAVES" directory
 
 ; File extensions to look for, mapped to search variables:
 ;
@@ -134,7 +134,7 @@ __ROMselected:
 ; extMatch3 |  M  |     |     |     |     |     |     |     |     |     |     |
 ; ------------------------------------------------------------------------------
 
-	lda	#$01				; number of file types to look for (1, SRM only)
+	lda	#$01							; number of file types to look for (1, SRM only)
 	sta	extNum
 	stz	extNum+1
 
@@ -147,51 +147,51 @@ __ROMselected:
 	lda	#'M'
 	sta	extMatch3
 
-	lda	#%00000001				; use SDRAM buffer, don't skip hidden files
+	lda	#%00000001						; use SDRAM buffer, don't skip hidden files
 	sta	CLDConfigFlags
 
-	jsr	CardLoadDir				; load save dir (.SRM files)
+	jsr	CardLoadDir						; load save dir (.SRM files)
 
 	ldy	#$0000
 
-__GetROMExtPosition:				; check where ROM extension starts
+__GetROMExtPosition:							; check where ROM extension starts
 	lda	gameName, y
 	cmp	#'.'
 	bne	__IncPosition
 
 	lda	gameName+1, y
 	cmp	#'s'
-	beq	__ROMExtStartsWithS			; found .s (for .sfc, .smc, .swc ROMs)
+	beq	__ROMExtStartsWithS					; found .s (for .sfc, .smc, .swc ROMs)
 	cmp	#'S'
-	beq	__ROMExtStartsWithS			; found .S
+	beq	__ROMExtStartsWithS					; found .S
 
 	cmp	#'g'
-	beq	__ROMExtStartsWithG			; found .g (for .gd3 ROMs)
+	beq	__ROMExtStartsWithG					; found .g (for .gd3 ROMs)
 	cmp	#'G'
-	beq	__ROMExtStartsWithG			; found .G
+	beq	__ROMExtStartsWithG					; found .G
 
 	cmp	#'f'
-	beq	__ROMExtStartsWithF			; found .f (for .fig ROMs)
+	beq	__ROMExtStartsWithF					; found .f (for .fig ROMs)
 	cmp	#'F'
-	beq	__ROMExtStartsWithF			; found .F
+	beq	__ROMExtStartsWithF					; found .F
 
 	cmp	#'b'
-	beq	__ROMExtStartsWithB			; found .b (for .bin ROMs)
+	beq	__ROMExtStartsWithB					; found .b (for .bin ROMs)
 	cmp	#'B'
-	beq	__ROMExtStartsWithB			; found .B
+	beq	__ROMExtStartsWithB					; found .B
 
 
 
-__IncPosition:					; go to the next character
+__IncPosition:								; go to the next character
 	iny
-	cpy	#$007A				; 122 chars
+	cpy	#$007A							; 122 chars
 	bne	__GetROMExtPosition
 	bra	__NoROMExtFound
 
 
 
 __ROMExtStartsWithS:
-	iny					; skip the "f"/"m"/"w", only check for "c"
+	iny								; skip the "f"/"m"/"w", only check for "c"
 	iny
 	lda	gameName+1, y
 	cmp	#'c'
@@ -203,7 +203,7 @@ __ROMExtStartsWithS:
 
 
 __ROMExtStartsWithG:
-	iny					; skip the "d", only check for "3"
+	iny								; skip the "d", only check for "3"
 	iny
 	lda	gameName+1, y
 	cmp	#'3'
@@ -213,7 +213,7 @@ __ROMExtStartsWithG:
 
 
 __ROMExtStartsWithF:
-	iny					; skip the "i", only check for "g"
+	iny								; skip the "i", only check for "g"
 	iny
 	lda	gameName+1, y
 	cmp	#'g'
@@ -225,7 +225,7 @@ __ROMExtStartsWithF:
 
 
 __ROMExtStartsWithB:
-	iny					; skip the "i", only check for "n"
+	iny								; skip the "i", only check for "n"
 	iny
 	lda	gameName+1, y
 	cmp	#'n'
@@ -237,28 +237,28 @@ __ROMExtStartsWithB:
 
 
 __NoROMExtFound:
-	jmp	GotoGameOptions			; if no ROM extension is found at all, we can't go on searching
+	jmp	GotoGameOptions						; if no ROM extension is found at all, we can't go on searching
 
 
 
 __ROMExtSuccess:
-	iny					; to get rid of the "+1"
+	iny								; to get rid of the "+1"
 
-	sty	temp				; save Y value
+	sty	temp							; save Y value
 
-	jsr	DirFindEntryLong			; start searching, back here means matching save file found
+	jsr	DirFindEntryLong					; start searching, back here means matching save file found
 
 	ldy	temp
 
 __CopySaveName:
-	lda	tempEntry, y			; copy <SaveNameWeJustFound.srm>
+	lda	tempEntry, y						; copy <SaveNameWeJustFound.srm>
 	sta	saveName, y
 	dey
 	bpl	__CopySaveName
 
 	Accu16
 
-	lda	tempEntry.tempCluster		; copy save cluster
+	lda	tempEntry.tempCluster					; copy save cluster
 	sta	saveName.sCluster
 
 	lda	tempEntry.tempCluster+2
@@ -275,9 +275,9 @@ __CopySaveName:
 DirFindEntryLong:
 	Accu16
 
-	stz	selectedEntry			; reset selectedEntry
+	stz	selectedEntry						; reset selectedEntry
 
-	lda	filesInDir				; only do the search if directory isn't empty
+	lda	filesInDir						; only do the search if directory isn't empty
 	beq	__DirFindEntryLongFailed
 
 
@@ -285,14 +285,14 @@ DirFindEntryLong:
 __DirFindEntryLongLoop:
 	Accu8
 
-	lda	#%00000001				; use SDRAM buffer (h flag not relevant in this case)
+	lda	#%00000001						; use SDRAM buffer (h flag not relevant in this case)
 	sta	CLDConfigFlags
 
-	jsr	DirGetEntry				; put entry into tempEntry
+	jsr	DirGetEntry						; put entry into tempEntry
 
-	ldy	temp				; load index position of last extension character
+	ldy	temp							; load index position of last extension character
 
-	lda	tempEntry, y			; check if entry matches, working backwards for efficiency :-)
+	lda	tempEntry, y						; check if entry matches, working backwards for efficiency :-)
 	cmp	#'m'
 	beq	+
 	cmp	#'M'
@@ -318,23 +318,23 @@ __	dey
 	bne	__IncrementEntryIdx
 	cpy	#$0000
 	bne	_b
-	rts						; all chars match
+	rts								; all chars match
 
 
 
 __IncrementEntryIdx:
 	Accu16
 
-	inc	selectedEntry			; increment entry index
+	inc	selectedEntry						; increment entry index
 
-	lda	selectedEntry			; check for max. no. of files
+	lda	selectedEntry						; check for max. no. of files
 	cmp	filesInDir
 	bne	__DirFindEntryLongLoop
 
 
 
 __DirFindEntryLongFailed:
-	pla					; clean up the stack as there's no rts from "jsr DirFindEntryLong" if no entry was found
+	pla								; clean up the stack as there's no rts from "jsr DirFindEntryLong" if no entry was found
 
 	Accu8
 

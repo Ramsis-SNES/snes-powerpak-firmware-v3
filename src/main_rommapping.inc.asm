@@ -15,7 +15,7 @@
 .INDEX 16
 
 StartGame:
-	jsr	 SpriteInit				; purge OAM
+	jsr	 SpriteInit						; purge OAM
 	jsr	 PrintClearScreen
 
  	SetCursorPos 1, 0
@@ -50,19 +50,19 @@ ClearBanks:
 	lda	#<sectorBuffer1
 	sta	destLo
 	lda	#>sectorBuffer1
-	sta	destHi				; put into sector RAM
+	sta	destHi							; put into sector RAM
 	stz	destBank
 
 	stz	sectorCounter
 	stz	bankCounter
 
-	jsr	 ClusterToLBA			; sourceCluster -> first sourceSector
+	jsr	 ClusterToLBA						; sourceCluster -> first sourceSector
 
 	lda	#kDestWRAM
 	sta	destType
 
-	jsr	 CardReadSector			; sector -> WRAM
-	jsr	 CopierHeaderCheck			; check for copier header
+	jsr	 CardReadSector						; sector -> WRAM
+	jsr	 CopierHeaderCheck					; check for copier header
 
 
 
@@ -74,12 +74,12 @@ ClearBanks:
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
-	sta	DMAWRITEBANK			; read file to beginning of SDRAM
+	sta	DMAWRITEBANK						; read file to beginning of SDRAM
 
 	jsr	 CardReadGameFill
 
 	lda	headerType
-	bne	__CopyROM2SDRAMDone			; if already found header, don't check game size
+	bne	__CopyROM2SDRAMDone					; if already found header, don't check game size
 
 	lda	gameSize
 	beq	__CopyROM2SDRAMDone
@@ -91,18 +91,18 @@ ClearBanks:
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
-	sta	DMAWRITEBANK			; read file to beginning of SDRAM
+	sta	DMAWRITEBANK						; read file to beginning of SDRAM
 
-	lda	#$FF				; force header skipping even when no known header found
+	lda	#$FF							; force header skipping even when no known header found
 	sta	headerType
 
-	jsr	 CardReadGameFill			; copy again, forcing header skip
+	jsr	 CardReadGameFill					; copy again, forcing header skip
 
 __CopyROM2SDRAMDone:
 
 	wai
 
-	ldy	#gameSize				; print ROM sectors in decimal ### FIXME add FAT32 excess cluster mask
+	ldy	#gameSize						; print ROM sectors in decimal ### FIXME add FAT32 excess cluster mask
 	PrintString "\nLoaded %d sectors = "
 
 	lda	gameSize+1
@@ -119,7 +119,7 @@ FixMbits:
 	cmp	#10
 	bne	FixMbitsDone
 
-Fix9or10Mbits:					; ROM size fix, change 9 or 10 Mbits to 12 Mbits
+Fix9or10Mbits:								; ROM size fix, change 9 or 10 Mbits to 12 Mbits
 	lda	#12
 	sta	gameROMMbits
 
@@ -157,7 +157,7 @@ LoadSaveStart:
 
 	Accu8
 
-	lda	#$F8				; load SRAM to SDRAM location $F80000
+	lda	#$F8							; load SRAM to SDRAM location $F80000
 	sta	DMAWRITEBANK
 	lda	#$00
 	sta	DMAWRITELO
@@ -171,7 +171,7 @@ LoadSaveStart:
 
 	jsr	 CardReadFile
 
-	ldy	#gameSize				; print SRAM sectors in decimal
+	ldy	#gameSize						; print SRAM sectors in decimal
 	PrintString "present, loaded %d sectors = "
 
 	lsr	gameSize
@@ -190,7 +190,7 @@ CheckInternalHeaderExHi:
 	lda	#$FF
 	sta	DMAWRITEHI
 	lda	#$40
-	sta	DMAWRITEBANK			; check for internal header  40FFC0
+	sta	DMAWRITEBANK						; check for internal header  40FFC0
 
 	jsr	 CopyROMInfo
 
@@ -211,25 +211,25 @@ CheckInternalHeaderExHiType:
 ; PrintString "/nMAP good "
 
 	lda	gameROMType
-	cmp	#$06				; ROM type must be <= 5
+	cmp	#$06							; ROM type must be <= 5
 	bcs	NotInternalHeaderExHi
 
 ;PrintString "/nROM good "
 
 	lda	#$60
-	cmp	gameROMMbits			; ROM size <= 96Mbits
+	cmp	gameROMMbits						; ROM size <= 96Mbits
 	bcc	NotInternalHeaderExHi
 
 ;PrintString "SIZE good "
 
 	lda	#$08
-	cmp	saveSize				; SRAM size <= 8d
+	cmp	saveSize						; SRAM size <= 8d
 	bcc	NotInternalHeaderExHi
 
 ;PrintString "RAM good "
 
 	lda	gameResetVector+1
-	cmp	#$80				; reset vector goes to >= 8000
+	cmp	#$80							; reset vector goes to >= 8000
 	bcc	NotInternalHeaderExHi
 
 ;PrintString "RESET good "
@@ -247,15 +247,15 @@ CheckInternalHeaderHi:
 	lda	#$FF
 	sta	DMAWRITEHI
 	lda	#$00
-	sta	DMAWRITEBANK			; check for internal header $FFC0
+	sta	DMAWRITEBANK						; check for internal header $FFC0
 
 	jsr	 CopyROMInfo
 
 	lda	fixheader
-	beq	CheckInternalHeaderHiMapper		; don't fix the header
+	beq	CheckInternalHeaderHiMapper				; don't fix the header
 
 	lda	#$21
-	sta	gameROMMapper			; assume HiROM
+	sta	gameROMMapper						; assume HiROM
 
 CheckInternalHeaderHiMapper:
 	lda	gameROMMapper
@@ -276,19 +276,19 @@ CheckInternalHeaderHiMapper:
 
 CheckInternalHeaderHiType:
 	lda	gameROMType
-	cmp	#$06				; ROM type must be <= 5
+	cmp	#$06							; ROM type must be <= 5
 	bcs	NotInternalHeaderHi
 
 	lda	#$40
-	cmp	gameROMMbits			; ROM size <= 64Mbits
+	cmp	gameROMMbits						; ROM size <= 64Mbits
 	bcc	NotInternalHeaderHi
 
 	lda	#$08
-	cmp	saveSize				; SRAM size <= 8d
+	cmp	saveSize						; SRAM size <= 8d
 	bcc	NotInternalHeaderHi
 
 	lda	gameResetVector+1
-	cmp	#$80				; reset vector goes to >= 8000
+	cmp	#$80							; reset vector goes to >= 8000
 	bcc	NotInternalHeaderHi
 
 	jmp	InternalHeaderIsHi
@@ -304,15 +304,15 @@ CheckInternalHeaderLo:
 	lda	#$7F
 	sta	DMAWRITEHI
 	lda	#$00
-	sta	DMAWRITEBANK			; check for internal header $7FC0
+	sta	DMAWRITEBANK						; check for internal header $7FC0
 
 	jsr	 CopyROMInfo
 
 	lda	fixheader
-	beq	CheckInternalHeaderLoMapper		; don't fix the header
+	beq	CheckInternalHeaderLoMapper				; don't fix the header
 
 	lda	#$20
-	sta	gameROMMapper			; assume LoROM
+	sta	gameROMMapper						; assume LoROM
 
 CheckInternalHeaderLoMapper:
 	lda	gameROMMbits
@@ -336,19 +336,19 @@ CheckInternalHeaderLoMapper:
 
 CheckInternalHeaderLoType:
 	lda	gameROMType
-	cmp	#$06				; ROM type must be <= 5
+	cmp	#$06							; ROM type must be <= 5
 	bcs	NotInternalHeaderLo
 
 	lda	#$20
-	cmp	gameROMMbits			; ROM size <= 32Mbits
+	cmp	gameROMMbits						; ROM size <= 32Mbits
 	bcc	NotInternalHeaderLo
 
 	lda	#$08
-	cmp	saveSize				; SRAM size <= 8d
+	cmp	saveSize						; SRAM size <= 8d
 	bcc	NotInternalHeaderLo
 
 	lda	gameResetVector+1
-	cmp	#$80				; reset vector goes to >= 8000
+	cmp	#$80							; reset vector goes to >= 8000
 	bcc	NotInternalHeaderLo
 
 	bra	InternalHeaderIsLo
@@ -374,7 +374,7 @@ InternalHeaderIsHi:
 ;	bra	InternalHeaderDone
 
 InternalHeaderDone:
-	ldy	#PTR_tempEntry			; game title in tempEntry
+	ldy	#PTR_tempEntry						; game title in tempEntry
 
 	PrintString ", game title: %s"
 
@@ -389,7 +389,7 @@ ROMBattCheck:
 	beq	ROMHasBatt
 
 	PrintString "\nSavegame not"
-	stz	useBattery				; no battery when no SRAM
+	stz	useBattery						; no battery when no SRAM
 
 	bra	ROMBattCheckDone
 
@@ -499,7 +499,7 @@ LoROMBanking:
 	dec	bankCounter
                      ;        76543210
                      ;  76543 210
-	lda	bankCounter				; multiply by 32 for bytes in map
+	lda	bankCounter						; multiply by 32 for bytes in map
 	asl	a
 	asl	a
 	asl	a
@@ -530,9 +530,9 @@ LoROMSRAM:
 	PrintString "\nSRAM in 7x/Fx"
 
 	lda	#$7F
-	sta	CONFIGWRITEBANK+$0E0		; 70l // add sram into banks
+	sta	CONFIGWRITEBANK+$0E0					; 70l // add sram into banks
 	sta	gameBanks+$0E
-	sta	CONFIGWRITEBANK+$1E0		; F0l
+	sta	CONFIGWRITEBANK+$1E0					; F0l
 	sta	gameBanks+$1E
 
 LoROMBankingDone:
@@ -540,7 +540,7 @@ LoROMBankingDone:
 
 
 	lda	#$00
-	sta	CONFIGWRITESRAMLO			; no SRAM in $6000-$7fff
+	sta	CONFIGWRITESRAMLO					; no SRAM in $6000-$7fff
 	sta	CONFIGWRITESRAMHI
 
 	jmp	SetROMBankingDone
@@ -582,9 +582,9 @@ ExLoROMBankingNot64Mbit:
 
 
 
-	lda	fixheader				; ExLoROM of wrong size found
+	lda	fixheader						; ExLoROM of wrong size found
 	cmp	#$01
-	bne	ExLoROMTryHeaderFix			; header fix already attempted
+	bne	ExLoROMTryHeaderFix					; header fix already attempted
 
 	jmp	FatalError
 
@@ -630,7 +630,7 @@ HiROMBanking:
 	dec	bankCounter
                      ;        76543210
                      ;  76543 210
-	lda	bankCounter				; multiply by 32 for bytes in map
+	lda	bankCounter						; multiply by 32 for bytes in map
 	asl	a
 	asl	a
 	asl	a
@@ -659,7 +659,7 @@ HiROMBanking:
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
 
 	lda	#$0C
-	sta	CONFIGWRITESRAMLO			; SRAM in $6000-$7fff = 0C 0C
+	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
 	sta	CONFIGWRITESRAMHI
 
 ;;;;;;FIXME lda something here?
@@ -672,7 +672,7 @@ HiROMBanking:
 HiROM48SRAM:
 	PrintString "\nSRAM in $80-BF:$6000-7FFF"
 	lda	#$00
-	sta	CONFIGWRITESRAMLO			; SRAM in $6000-$7fff = 00 0F
+	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 00 0F
 	lda	#$0F
 	sta	CONFIGWRITESRAMHI
 	bra	HiROMBankingDone
@@ -682,7 +682,7 @@ HiROM48SRAM:
 HiROMNoSRAM:
 	PrintString "\nNo HiROM SRAM"
 	lda	#$00
-	sta	CONFIGWRITESRAMLO			; no SRAM
+	sta	CONFIGWRITESRAMLO					; no SRAM
 	sta	CONFIGWRITESRAMHI
 
 
@@ -695,7 +695,7 @@ HiROMBankingDone:
 ExHiROMBanking:
 	PrintString "\nExHiROM "
 	lda	#$00
-	sta	CONFIGWRITESRAMLO			; no SRAM
+	sta	CONFIGWRITESRAMLO					; no SRAM
 	sta	CONFIGWRITESRAMHI
 
 	lda	gameROMMbits
@@ -719,7 +719,7 @@ ExHiROMBanking48Mbit:
 
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
 	lda	#$0C
-	sta	CONFIGWRITESRAMLO			; SRAM in $6000-$7fff = 0C 0C
+	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
 	sta	CONFIGWRITESRAMHI
 
 	jmp	ExHiROMBankingLoop
@@ -764,7 +764,7 @@ ExHiROMSRAM:
 	beq	ExHiROMBankingLoop
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
 	lda	#$0C
-	sta	CONFIGWRITESRAMLO			; SRAM in $6000-$7fff = 0C 0C
+	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
 	sta	CONFIGWRITESRAMHI
 
 ExHiROMBankingLoop:
@@ -795,8 +795,8 @@ ROMHasDSP:
 
 
 ;DSPCheck:
-	lda	#$04				; turn on HiROM chip
-	sta	CONFIGWRITEDSP			; HiROM $00:6000 = DR, $00:7000 = SR
+	lda	#$04							; turn on HiROM chip
+	sta	CONFIGWRITEDSP						; HiROM $00:6000 = DR, $00:7000 = SR
 	lda	$007000
 	and	#%10000000
 	bne	DSPGood
@@ -805,7 +805,7 @@ ROMHasDSP:
 
 DSPBad:
 	lda	#$00
-	sta	CONFIGWRITEDSP			; turn off DSP
+	sta	CONFIGWRITEDSP						; turn off DSP
 
 	PrintString "\n\nDSP1 chip required"
 
@@ -815,12 +815,12 @@ DSPBad:
 
 DSPGood:
 	lda	#$00
-	sta	CONFIGWRITEDSP			; turn off DSP
+	sta	CONFIGWRITEDSP						; turn off DSP
 	lda	gameROMMapper
 	cmp	#$21
-	beq	HiROMDSP				; HiROM
+	beq	HiROMDSP						; HiROM
 
-	lda	gameROMMbits			; LoROM 16MB
+	lda	gameROMMbits						; LoROM 16MB
 	cmp	#$09
 	bcs	LoROM16DSP
 
@@ -829,7 +829,7 @@ DSPGood:
 
 
 HiROMDSP:
-	PrintString "\nHiROM DSP1"		; $00-1f:6000-7fff
+	PrintString "\nHiROM DSP1"					; $00-1f:6000-7fff
 	lda	#$04
 	sta	CONFIGWRITEDSP
 	bra	ROMDSPCheckDone
@@ -837,30 +837,30 @@ HiROMDSP:
 
 
 LoROM8DSP:
-	PrintString "\nLoROM DSP1 4-8Mb"	; $20-3f:8000-ffff
+	PrintString "\nLoROM DSP1 4-8Mb"				; $20-3f:8000-ffff
 	lda	#$01
 	sta	CONFIGWRITEDSP
 	lda	#$00
-	sta	CONFIGWRITEBANK+$050		; 20
+	sta	CONFIGWRITEBANK+$050					; 20
 	sta	gameBanks+$05
-	sta	CONFIGWRITEBANK+$150		; A0
+	sta	CONFIGWRITEBANK+$150					; A0
 	sta	gameBanks+$15
-	sta	CONFIGWRITEBANK+$070		; 30
+	sta	CONFIGWRITEBANK+$070					; 30
 	sta	gameBanks+$07
-	sta	CONFIGWRITEBANK+$170		; B0
+	sta	CONFIGWRITEBANK+$170					; B0
 	sta	gameBanks+$17
 	bra	ROMDSPCheckDone
 
 
 
 LoROM16DSP:
-	PrintString "\nLoROM DSP1 16Mb"		; $60-6f:0000-7fff
+	PrintString "\nLoROM DSP1 16Mb"					; $60-6f:0000-7fff
 	lda	#$02
 	sta	CONFIGWRITEDSP
 	lda	#$00
-	sta	CONFIGWRITEBANK+$0C0		; 60
+	sta	CONFIGWRITEBANK+$0C0					; 60
 	sta	gameBanks+$0C
-	sta	CONFIGWRITEBANK+$1C0		; E0
+	sta	CONFIGWRITEBANK+$1C0					; E0
 	sta	gameBanks+$1C
 ;	bra	ROMDSPCheckDone
 
@@ -868,7 +868,7 @@ LoROM16DSP:
 
 ROMDSPCheckDone:
 
-	jsr	 PrintBanks				; skip to avoid user confusion due to possible screen overflow
+	jsr	 PrintBanks						; skip to avoid user confusion due to possible screen overflow
 
 
 
@@ -921,7 +921,7 @@ LoadGameGenie:
 	stz	Joy1New+1
 
 	lda	Joy1Press+1
-	and	#%00100000				; if user holds Select, log screen and wait
+	and	#%00100000						; if user holds Select, log screen and wait
 	beq	__ResetSystemNow
 
 	jsr	 LogScreenMessage
@@ -937,16 +937,16 @@ LoadGameGenie:
 __ResetSystemNow:
 	jsr	 SaveLastGame
 
-	lda	#$80				; enter forced blank, this should help suppress annoying effects
+	lda	#$80							; enter forced blank, this should help suppress annoying effects
 	sta	$2100
 
-	sei					; disable NMI & IRQ so we can reset DMA registers before the game starts
+	sei								; disable NMI & IRQ so we can reset DMA registers before the game starts
 	stz	REG_NMITIMEN
 
-	stz	$420B				; turn off DMA & HDMA
+	stz	$420B							; turn off DMA & HDMA
 	stz	$420C
 
-	lda	#$FF				; fill DMA registers with initial values, this fixes Nightmare Busters (Beta ROM) crash upon boot
+	lda	#$FF							; fill DMA registers with initial values, this fixes Nightmare Busters (Beta ROM) crash upon boot
 	ldx	#$0000
 
 -	sta	$4300, x
@@ -959,14 +959,14 @@ __ResetSystemNow:
 	sta	$4370, x
 
 	inx
-	cpx	#$000B				; regs $43x0 through $43xA initialized?
+	cpx	#$000B							; regs $43x0 through $43xA initialized?
 	bne	-
 
 	lda	useBattery
 	asl	a
 	and	#%00000010
 	ora	#%10000000
-	sta	CONFIGWRITESTATUS			; reset PowerPak, start game
+	sta	CONFIGWRITESTATUS					; reset PowerPak, start game
 
 
 
@@ -991,17 +991,17 @@ FatalError:
 	WaitForUserInput
 
 	jsr	 PrintClearScreen
-	jmp	GotoIntroScreen			; return to titlescreen
+	jmp	GotoIntroScreen						; return to titlescreen
 
-;	lda	#%10000001				; alternatively:
-;	sta	CONFIGWRITESTATUS			; Start pressed, reset PowerPak, stay in boot mode
+;	lda	#%10000001						; alternatively:
+;	sta	CONFIGWRITESTATUS					; Start pressed, reset PowerPak, stay in boot mode
 
 
 
 NoInternalHeader:
 	lda	fixheader
 	cmp	#$01
-	beq	NoInteralHeaderFixed		; header fix already attempted
+	beq	NoInteralHeaderFixed					; header fix already attempted
 
 	jsr	 PrintClearScreen
 
@@ -1028,36 +1028,36 @@ NoInteralHeaderFixed:
 CopyROMInfo:
 	ldx	#$0000
 
--	lda	DMAREADDATA				; start at C0 (game title)
-	cmp	#$80				; check if character exceeds standard ASCII
+-	lda	DMAREADDATA						; start at C0 (game title)
+	cmp	#$80							; check if character exceeds standard ASCII
 	bcc	+
-	lda	#'?'				; if so, replace character with question mark
+	lda	#'?'							; if so, replace character with question mark
 +	sta	tempEntry, x
 	inx
-	cpx	#$0015				; 21 bytes
+	cpx	#$0015							; 21 bytes
 	bne	-
 
-	stz	tempEntry, x			; NUL-terminate game title
+	stz	tempEntry, x						; NUL-terminate game title
 
-	lda	DMAREADDATA				; D5
+	lda	DMAREADDATA						; D5
 	sta	errorCode
-	and	#%11101111				; mask off fast/slow
+	and	#%11101111						; mask off fast/slow
 	sta	gameROMMapper
 	PrintString "\nMode $"
 	PrintHexNum errorCode
 
-	lda	DMAREADDATA				; D6
+	lda	DMAREADDATA						; D6
 	sta	gameROMType
 	PrintString ", Type $"
 	PrintHexNum gameROMType
 
-	lda	DMAREADDATA				; D7
-;	sta	gameROMSize				; ROM size is taken from file size!
+	lda	DMAREADDATA						; D7
+;	sta	gameROMSize						; ROM size is taken from file size!
 	sta	errorCode
 	PrintString ", Size $"
 	PrintHexNum errorCode
 
-	lda	DMAREADDATA				; D8
+	lda	DMAREADDATA						; D8
 	sta	saveSize
 	PrintString ", SRAM $"
 	PrintHexNum saveSize
@@ -1065,10 +1065,10 @@ CopyROMInfo:
 	lda	#$FC
 	sta	DMAWRITELO
 
-	lda	DMAREADDATA				; FC
+	lda	DMAREADDATA						; FC
 	sta	gameResetVector
 
-	lda	DMAREADDATA				; FD
+	lda	DMAREADDATA						; FD
 	sta	gameResetVector+1
 
 	PrintString ", Reset $"
@@ -1328,7 +1328,7 @@ CopierHeaderCheck:
 
 
 ; -------------------------- check for SWC header
-	lda	sectorBuffer1+$08			; Super WildCard headers contain $AABB04 at offset $08-$0A
+	lda	sectorBuffer1+$08					; Super WildCard headers contain $AABB04 at offset $08-$0A
 	cmp	#$AA
 	bne	__SWCHeaderCheckDone
 
@@ -1340,7 +1340,7 @@ CopierHeaderCheck:
 	cmp	#$04
 	bne	__SWCHeaderCheckDone
 
-	lda	#$01				; SWC copier header found
+	lda	#$01							; SWC copier header found
 	sta	headerType
 
 	PrintString "SWC Header\n"
@@ -1352,7 +1352,7 @@ __SWCHeaderCheckDone:
 
 
 ; -------------------------- check for GD3 header
-	lda	sectorBuffer1+$00			; Game Doctor headered ROMs start with a "GAME" string
+	lda	sectorBuffer1+$00					; Game Doctor headered ROMs start with a "GAME" string
 	cmp	#'G'
 	bne	__CopierHeaderCheckDone
 
@@ -1389,7 +1389,7 @@ LoRom8Mbit:
 	.DB $20, $21, $20, $21, $20, $21, $20, $21, $20, $21, $20, $21, $20, $21, $20, $21
 	.DB $00, $00, $00, $00, $20, $21, $20, $21, $00, $00, $00, $00, $20, $21, $20, $21
 
-LoRom12Mbit:					; UNTESTED
+LoRom12Mbit:								; UNTESTED
 	.DB $20, $21, $22, $23, $20, $21, $22, $23, $20, $21, $22, $23, $20, $21, $22, $23
 	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $20, $21, $22, $23
 
@@ -1397,7 +1397,7 @@ LoRom16Mbit:
 	.DB $20, $21, $22, $23, $20, $21, $22, $23, $20, $21, $22, $23, $20, $21, $22, $23
 	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $20, $21, $22, $23
 
-LoRom20Mbit:					; UNTESTED
+LoRom20Mbit:								; UNTESTED
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $24, $25, $26, $27, $00, $00, $00, $00, $24, $25, $26, $27
 
@@ -1405,7 +1405,7 @@ LoRom24Mbit:
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $24, $25, $26, $27, $00, $00, $00, $00, $24, $25, $26, $27
 
-LoRom28Mbit:					; UNTESTED
+LoRom28Mbit:								; UNTESTED
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $24, $25, $26, $27, $00, $00, $00, $00, $24, $25, $26, $27
 
@@ -1413,11 +1413,11 @@ LoRom32Mbit:
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $24, $25, $26, $27, $00, $00, $00, $00, $24, $25, $26, $27
 
-ExLoRom48Mbit:					; UNTESTED
+ExLoRom48Mbit:								; UNTESTED
 	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $28, $29, $2A, $2B, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
 
-ExLoRom64Mbit:					; UNTESTED
+ExLoRom64Mbit:								; UNTESTED
 	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $2C, $2D, $2E, $2F, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
 
@@ -1432,7 +1432,7 @@ HiRom8Mbit:
 	.DB $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1, $A1
 	.DB $00, $00, $00, $00, $A0, $A0, $A0, $A0, $00, $00, $00, $00, $A0, $A0, $A0, $A0
 
-HiRom12Mbit:					; UNTESTED
+HiRom12Mbit:								; UNTESTED
 	.DB $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3
 	.DB $00, $00, $00, $00, $A0, $A2, $A0, $A2, $00, $00, $00, $00, $A0, $A2, $A0, $A2
 
@@ -1440,7 +1440,7 @@ HiRom16Mbit:
 	.DB $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3, $A1, $A3
 	.DB $00, $00, $00, $00, $A0, $A2, $A0, $A2, $00, $00, $00, $00, $A0, $A2, $A0, $A2
 
-HiRom20Mbit:					; UNTESTED
+HiRom20Mbit:								; UNTESTED
 	.DB $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A0, $A2, $A4, $A6, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
@@ -1448,7 +1448,7 @@ HiRom24Mbit:
 	.DB $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A0, $A2, $A4, $A6, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom28Mbit:					; UNTESTED
+HiRom28Mbit:								; UNTESTED
 	.DB $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A0, $A2, $A4, $A6, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
@@ -1456,15 +1456,15 @@ HiRom32Mbit:
 	.DB $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A0, $A2, $A4, $A6, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom36Mbit:					; UNTESTED
+HiRom36Mbit:								; UNTESTED
 	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom40Mbit:					; UNTESTED
+HiRom40Mbit:								; UNTESTED
 	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom44Mbit:					; UNTESTED
+HiRom44Mbit:								; UNTESTED
 	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 

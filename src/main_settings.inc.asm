@@ -17,7 +17,7 @@ GotoSettings:
 	jsr	HideLogoSprites
 	jsr	PrintClearScreen
 
-	lda	#cursorXsettings			; put cursor on first menu line
+	lda	#cursorXsettings					; put cursor on first menu line
 	sta	cursorX
 
 	lda	#cursorYsetmenu1
@@ -34,7 +34,7 @@ __ReturnFromMenuSection:
 	SetCursorPos 10,  7
 	PrintString "Toggle DMA mode (currently"
 
-	jsr	DisplayDMASetting			; look up DMA setting to complete the line
+	jsr	DisplayDMASetting					; look up DMA setting to complete the line
 
 	SetCursorPos 11,  7
 	PrintString "Select a theme ..."
@@ -50,22 +50,22 @@ __ReturnFromMenuSection:
 ; -------------------------- Show button hints
 	Accu16
 
-	lda	#$9898				; Y, X
+	lda	#$9898							; Y, X
 	sta	SpriteBuf1.Buttons
 
-	lda	#$03A0				; tile properties, tile num for A button
+	lda	#$03A0							; tile properties, tile num for A button
 	sta	SpriteBuf1.Buttons+2
 
-	lda	#$A898				; Y, X
+	lda	#$A898							; Y, X
 	sta	SpriteBuf1.Buttons+4
 
-	lda	#$03A2				; tile properties, tile num for B button
+	lda	#$03A2							; tile properties, tile num for B button
 	sta	SpriteBuf1.Buttons+6
 
-	lda	#$B896				; Y, X
+	lda	#$B896							; Y, X
 	sta	SpriteBuf1.Buttons+8
 
-	lda	#$03AC				; tile properties, tile num for Start button highlighted
+	lda	#$03AC							; tile properties, tile num for Start button highlighted
 	sta	SpriteBuf1.Buttons+10
 
 	Accu8
@@ -86,7 +86,7 @@ __ReturnFromMenuSection:
 
 	Accu16
 
-	tsc					; print stack pointer (initial value: $1FFF)
+	tsc								; print stack pointer (initial value: $1FFF)
 
 	Accu8
 
@@ -101,7 +101,7 @@ __ReturnFromMenuSection:
 
 
 
-	stz	Joy1New				; reset input buttons
+	stz	Joy1New							; reset input buttons
 	stz	Joy1New+1
 	stz	Joy1Press
 	stz	Joy1Press+1
@@ -193,7 +193,7 @@ SettingsLoop:
 
 ; -------------------------- show/hide hint
 	lda	cursorY
-	cmp	#cursorYsetmenu3			; cursor on "Select a theme"?
+	cmp	#cursorYsetmenu3					; cursor on "Select a theme"?
 	bne	+
 	
 	SetCursorPos 16, 1
@@ -217,14 +217,14 @@ CheckSelection:
 ; -------------------------- check for cursor position
 	lda	cursorY
 
-	cmp	#cursorYsetmenu1			; line = system info?
+	cmp	#cursorYsetmenu1					; line = system info?
 	bne	+
 	jmp	ShowSysInfo
 
-+	cmp	#cursorYsetmenu2			; line = toggle DMA?
++	cmp	#cursorYsetmenu2					; line = toggle DMA?
 	bne	++
 
-	lda	dontUseDMA				; toggle DMA setting ...
+	lda	dontUseDMA						; toggle DMA setting ...
 	beq	+
 
 	stz	dontUseDMA
@@ -236,18 +236,18 @@ CheckSelection:
 __ToggleDMADone:
 	jsr	DisplayDMASetting
 
-	jmp	SettingsLoop			; ... and return
+	jmp	SettingsLoop						; ... and return
 
-++	cmp	#cursorYsetmenu3			; line = select theme?
+++	cmp	#cursorYsetmenu3					; line = select theme?
 	bne	+
 
 	jmp	InitTHMBrowser
 
-+	cmp	#cursorYsetmenu5			; line = firmware update?
++	cmp	#cursorYsetmenu5					; line = firmware update?
 	beq	CheckForUpdate
 
-	jsr	SpriteMessageLoading		; otherwise, go to developer's note
-	jsr	LoadDevMusic			; load music
+	jsr	SpriteMessageLoading					; otherwise, go to developer's note
+	jsr	LoadDevMusic						; load music
 
 	jmp	GotoDevNote
 
@@ -256,58 +256,58 @@ __ToggleDMADone:
 CheckForUpdate:
 	jsr	SpriteMessageLoading
 
-	FindFile "UPDATE.ROM"			; load update ROM file
+	FindFile "UPDATE.ROM"						; load update ROM file
 
 	lda	Joy1Press
-	and	#%01110000				; if user holds L+R+X ...
+	and	#%01110000						; if user holds L+R+X ...
 	cmp	#%01110000
 	bne	+
-	jmp	GotoFlashUpdater			; ... force launching of flash updater (for manual downgrade etc.)
+	jmp	GotoFlashUpdater					; ... force launching of flash updater (for manual downgrade etc.)
 
 +	lda	#<sectorBuffer1
 	sta	destLo
 	lda	#>sectorBuffer1
-	sta	destHi				; load first sector to check if UPDATE.ROM is a "MUFASA" firmware, and newer than installed ROM
+	sta	destHi							; load first sector to check if UPDATE.ROM is a "MUFASA" firmware, and newer than installed ROM
 	stz	destBank
 
 	stz	sectorCounter
 	stz	bankCounter
 
-	jsr	ClusterToLBA			; sourceCluster -> first sourceSector
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	lda	#kDestWRAM
 	sta	destType
 
-	jsr	CardReadSector			; sector -> WRAM
+	jsr	CardReadSector						; sector -> WRAM
 
 	Accu16
 
-	lda	#STR_Firmware_Codename		; look for "MUFASA"
-	and	#$0FFF				; mask off SNES LoROM address gap ($8000)
-	inc	a					; skip quotes
+	lda	#STR_Firmware_Codename					; look for "MUFASA"
+	and	#$0FFF							; mask off SNES LoROM address gap ($8000)
+	inc	a							; skip quotes
 	tax
 
 	lda	sectorBuffer1, x
-	cmp	#$554D				; MU
+	cmp	#$554D							; MU
 	bne	+
 
 	inx
 	inx
 
 	lda	sectorBuffer1, x
-	cmp	#$4146				; FA
+	cmp	#$4146							; FA
 	bne	+
 
 	inx
 	inx
 
 	lda	sectorBuffer1, x
-	cmp	#$4153				; SA
+	cmp	#$4153							; SA
 	beq	__UpdateRomIsValid
 
 +	Accu8
 
-	jsr	ClearSpriteText			; remove "Loading ..." message
+	jsr	ClearSpriteText						; remove "Loading ..." message
 	jsr	SpriteMessageError
 
 	SetCursorPos 20, 1
@@ -319,22 +319,22 @@ CheckForUpdate:
 .ACCU 16
 
 __UpdateRomIsValid:
-	lda	#STR_Firmware_VerNum		; compare version of UPDATE.ROM against installed boot ROM
+	lda	#STR_Firmware_VerNum					; compare version of UPDATE.ROM against installed boot ROM
 	tax
 
-	and	#$0FFF				; mask off SNES LoROM address gap
+	and	#$0FFF							; mask off SNES LoROM address gap
 	tay
 
 	Accu8
 
--	lda	$0000, x				; compare major release version
+-	lda	$0000, x						; compare major release version
 	cmp	sectorBuffer1, y
 	bcs	+
 
 	jmp	GotoFlashUpdater
 
-+	inx					; advance ROM offset
-	iny					; advance sector buffer offset
++	inx								; advance ROM offset
+	iny								; advance sector buffer offset
 
 	cpx	#STR_Firmware_VerNum_End
 	bne	-
@@ -344,12 +344,12 @@ __UpdateRomIsValid:
 	lda	#STR_Firmware_BuildNum
 	tax
 
-	and	#$0FFF				; mask off SNES LoROM address gap
+	and	#$0FFF							; mask off SNES LoROM address gap
 	tay
 
 	Accu8
 
--	lda	$0000, x				; compare build no.
+-	lda	$0000, x						; compare build no.
 	cmp	sectorBuffer1, y
 	bcs	+
 
@@ -360,7 +360,7 @@ __UpdateRomIsValid:
 	cpx	#STR_Firmware_BuildNum_End
 	bne	-
 
-	jsr	ClearSpriteText			; remove "Loading ..." message
+	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 21, 3, "Firmware is up to date!", 5
 
@@ -370,18 +370,18 @@ __UpdateRomIsValid:
 __WaitBeforeReturn:
 	WaitForUserInput
 
-	jsr	ClearSpriteText			; remove "Firmware is ..."/"Error!" message
+	jsr	ClearSpriteText						; remove "Firmware is ..."/"Error!" message
 
-	ClearLine 20				; remove additional info
+	ClearLine 20							; remove additional info
 	ClearLine 21
 
-	lda	#cursorXsettings			; restore cursor position
+	lda	#cursorXsettings					; restore cursor position
 	sta	cursorX
 
-	lda	#cursorYsetmenu5			; menu line: firmware update
+	lda	#cursorYsetmenu5					; menu line: firmware update
 	sta	cursorY
 
-	jmp	__ReturnFromMenuSection		; return to settings menu
+	jmp	__ReturnFromMenuSection					; return to settings menu
 
 
 
@@ -393,19 +393,19 @@ ShowSysInfo:
 
 	jsr	ShowMainGFX
 	jsr	PrintRomVersion
-	jsr	PrintCardFS				; show CF card filesystem type
+	jsr	PrintCardFS						; show CF card filesystem type
 
-	jsr	ShowChipsetDMA			; show console chipset revision, perform hardware checks
+	jsr	ShowChipsetDMA						; show console chipset revision, perform hardware checks
 	jsr	FPGACheck
 	jsr	DSPCheck
 	jsr	SDRAMCheck
 
-	jsr	MemCheck				; test SDRAM, back here means SDRAM = O.K.
+	jsr	MemCheck						; test SDRAM, back here means SDRAM = O.K.
 
 	jsr	PrintClearScreen
 	jsr	HideLogoSprites
 
-	jmp	GotoSettings			; return to settings menu
+	jmp	GotoSettings						; return to settings menu
 
 
 
@@ -419,22 +419,22 @@ ResetSystem:
 
 	PrintSpriteText 12, 9, "Saving settings ...", 7
 
-	wai					; just to be sure
+	wai								; just to be sure
 
 	jsr	SaveConfig
 
 	lda	#$0F
 
--	wai					; screen fade-out loop
+-	wai								; screen fade-out loop
 
-	dec	a					; 15 / 3 = 5 frames
+	dec	a							; 15 / 3 = 5 frames
 	dec	a
 	dec	a
 	sta	$2100
 	bne	-
 
 	lda	#%10000001
-	sta	CONFIGWRITESTATUS			; reset PowerPak, stay in boot mode
+	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
 
 
 
@@ -443,9 +443,9 @@ ResetSystem:
 DisplayDMASetting:
 	SetCursorPos 10, 20
 
-	lda	dontUseDMA				; check for current DMA setting
+	lda	dontUseDMA						; check for current DMA setting
 	bne	+
-	PrintString " on) "			; don't remove the trailing space
+	PrintString " on) "						; don't remove the trailing space
 
 	bra	__DisplayDMASettingDone
 
@@ -459,18 +459,18 @@ __DisplayDMASettingDone:
 ; *************************** Save settings ****************************
 
 SaveConfig:
-	FindFile "POWERPAK.CFG"			; file to save settings to
+	FindFile "POWERPAK.CFG"						; file to save settings to
 
 	ldy	#$0000
 
-	lda	dontUseDMA				; save DMA setting
+	lda	dontUseDMA						; save DMA setting
 	sta	sectorBuffer1, y
 
 	iny
 
 	Accu16
 
-	lda	DP_ThemeFileClusterLo		; save theme file cluster
+	lda	DP_ThemeFileClusterLo					; save theme file cluster
 	sta	sectorBuffer1, y
 
 	iny
@@ -484,10 +484,10 @@ SaveConfig:
 
 	Accu8
 
-	lda	#$00				; zero out the rest of POWERPAK.CFG
+	lda	#$00							; zero out the rest of POWERPAK.CFG
 -	sta	sectorBuffer1, y
 	iny
-	cpy	#$0200				; 512 bytes total
+	cpy	#$0200							; 512 bytes total
 	bne	-
 
 	lda	#<sectorBuffer1
@@ -514,10 +514,10 @@ MemCheck:
 
 	Accu16
 
-	lda	#$9898				; Y, X
+	lda	#$9898							; Y, X
 	sta	SpriteBuf1.Buttons
 
-	lda	#$03A2				; tile properties, tile num for B button
+	lda	#$03A2							; tile properties, tile num for B button
 	sta	SpriteBuf1.Buttons+2
 
 	Accu8
@@ -541,14 +541,14 @@ MemCheck:
 	PrintString "Writing bank $  \n  Please hold on ..."
 
 MemCheckWriteLoop:
-	lda	Joy1New+1				; check for user input
-	and	#%10000000				; B button
+	lda	Joy1New+1						; check for user input
+	and	#%10000000						; B button
 	beq	+
 
 	ClearLine 18
 
 	SetCursorPos 17, 6
-	PrintString "k cancelled!"		; "SDRAM check cancelled!"
+	PrintString "k cancelled!"					; "SDRAM check cancelled!"
 
 	jmp	__MemCheckFinished
 
@@ -592,17 +592,17 @@ MemCheckWriteLoopNext:
 	sta	DMAWRITEHI
 
 	SetCursorPos 18, 1
-	PrintString "Read"			; "Reading bank"
+	PrintString "Read"						; "Reading bank"
 
 MemCheckReadLoop:
-	lda	Joy1New+1				; check for user input
-	and	#%10000000				; B button
+	lda	Joy1New+1						; check for user input
+	and	#%10000000						; B button
 	beq	+
 
 	ClearLine 18
 
 	SetCursorPos 17, 6
-	PrintString "k cancelled!"		; "SDRAM check cancelled!"
+	PrintString "k cancelled!"					; "SDRAM check cancelled!"
 
 	bra	__MemCheckFinished
 
@@ -639,8 +639,8 @@ MemCheckReadLoopNext:
 	cmp	#$FF
 	bne	MemCheckReadLoop
 
-	ClearLine 17				; hide "SDRAM check"
-	ClearLine 18				; hide bank no.
+	ClearLine 17							; hide "SDRAM check"
+	ClearLine 18							; hide bank no.
 
 	PrintSpriteText 19, 3, "SDRAM O.K.!", 5
 
@@ -650,7 +650,7 @@ __MemCheckFinished:
 	SetCursorPos 18, 1
 	PrintString "Press any button ..."
 
-	ClearLine 19				; remove "Please hold on ..."
+	ClearLine 19							; remove "Please hold on ..."
 
 	WaitForUserInput
 
@@ -659,10 +659,10 @@ __MemCheckFinished:
 
 
 MemCheckError:
-	ClearLine 17				; hide "SDRAM check:"
+	ClearLine 17							; hide "SDRAM check:"
 
 	SetCursorPos 18, 19
-	PrintString "      "			; hide cancel message
+	PrintString "      "						; hide cancel message
 
 	jsr	HideButtonSprites
 
@@ -684,7 +684,7 @@ MemCheckError:
 	SetCursorPos 20, 1
 	PrintString "Trying again 4 times:"
 
-	ldy	#$0004				; 4 retries, the exact amount doesn't really matter ;-)
+	ldy	#$0004							; 4 retries, the exact amount doesn't really matter ;-)
 
 -	PrintString "  $"
 
@@ -705,15 +705,15 @@ MemCheckError:
 	SetCursorPos 22, 1
 	PrintString "CRITICAL HARDWARE ERROR! PLEASE CHECK ERROR.LOG!"
 
-	jsr	LogScreen				; save to ERROR.LOG for later review
+	jsr	LogScreen						; save to ERROR.LOG for later review
 
-	jmp	Forever				; SDRAM error means potentially faulty PowerPak --> halt
+	jmp	Forever							; SDRAM error means potentially faulty PowerPak --> halt
 
 
 
 MemCheckUpdateBank:
 	SetCursorPos 18, 8
-	PrintHexNum temp+2			; show bank no. while writing/reading SDRAM
+	PrintHexNum temp+2						; show bank no. while writing/reading SDRAM
 
 	rts
 

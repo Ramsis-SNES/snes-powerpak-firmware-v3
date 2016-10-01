@@ -14,17 +14,17 @@
 ; ************************* Main reset vector **************************
 
 Main:
-	sei					; disable interrupts
+	sei								; disable interrupts
 	clc
-	xce					; switch to native mode
-	rep	#AXY_8BIT|DEC_MODE			; A/X/Y = 16 bit, decimal mode off
+	xce								; switch to native mode
+	rep	#AXY_8BIT|DEC_MODE					; A/X/Y = 16 bit, decimal mode off
 
-	lda	#$0000				; set Direct Page = $0000
+	lda	#$0000							; set Direct Page = $0000
 	tcd
 
 	Accu8
 
-	lda	DP_ColdBootCheck1			; check for warm-boot signature
+	lda	DP_ColdBootCheck1					; check for warm-boot signature
 	cmp	#kWarmBoot1
 	bne	__ColdBoot
 
@@ -40,67 +40,67 @@ Main:
 
 ; ***************************** Warm boot ******************************
 
-	ldx	DP_StackPointer_BAK			; restore stack pointer
+	ldx	DP_StackPointer_BAK					; restore stack pointer
 	txs
 
 	Accu16
 
-	lda	#$0000				; set Direct Page = $0000
+	lda	#$0000							; set Direct Page = $0000
 	tcd
 
 	Accu8
 
-	lda	#$80				; enter forced blank
+	lda	#$80							; enter forced blank
 	sta	$2100
 
-	stz	$420B				; disable DMA
-	stz	$420C				; disable HDMA
+	stz	$420B							; disable DMA
+	stz	$420C							; disable HDMA
 
-	stz	DP_ColdBootCheck1			; remove warm boot signature
+	stz	DP_ColdBootCheck1					; remove warm boot signature
 	stz	DP_ColdBootCheck2
 	stz	DP_ColdBootCheck3
 
-	cli					; enable interrupts
+	cli								; enable interrupts
 
-	jsl	apu_ram_init			; initialize sound RAM
+	jsl	apu_ram_init						; initialize sound RAM
 
-	phk					; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
+	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 
-	jsr	SpriteInit				; reinitialize OAM
-	jsr	GFXsetup2				; reinitialize GFX registers
-	jsr	JoyInit				; reinitialize joypads, enable NMI
+	jsr	SpriteInit						; reinitialize OAM
+	jsr	GFXsetup2						; reinitialize GFX registers
+	jsr	JoyInit							; reinitialize joypads, enable NMI
 
-	lda	DP_cursorX_BAK			; restore cursor position
+	lda	DP_cursorX_BAK						; restore cursor position
 	sta	cursorX
 
 	lda	DP_cursorY_BAK
 	sta	cursorY
 
-	lda	#%00110000				; activate HDMA channels 4 and 5 (BG color gradient, windowing)
+	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
 	sta	DP_HDMAchannels
 
 	wai
 
-	lda	#$0F				; turn on the screen, full brightness
+	lda	#$0F							; turn on the screen, full brightness
 	sta	$2100
 
-	jmp	__FileBrowserLoop			; return to file browser
+	jmp	__FileBrowserLoop					; return to file browser
 
 
 
 ; ***************************** Cold boot ******************************
 
 __ColdBoot:
-	ldx	#$1FFF				; set up the stack
+	ldx	#$1FFF							; set up the stack
 	txs
 
-	phk					; set Data Bank = Program Bank
+	phk								; set Data Bank = Program Bank
 	plb
 
 	Accu16
 
-	lda	#$2100				; set Direct Page to PPU registers
+	lda	#$2100							; set Direct Page to PPU registers
 	tcd
 
 	Accu8
@@ -198,7 +198,7 @@ __ColdBoot:
 
 	Accu16
 
-	lda	#$4200				; set Direct Page to CPU registers
+	lda	#$4200							; set Direct Page to CPU registers
 	tcd
 
 	Accu8
@@ -234,29 +234,29 @@ __ColdBoot:
 ; -------------------------- clear all directly accessible RAM areas (with parameters/addresses set/reset above)
 	Accu16
 
-	lda	#$0000				; set Direct Page = $0000
+	lda	#$0000							; set Direct Page = $0000
 	tcd
 
 	Accu8
 
-	DMA_CH0 $09, :CONST_Zeroes, CONST_Zeroes, $18, 0	; VRAM (length $0000 = 65536 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $22, 512	; CGRAM (512 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $04, 512+32	; OAM (low+high OAM tables = 512+32 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0	; WRAM (length $0000 = 65536 bytes = lower 64K of WRAM)
+	DMA_CH0 $09, :CONST_Zeroes, CONST_Zeroes, $18, 0		; VRAM (length $0000 = 65536 bytes)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $22, 512		; CGRAM (512 bytes)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $04, 512+32		; OAM (low+high OAM tables = 512+32 bytes)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0		; WRAM (length $0000 = 65536 bytes = lower 64K of WRAM)
 
-	lda	#%00000001				; WRAM address in $2181-$2183 has reached $10000 now,
-	sta	$420B				; so re-initiate DMA transfer for the upper 64K of WRAM
+	lda	#%00000001						; WRAM address in $2181-$2183 has reached $10000 now,
+	sta	$420B							; so re-initiate DMA transfer for the upper 64K of WRAM
 
-	cli					; enable interrupts
+	cli								; enable interrupts
 
-	jsl	apu_ram_init			; initialize sound RAM
+	jsl	apu_ram_init						; initialize sound RAM
 
-	phk					; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
+	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 
-	jsr	SpriteInit				; set up sprite buffer
-	jsr	GFXsetup				; set up VRAM, video mode, background and character pointers
-	jsr	JoyInit				; initialize joypads and enable NMI
+	jsr	SpriteInit						; set up sprite buffer
+	jsr	GFXsetup						; set up VRAM, video mode, background and character pointers
+	jsr	JoyInit							; initialize joypads and enable NMI
 
 	Accu8
 	Index16
@@ -265,12 +265,12 @@ __ColdBoot:
 	jmp	__InDemoModeToIntroScreen
 .ENDIF
 
-	jsr	AccessCFcard			; begin CF interaction, back here means valid card found
+	jsr	AccessCFcard						; begin CF interaction, back here means valid card found
 
 
 
 ; -------------------------- load configuration
-	jsr	CardLoadDir				; root dir
+	jsr	CardLoadDir						; root dir
 
 	lda	#'P'
 	sta	findEntry
@@ -294,11 +294,11 @@ __ColdBoot:
 	lda	#'K'
 	sta	findEntry+7
 
-	jsr	DirFindEntry			; "POWERPAK" dir into tempEntry
+	jsr	DirFindEntry						; "POWERPAK" dir into tempEntry
 
 	Accu16
 
-	lda	tempEntry.tempCluster		; "POWERPAK" dir found, save cluster
+	lda	tempEntry.tempCluster					; "POWERPAK" dir found, save cluster
 	sta	baseDirCluster
 
 	lda	tempEntry.tempCluster+2
@@ -315,34 +315,34 @@ __ColdBoot:
 	PrintString "\n"
 .ENDIF
 
-	FindFile "POWERPAK.CFG"			; attempt to load configuration file
+	FindFile "POWERPAK.CFG"						; attempt to load configuration file
 
 	lda	#<sectorBuffer1
 	sta	destLo
 	lda	#>sectorBuffer1
-	sta	destHi				; put into sector RAM
+	sta	destHi							; put into sector RAM
 	stz	destBank
 
 	stz	sectorCounter
 	stz	bankCounter
 
-	jsr	ClusterToLBA			; sourceCluster -> first sourceSector
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	lda	#kDestWRAM
 	sta	destType
 
-	jsr	CardReadSector			; sector -> WRAM
+	jsr	CardReadSector						; sector -> WRAM
 
 	ldy	#$0000
 
-	lda	sectorBuffer1, y			; transfer first byte to DMA "blocker" variable (standard = $00 = DMA on)
-	sta	dontUseDMA				; (reminder: DMA was off until now)
+	lda	sectorBuffer1, y					; transfer first byte to DMA "blocker" variable (standard = $00 = DMA on)
+	sta	dontUseDMA						; (reminder: DMA was off until now)
 
 	iny
 
 	Accu16
 
-	lda	sectorBuffer1, y			; read theme file cluster
+	lda	sectorBuffer1, y					; read theme file cluster
 	sta	DP_ThemeFileClusterLo
 
 	iny
@@ -360,11 +360,11 @@ __ColdBoot:
 +	jmp	__ThemeFileClusterSet
 
 __NoThemeFileSaved:
-	FindFile "THEMES.   "			; this makes A = 8 bit
+	FindFile "THEMES.   "						; this makes A = 8 bit
 
 	jsr	ClearFindEntry
 
-	ldx	#$0001				; number of file types to look for (1)
+	ldx	#$0001							; number of file types to look for (1)
 	stx	extNum
 
 	lda	#'T'
@@ -390,14 +390,14 @@ __NoThemeFileSaved:
 	lda	#'S'
 	sta	findEntry+4
 
-	stz	CLDConfigFlags			; use WRAM buffer
+	stz	CLDConfigFlags						; use WRAM buffer
 
-	jsr	CardLoadDir				; "THEMES" directory into WRAM buffer,
-	jsr	DirFindEntry			; "MUFASA.THM" file into tempEntry
+	jsr	CardLoadDir						; "THEMES" directory into WRAM buffer,
+	jsr	DirFindEntry						; "MUFASA.THM" file into tempEntry
 
 	Accu16
 
-	lda	tempEntry.tempCluster		; "MUFASA.THM" file found, save cluster
+	lda	tempEntry.tempCluster					; "MUFASA.THM" file found, save cluster
 	sta	DP_ThemeFileClusterLo
 
 	lda	tempEntry.tempCluster+2
@@ -409,7 +409,7 @@ __ThemeFileClusterSet:
 
 
 ; --------------------------- configure FPGA
-	lda	CONFIGREADSTATUS			; open bus = $20
+	lda	CONFIGREADSTATUS					; open bus = $20
 
 ;	sta	errorCode
 ;	SetCursorPos 14, 1
@@ -425,35 +425,35 @@ __ThemeFileClusterSet:
 ;	SetCursorPos 15, 1
 ;	PrintString "FPGA was configured"
 
-	lda	CONFIGREADSTATUS			; battery used = D1
+	lda	CONFIGREADSTATUS					; battery used = D1
 	and	#$02
 	bne	+
 
-	jmp	__ConfigureFPGADone			; battery not used, continue with intro
+	jmp	__ConfigureFPGADone					; battery not used, continue with intro
 
-+	jsr	LoadTheme				; battery used, load theme file before activating the screen
++	jsr	LoadTheme						; battery used, load theme file before activating the screen
 
-	lda	#%00110000				; activate HDMA channels 4 and 5
+	lda	#%00110000						; activate HDMA channels 4 and 5
 	sta	DP_HDMAchannels
 
-	jsr	PrintRomVersion			; show ROM version string (with sprite FWT from theme file)
+	jsr	PrintRomVersion						; show ROM version string (with sprite FWT from theme file)
 
 	wai
 
-	lda	#$0F				; turn on the screen, full brightness
+	lda	#$0F							; turn on the screen, full brightness
 	sta	$2100
 
-	jsr	BattUsedInitSaveSRAM		; offer to save SRAM to card
+	jsr	BattUsedInitSaveSRAM					; offer to save SRAM to card
 	jmp	GotoIntroScreen
 
 
 
 ConfigureFPGA:
 	lda	#$01
-	sta	FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
+	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 
 	lda	#$00
-	sta	FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
+	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 
 	nop
 	nop
@@ -465,7 +465,7 @@ ConfigureFPGA:
 	nop
 
 	lda	#$01
-	sta	FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
+	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 
 	FindFile "TOPLEVEL.BIT"
 
@@ -477,7 +477,7 @@ ConfigureFPGA:
 
 	wai
 	lda	#%00000001
-	sta	CONFIGWRITESTATUS			; unlock SDRAM
+	sta	CONFIGWRITESTATUS					; unlock SDRAM
 
 ;	PrintString "unlocked sdram"
 
@@ -489,27 +489,27 @@ ConfigureFPGA:
 
 __ConfigureFPGADone:
 
-	jsr	LoadTheme				; load theme file data
+	jsr	LoadTheme						; load theme file data
 
 __InDemoModeToIntroScreen:
-	jsr	ClearSpriteText			; clear sprite text so PrintRomVersion will use the sprite FWT from the loaded theme file
+	jsr	ClearSpriteText						; clear sprite text so PrintRomVersion will use the sprite FWT from the loaded theme file
 
 
 
 ; --------------------------- load intro
 GotoIntroScreen:
-	HideCursorSprite			; necessary when returning here from another section
+	HideCursorSprite						; necessary when returning here from another section
 
-	jsr	PrintRomVersion			; restore ROM version string (with sprite FWT from theme file)
-	jsr	ShowMainGFX				; set up OAM to show main sprite graphics
+	jsr	PrintRomVersion						; restore ROM version string (with sprite FWT from theme file)
+	jsr	ShowMainGFX						; set up OAM to show main sprite graphics
 
 	lda	#$00
-	sta	CONFIGWRITEDSP			; turn off DSP chip
+	sta	CONFIGWRITEDSP						; turn off DSP chip
 
 	Accu16
 
-	ldy	#$0000				; clear out game name, save name, and clusters
-	lda	#$2020				; ASCII = 2 spaces (caveat: WLA DX assembles "lda #'  '" into "LDA #$0020"!)
+	ldy	#$0000							; clear out game name, save name, and clusters
+	lda	#$2020							; ASCII = 2 spaces (caveat: WLA DX assembles "lda #'  '" into "LDA #$0020"!)
 
 -	sta	gameName.gName, y
 	sta	saveName.sName, y
@@ -524,12 +524,12 @@ GotoIntroScreen:
 	stz	saveName.sCluster
 	stz	saveName.sCluster+2
 
-	stz	Joy1New				; reset input buttons
+	stz	Joy1New							; reset input buttons
 	stz	Joy1Press
 
 	Accu8
 
-	jsr	GameGenieClearAll			; clear out Game Genie codes
+	jsr	GameGenieClearAll					; clear out Game Genie codes
 
 	SetCursorPos 18, 19
 	PrintString "Choose file ..."
@@ -545,22 +545,22 @@ GotoIntroScreen:
 ; -------------------------- show joypad button hints
 	Accu16
 
-	lda	#$9898				; Y, X
+	lda	#$9898							; Y, X
 	sta	SpriteBuf1.Buttons
 
-	lda	#$03A0				; tile properties, tile num for A button
+	lda	#$03A0							; tile properties, tile num for A button
 	sta	SpriteBuf1.Buttons+2
 
-	lda	#$A898				; Y, X
+	lda	#$A898							; Y, X
 	sta	SpriteBuf1.Buttons+4
 
-	lda	#$03A6				; tile properties, tile num for X button
+	lda	#$03A6							; tile properties, tile num for X button
 	sta	SpriteBuf1.Buttons+6
 
-	lda	#$B896				; Y, X
+	lda	#$B896							; Y, X
 	sta	SpriteBuf1.Buttons+8
 
-	lda	#$03AC				; tile properties, tile num for Start button highlighted
+	lda	#$03AC							; tile properties, tile num for Start button highlighted
 	sta	SpriteBuf1.Buttons+10
 
 	Accu8
@@ -572,7 +572,7 @@ GotoIntroScreen:
 
 	Accu16
 
-	tsc					; print stack pointer (initial value: $1FFF)
+	tsc								; print stack pointer (initial value: $1FFF)
 
 	Accu8
 
@@ -593,14 +593,14 @@ GotoIntroScreen:
 
 
 
-	lda	#%00110000				; activate HDMA channels 4 and 5
+	lda	#%00110000						; activate HDMA channels 4 and 5
 	sta	DP_HDMAchannels
 
 	lda	#$00
 
--	wai					; screen fade-in loop
+-	wai								; screen fade-in loop
 
-	inc	a					; 15 / 3 = 5 frames
+	inc	a							; 15 / 3 = 5 frames
 	inc	a
 	inc	a
 	sta	$2100
@@ -651,7 +651,7 @@ IntroLoop:
 ;	and	#%01000000
 ;	beq	+
 
-;	jmp	GotoSRMTest				; in main_cf_interface.inc.asm
+;	jmp	GotoSRMTest						; in main_cf_interface.inc.asm
 
 ;+
 
@@ -676,9 +676,9 @@ IntroLoop:
 
 FPGACheck:
 	lda	#$00
-	sta	CONFIGWRITEDSP			; turn off DSP chip
+	sta	CONFIGWRITEDSP						; turn off DSP chip
 
-	lda	CONFIGREADSTATUS			; open bus = $20
+	lda	CONFIGREADSTATUS					; open bus = $20
 	sta	errorCode
 	and	#$F0
 	cmp	#$A0
@@ -710,7 +710,7 @@ SDRAMCheck:
 	sta	$F00000
 
 	lda	errorCode+1
-	cmp	#$55				; useless ?? (subsequent branch instruction missing ever since v1.0X)
+	cmp	#$55							; useless ?? (subsequent branch instruction missing ever since v1.0X)
 
 	lda	#$AA
 	sta	$F00000
@@ -735,9 +735,9 @@ DSPCheck:
 	SetCursorPos 6, 17
 
 	lda	#$04
-	sta	CONFIGWRITEDSP			; turn on HiROM chip
+	sta	CONFIGWRITEDSP						; turn on HiROM chip
 
-	lda.l	$007000				; HiROM $00:6000 = DR, $00:7000 = SR
+	lda.l	$007000							; HiROM $00:6000 = DR, $00:7000 = SR
 	sta	errorCode
 	and	#%10000000
 	beq	__NoDSP
@@ -754,7 +754,7 @@ __DSPCheckDone:
 
 
 ShowChipsetDMA:
-	jsr	ShowConsoleVersion			; lines 9, 10, 11
+	jsr	ShowConsoleVersion					; lines 9, 10, 11
 
 	SetCursorPos 7, 17
 	PrintString "DMA : "
@@ -771,7 +771,7 @@ __DMAOff:
 __ShowChipsetDMADone:
 
 	SetCursorPos 13, 17
-	PrintString "Video: "			; completed in the following subroutine
+	PrintString "Video: "						; completed in the following subroutine
 
 	jsr	CheckFrameLength
 	rts
@@ -790,16 +790,16 @@ __ShowChipsetDMADone:
 ; overriding bit 4 of register $213F (e.g. ARP, Ultra16).
 
 CheckFrameLength:
-	sei					; disable NMI & IRQ so it won't interfere with timing
+	sei								; disable NMI & IRQ so it won't interfere with timing
 	stz	REG_NMITIMEN
 
 	phy
 	ldy	#$0000
 
--	bit	REG_HVBJOY				; wait for Vblank
+-	bit	REG_HVBJOY						; wait for Vblank
 	bpl	-
 
-	lda	REG_RDNMI				; bit 7 = Vblank NMI flag
+	lda	REG_RDNMI						; bit 7 = Vblank NMI flag
 
 -	iny
 	lda	REG_RDNMI
@@ -807,9 +807,9 @@ CheckFrameLength:
 
 	lda	REG_RDNMI
 
-	lda	#$00				; dunno what this is for, possibly timing-related?
+	lda	#$00							; dunno what this is for, possibly timing-related?
 
-	cpy	#$15A0				; rough average between 50 and 60 Hz values (see debug section below)
+	cpy	#$15A0							; rough average between 50 and 60 Hz values (see debug section below)
 	bcc	__60hz
 	PrintString "50 Hz"
 	bra	+
@@ -849,7 +849,7 @@ __60hz:
 
 	ply
 
-	lda	#$81				; re-enable Vblank NMI + automatic joypad reading
+	lda	#$81							; re-enable Vblank NMI + automatic joypad reading
 	sta	REG_NMITIMEN
 
 	cli
@@ -858,19 +858,19 @@ __60hz:
 
 
 Forever:
-	lda	#%00110000				; activate HDMA channels 4 and 5 (BG color gradient, windowing)
+	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
 	sta	DP_HDMAchannels
 
-	lda	#$0F				; turn on the screen in case we're still in forced blank
+	lda	#$0F							; turn on the screen in case we're still in forced blank
 	sta	$2100
 
-	lda	#$81				; enable Vblank NMI + automatic joypad reading
+	lda	#$81							; enable Vblank NMI + automatic joypad reading
 	sta	REG_NMITIMEN
 
 	cli
 
 __ForeverLoop:
-	wai					; wait for next frame
+	wai								; wait for next frame
 	bra	__ForeverLoop
 
 
@@ -880,11 +880,11 @@ PrintRomVersion:
 
 	SetCursorPos 3, 17
 	ldy	#PTR_Firmware_Version
-	PrintString "%s"			; --> Firmware v3.XX "MUFASA"
+	PrintString "%s"						; --> Firmware v3.XX "MUFASA"
 
 	SetCursorPos 4, 17
 	ldy	#PTR_Firmware_Build
-	PrintString "(%s)"			; --> (Build #XXXXX)
+	PrintString "(%s)"						; --> (Build #XXXXX)
 
 	rts
 
@@ -903,51 +903,51 @@ PrintRomVersion:
 ShowMainGFX:
 	Accu16
 
-	lda	#$0808				; Y, X start values of upper left corner of 128×128 main GFX
+	lda	#$0808							; Y, X start values of upper left corner of 128×128 main GFX
 	sta	temp
 
-	lda	#$0080				; tile properties (fixed), tile num (start value)
+	lda	#$0080							; tile properties (fixed), tile num (start value)
 	sta	temp+2
 
 	ldx	#$0000
 
--	lda	temp				; Y, X
+-	lda	temp							; Y, X
 	sta	SpriteBuf1.MainGFX, x
 	clc
-	adc	#$0010				; X += 16
+	adc	#$0010							; X += 16
 	sta	temp
 	inx
 	inx
 
-	lda	temp+2				; tile properties, tile num
+	lda	temp+2							; tile properties, tile num
 	sta	SpriteBuf1.MainGFX, x
 	clc
-	adc	#$0002				; tile num += 2
+	adc	#$0002							; tile num += 2
 	sta	temp+2
 	inx
 	inx
 
-	bit	#$000F				; check if last 4 bits of tile num clear = one row of 8 (large) sprites done?
-	bne	-					; "inner loop"
+	bit	#$000F							; check if last 4 bits of tile num clear = one row of 8 (large) sprites done?
+	bne	-							; "inner loop"
 
 	lda	temp
-	and	#$FF08				; reset X = 8
+	and	#$FF08							; reset X = 8
 	clc
-	adc	#$1000				; Y += 16
+	adc	#$1000							; Y += 16
 	sta	temp
 
 	lda	temp+2
 	clc
-	adc	#$0010				; tile num += 16 (i.e., skip one row of 8×8 tiles)
+	adc	#$0010							; tile num += 16 (i.e., skip one row of 8×8 tiles)
 	sta	temp+2
 
-	cpx	#$0100				; 256 / 4 = 64 (large) sprites done?
-	bne	-					; "outer loop"
+	cpx	#$0100							; 256 / 4 = 64 (large) sprites done?
+	bne	-							; "outer loop"
 
 
 
 ; -------------------------- fill high OAM
-	lda	#%1010101010101010			; large sprites
+	lda	#%1010101010101010					; large sprites
 
 	ldx	#$0000
 
@@ -982,11 +982,11 @@ ShowMainGFX:
 ; right one bit.
 
 DirGetEntry:
-	lda	CLDConfigFlags			; check for buffer location
+	lda	CLDConfigFlags						; check for buffer location
 	and	#%00000001
 	beq	__GetEntryFromWRAM
 
-	lda	selectedEntry+1			; get entry from SDRAM
+	lda	selectedEntry+1						; get entry from SDRAM
 	lsr	a
 	sta	DMAWRITEBANK
 
@@ -1011,11 +1011,11 @@ __GetEntryFromSDRAMLoop:
 
 
 __GetEntryFromWRAM:
-	lda	#$01				; set bank = $7F
+	lda	#$01							; set bank = $7F
 	sta	$2183
 
 	lda	selectedEntry+1
-	lsr	a					; selectedEntry+1 into carry bit
+	lsr	a							; selectedEntry+1 into carry bit
 
 	lda	selectedEntry
 	ror	a
@@ -1042,9 +1042,9 @@ __GetEntryFromWRAMLoop:
 DirFindEntry:
 	Accu16
 
-	stz	selectedEntry			; reset selectedEntry
+	stz	selectedEntry						; reset selectedEntry
 
-	lda	filesInDir				; only do the search if directory isn't empty
+	lda	filesInDir						; only do the search if directory isn't empty
 	beq	__DirFindEntryFailed
 
 __DirFindEntryLoop:
@@ -1054,7 +1054,7 @@ __DirFindEntryLoop:
 
 	ldy	#$0000
 
-__DirFindEntryCharLoop:				; check if entry matches, only look at first 8 chars
+__DirFindEntryCharLoop:							; check if entry matches, only look at first 8 chars
 	lda	tempEntry, y
 	cmp	findEntry, y
 	bne	__DirFindEntryNext
@@ -1062,14 +1062,14 @@ __DirFindEntryCharLoop:				; check if entry matches, only look at first 8 chars
 	iny
 	cpy	#$0008
 	bne	__DirFindEntryCharLoop
-	rts						; all 8 chars match
+	rts								; all 8 chars match
 
 __DirFindEntryNext:
 	Accu16
 
-	inc	selectedEntry			; increment to next entry index
+	inc	selectedEntry						; increment to next entry index
 
-	lda	selectedEntry			; check for max. no. of files
+	lda	selectedEntry						; check for max. no. of files
 	cmp	filesInDir
 	bne	__DirFindEntryLoop
 
@@ -1085,24 +1085,24 @@ __DirFindEntryFailed:
 	ldx	#$0000
 
 -	lda	findEntry, x
-	cmp	#' '				; only load actual filename characters to print 
+	cmp	#' '							; only load actual filename characters to print 
 	beq	+
 	inx
 	cpx	#$0008
 	bne	-
 
-+	stz	findEntry, x			; NUL-terminate filename string at first space, or after 8 chars
++	stz	findEntry, x						; NUL-terminate filename string at first space, or after 8 chars
 
 	ldy	#PTR_findEntry
 
 	PrintString "%s"
 
-	lda	extMatch1				; next, load file extension into tempEntry for printing
-	beq	+					; if extension starts with a zero ...
-	cmp	#' '				; ... or a space ...
-	beq	+					; ... then directory, skip extension
+	lda	extMatch1						; next, load file extension into tempEntry for printing
+	beq	+							; if extension starts with a zero ...
+	cmp	#' '							; ... or a space ...
+	beq	+							; ... then directory, skip extension
 
-	sta	tempEntry				; otherwise, copy file extension
+	sta	tempEntry						; otherwise, copy file extension
 
 	lda	extMatch2
 	sta	tempEntry+1
@@ -1110,12 +1110,12 @@ __DirFindEntryFailed:
 	lda	extMatch3
 	sta	tempEntry+2
 
-	stz	tempEntry+3				; NUL-terminate file extension string
+	stz	tempEntry+3						; NUL-terminate file extension string
 
 	ldy	#PTR_tempEntry
 
-	PrintString ".%s"			; result: e.g. "UPDATE.ROM file not found!"
-+	PrintString " file not found!"		; or (if dir) "POWERPAK file not found!"
+	PrintString ".%s"						; result: e.g. "UPDATE.ROM file not found!"
++	PrintString " file not found!"					; or (if dir) "POWERPAK file not found!"
 
 	jmp	Forever
 
@@ -1129,51 +1129,51 @@ LoadLastGame:
 	lda	#<sectorBuffer1
 	sta	destLo
 	lda	#>sectorBuffer1
-	sta	destHi				; put into sector RAM
+	sta	destHi							; put into sector RAM
 	stz	destBank
 
 	stz	sectorCounter
 	stz	bankCounter
 
-	jsr	ClusterToLBA			; sourceCluster -> first sourceSector
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	lda	#kDestWRAM
 	sta	destType
 
-	jsr	CardReadSector			; sector -> WRAM
+	jsr	CardReadSector						; sector -> WRAM
 
 	Accu16
 
 	ldy	#$0000
 	ldx	#$0000
 
-LoadLastGameLoop:				; game name and cluster
+LoadLastGameLoop:							; game name and cluster
 	lda	sectorBuffer1, y
 	sta	gameName, x
 	inx
 	inx
 	iny
 	iny
-	cpx	#$0080				; 128 bytes
+	cpx	#$0080							; 128 bytes
 	bne	LoadLastGameLoop
 
 	ldx	#$0000
 
-LoadLastSaveLoop:				; save name and cluster
+LoadLastSaveLoop:							; save name and cluster
 	lda	sectorBuffer1, y
 	sta	saveName, x
 	inx
 	inx
 	iny
 	iny
-	cpx	#$0080				; 128 bytes
+	cpx	#$0080							; 128 bytes
 	bne	LoadLastSaveLoop
 
 	ldx	#$0000
 
-LoadLastGameGenieLoop:				; GameGenie codes
+LoadLastGameGenieLoop:							; GameGenie codes
 	lda	sectorBuffer1, y
-	beq	__LoadLastEmptyLOG			; unused GG codes are filled with $10s, so no zeroes allowed
+	beq	__LoadLastEmptyLOG					; unused GG codes are filled with $10s, so no zeroes allowed
 	sta	GameGenie.Codes, x
 	inx
 	inx
@@ -1186,11 +1186,11 @@ LoadLastGameGenieLoop:				; GameGenie codes
 
 	rts
 
-__LoadLastEmptyLOG:				; zeroes within GG code list detected --> LOG file must be empty
+__LoadLastEmptyLOG:							; zeroes within GG code list detected --> LOG file must be empty
 
 .ACCU 16
 
-	pla					; clean up the stack as there's no rts from "jsr LoadLastGame" in case of an error
+	pla								; clean up the stack as there's no rts from "jsr LoadLastGame" in case of an error
 
 	Accu8
 
@@ -1216,45 +1216,45 @@ SaveLastGame:
 	ldy	#$0000
 	ldx	#$0000
 
-SaveLastGameLoop:				; game name and cluster
+SaveLastGameLoop:							; game name and cluster
 	lda	gameName, x
 	sta	sectorBuffer1, y
 	inx
 	inx
 	iny
 	iny
-	cpx	#$0080				; 128 bytes
+	cpx	#$0080							; 128 bytes
 	bne	SaveLastGameLoop
 
 	ldx	#$0000
 
-SaveLastSaveLoop:				; save name and cluster
+SaveLastSaveLoop:							; save name and cluster
 	lda	saveName, x
 	sta	sectorBuffer1, y
 	inx
 	inx
 	iny
 	iny
-	cpx	#$0080				; 128 bytes
+	cpx	#$0080							; 128 bytes
 	bne	SaveLastSaveLoop
 
 	ldx	#$0000
 
-SaveLastGameGenieLoop:				; GameGenie codes
+SaveLastGameGenieLoop:							; GameGenie codes
 	lda	GameGenie.Codes, x
 	sta	sectorBuffer1, y
 	inx
 	inx
 	iny
 	iny
-	cpx	#$0028				; 5 * 8 = 40 bytes
+	cpx	#$0028							; 5 * 8 = 40 bytes
 	bne	SaveLastGameGenieLoop
 
-	lda	#$0000				; fill rest of LASTGAME.LOG with zeroes
+	lda	#$0000							; fill rest of LASTGAME.LOG with zeroes
 -	sta	sectorBuffer1, y
 	iny
 	iny
-	cpy	#$0200				; 512 bytes total
+	cpy	#$0200							; 512 bytes total
 	bne	-
 
 	Accu8
@@ -1276,29 +1276,29 @@ SaveLastGameGenieLoop:				; GameGenie codes
 
 CardLoadFPGA:
 	lda	#$01
-	sta	FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
+	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 	lda	#$00
-	sta	FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
+	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 	wai
 	wai
 	lda	#$01
-	sta	FPGAPROGRAMWRITE			; SEND PROGRAM SIGNAL TO FPGA
+	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 
-	stz	sectorCounter			; BIT file cluster already in sourceCluster
+	stz	sectorCounter						; BIT file cluster already in sourceCluster
 	stz	bankCounter
 
-	jsr	ClusterToLBA			; sourceCluster -> first sourceSector
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	wai
 
 	lda	#$80
-	sta	$2100				; turn screen off
+	sta	$2100							; turn screen off
 
 CardLoadFPGALoop:
 	lda	#kDestFPGA
 	sta	destType
 
-	jsr	CardReadSector			; sector -> FPGA
+	jsr	CardReadSector						; sector -> FPGA
 	jsr	LoadNextSectorNum
 
 	Accu16
@@ -1307,20 +1307,20 @@ CardLoadFPGALoop:
 ; FAT32 last cluster = 0x0FFFFFFF
 ; FAT16 last cluster = 0x0000FFFF
 
-	lda	fat32Enabled			; check for FAT32
+	lda	fat32Enabled						; check for FAT32
 	and	#$0001
 	bne	__FPGALastClusterMaskFAT32
 
-	stz	temp+2				; if FAT16, high word = $0000
+	stz	temp+2							; if FAT16, high word = $0000
 	bra	__FPGALastClusterMaskDone
 
 __FPGALastClusterMaskFAT32:
-	lda	#$0FFF				; if FAT32, high word = $0FFF
+	lda	#$0FFF							; if FAT32, high word = $0FFF
 	sta	temp+2
 
-__FPGALastClusterMaskDone:			; if cluster = last cluster, jump to last entry found
+__FPGALastClusterMaskDone:						; if cluster = last cluster, jump to last entry found
 	lda	sourceCluster
-	cmp	#$FFFF				; low word = $FFFF (FAT16/32)
+	cmp	#$FFFF							; low word = $FFFF (FAT16/32)
 	bne	__FPGANextSector
 
 	lda	sourceCluster+2
@@ -1329,7 +1329,7 @@ __FPGALastClusterMaskDone:			; if cluster = last cluster, jump to last entry fou
 
 	Accu8
 
-	bra	__LoadFPGADone			; last cluster, jump out
+	bra	__LoadFPGADone						; last cluster, jump out
 
 __FPGANextSector:
 	Accu8
@@ -1337,13 +1337,13 @@ __FPGANextSector:
 	inc	bankCounter
 
 	lda	bankCounter
-	cmp	#$6B				; 437312 bits = 54664 bytes = 107 sectors = $6B
+	cmp	#$6B							; 437312 bits = 54664 bytes = 107 sectors = $6B
 	bne	CardLoadFPGALoop
 
 __LoadFPGADone:
 
 ;	lda	#$0F
-;	sta	$2100				; turn screen on // never mind, done on intro screen
+;	sta	$2100							; turn screen on // never mind, done on intro screen
 	rts
 
 
@@ -1353,9 +1353,9 @@ __LoadFPGADone:
 ClearFindEntry:
 	Accu16
 
-	lda	#$2020				; ASCII = 2 spaces (caveat #1: WLA DX assembles "lda #'  '" to "LDA #$0020"!)
-	sta	findEntry				; Caveat #2: It's crucially important to clear out findEntry with spaces (not zeroes)
-	sta	findEntry+2				; due to the way the FAT filesystem handles short file names < 8 characters!
+	lda	#$2020							; ASCII = 2 spaces (caveat #1: WLA DX assembles "lda #'  '" to "LDA #$0020"!)
+	sta	findEntry						; Caveat #2: It's crucially important to clear out findEntry with spaces (not zeroes)
+	sta	findEntry+2						; due to the way the FAT filesystem handles short file names < 8 characters!
 	sta	findEntry+4
 	sta	findEntry+6
 
@@ -1368,26 +1368,26 @@ ClearFindEntry:
 ; ************************** Log error output **************************
 
 LogScreen:
-	stz	$2183				; set WRAM address to log buffer for writing (expected in bank $7E)
+	stz	$2183							; set WRAM address to log buffer for writing (expected in bank $7E)
 
-	ldx	#(LogBuffer & $FFFF)		; get low word
+	ldx	#(LogBuffer & $FFFF)					; get low word
 	stx	$2181
 
-	ldx	#$0000				; next, "deinterleave" hi-res text buffer
+	ldx	#$0000							; next, "deinterleave" hi-res text buffer
 
 -	lda	TextBuffer.BG1, x
-	lsr	a					; reconvert hi-res tile to plain ASCII
-	sta	$2180				; copy it to log buffer
+	lsr	a							; reconvert hi-res tile to plain ASCII
+	sta	$2180							; copy it to log buffer
 
-	lda	TextBuffer.BG2, x			; same thing for BG2
+	lda	TextBuffer.BG2, x					; same thing for BG2
 	lsr	a
 	sta	$2180
 
 	inx
-	cpx	#$0400				; 1024 bytes per BG (lower 32×32 tilemaps only)
+	cpx	#$0400							; 1024 bytes per BG (lower 32×32 tilemaps only)
 	bne	-
 
-	FindFile "ERROR.LOG"			; save to file
+	FindFile "ERROR.LOG"						; save to file
 
 	lda	#<LogBuffer
 	sta	sourceLo
@@ -1409,14 +1409,14 @@ LogScreen:
 ; *************************** Misc. messages ***************************
 
 ShowConsoleVersion:
-	lda	REG_RDNMI				; CPU revision
-	and	#$0F				; mask off Vblank NMI flag and open bus (bits 4-6)
+	lda	REG_RDNMI						; CPU revision
+	and	#$0F							; mask off Vblank NMI flag and open bus (bits 4-6)
 	sta	temp
 
 	Accu16
 
-	lda	$213E				; PPU1/2 revisions
-	and	#$0F0F				; mask off other/open bus flags
+	lda	$213E							; PPU1/2 revisions
+	and	#$0F0F							; mask off other/open bus flags
 	sta	temp+1
 
 	Accu8
@@ -1449,7 +1449,7 @@ SpriteMessageLoading:
 
 	PrintSpriteText 12, 12, "Loading ...", 7
 
-	wai					; make sure it appears on the screen
+	wai								; make sure it appears on the screen
 	rts
 
 
@@ -1463,7 +1463,7 @@ SpriteMessageError:
 
 PrintCardFS:
 	SetCursorPos 5, 17
-	PrintString "Card: FAT"			; completed subsequently
+	PrintString "Card: FAT"						; completed subsequently
 
 	lda	fat32Enabled
 	cmp	#$01
@@ -1483,24 +1483,24 @@ __PrintCardFSDone:
 ; *********************** Music loading routines ***********************
 
 LoadDevMusic:
-	sei					; disable NMI & IRQ before loading music
+	sei								; disable NMI & IRQ before loading music
 	stz	REG_NMITIMEN
 
-	jsl	spcBoot				; boot SNESMOD
+	jsl	spcBoot							; boot SNESMOD
 
-	lda	#:SOUNDBANK				; give soundbank
+	lda	#:SOUNDBANK						; give soundbank
 	sta	spc_bank
 
-;	ldx	#SOUNDBANK				; load module into SPC
+;	ldx	#SOUNDBANK						; load module into SPC
 	ldx	#$0000
 
 	jsl	spcLoad
 
-	lda	#39					; allocate around 10K of sound ram (39 256-byte blocks)
+	lda	#39							; allocate around 10K of sound ram (39 256-byte blocks)
 
 	jsl	spcAllocateSoundRegion
 
-	lda	#$81				; done, re-enable Vblank NMI + Auto Joypad Read
+	lda	#$81							; done, re-enable Vblank NMI + Auto Joypad Read
 	sta	REG_NMITIMEN
 	cli
 	rts

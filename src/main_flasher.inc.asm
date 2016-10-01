@@ -14,9 +14,9 @@
 
 GotoFlashUpdater:
 	lda	#$00
-	sta	CONFIGWRITEDSP			; turn off DSP chip
+	sta	CONFIGWRITEDSP						; turn off DSP chip
 
-	lda	#$00				; reset SDRAM address
+	lda	#$00							; reset SDRAM address
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK
@@ -24,9 +24,9 @@ GotoFlashUpdater:
 	stz	sectorCounter
 	stz	bankCounter
 
-	jsr	CardReadFile			; source cluster already set in CheckForUpdate section
-	jsr	VerifyUpdateFile			; back here means file is OK
-	jsr	ClearSpriteText			; remove "Loading ..." message
+	jsr	CardReadFile						; source cluster already set in CheckForUpdate section
+	jsr	VerifyUpdateFile					; back here means file is OK
+	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "SNES PowerPak Flash Updater", 4
 
@@ -36,15 +36,15 @@ GotoFlashUpdater:
 
 	ldx	#$0000
 
--	lda.l	SPIdentification, x		; copy SPIdentification subroutine to WRAM
+-	lda.l	SPIdentification, x					; copy SPIdentification subroutine to WRAM
 	sta	codeBuffer, x
 	inx
 	cpx	#SPIdentification_End-SPIdentification
 	bne	-
 
-	jsl	codeBuffer				; jump to SPIdentification subroutine in WRAM
+	jsl	codeBuffer						; jump to SPIdentification subroutine in WRAM
 
-	lda	temp				; check for detected chip ID
+	lda	temp							; check for detected chip ID
 	cmp	#$1F
 	bne	+
 
@@ -91,7 +91,7 @@ FlashUpdateWarning:
 	PrintString "after which your SNES will reset automatically.\n\n"
 	PrintString "Press the (A) button to proceed ..."
 
-	stz	Joy1Press				; reset input buttons
+	stz	Joy1Press						; reset input buttons
 	stz	Joy1Press+1
 	stz	Joy1New
 	stz	Joy1New+1
@@ -101,21 +101,21 @@ FlashUpdateWarning:
 ; -------------------------- wait for user to press A button
 -	wai
 
-	lda	Joy1New				; wait for user input
-	and	#%10000000				; A button
+	lda	Joy1New							; wait for user input
+	and	#%10000000						; A button
 	beq	-
 
-	SetCursorPos 17, 0			; overwrite "Press the (A) button ..." message
+	SetCursorPos 17, 0						; overwrite "Press the (A) button ..." message
 	PrintString "FLASHING IN PROGRESS, PLEASE WAIT ..."
 
-	wai					; wait for the message to appear on the screen
+	wai								; wait for the message to appear on the screen
 
 	ldx	#$0000				; reset X
 
 
 
 ; -------------------------- use AT29C010A flashing code
-	lda	temp				; re-check chip ID (temp variable shouldn't have changed, but you never know ...)
+	lda	temp							; re-check chip ID (temp variable shouldn't have changed, but you never know ...)
 	cmp	#$1F
 	bne	+
 
@@ -123,13 +123,13 @@ FlashUpdateWarning:
 	cmp	#$D5
 	bne	+
 
--	lda.l	Flash_AT29C010A, x		; copy AT29C010A flashing code to WRAM
+-	lda.l	Flash_AT29C010A, x					; copy AT29C010A flashing code to WRAM
 	sta	codeBuffer, x
 	inx
 	cpx	#Flash_AT29C010A_End-Flash_AT29C010A
 	bne	-
 
-	jml	codeBuffer				; jump to AT29C010A flashing code in WRAM
+	jml	codeBuffer						; jump to AT29C010A flashing code in WRAM
 
 
 
@@ -142,13 +142,13 @@ FlashUpdateWarning:
 	cmp	#$B5
 	bne	+
 
--	lda.l	Flash_SST39SF010A, x		; copy SST39SF010A flashing code to WRAM
+-	lda.l	Flash_SST39SF010A, x					; copy SST39SF010A flashing code to WRAM
 	sta	codeBuffer, x
 	inx
 	cpx	#Flash_SST39SF010A_End-Flash_SST39SF010A
 	bne	-
 
-	jml	codeBuffer				; jump to SST39SF010A flashing code in WRAM
+	jml	codeBuffer						; jump to SST39SF010A flashing code in WRAM
 
 
 
@@ -170,24 +170,24 @@ FlashUpdateWarning:
 ; JMP/JSR/etc. will jump back to code in ROM!
 
 SPIdentification:
-	sei					; disable NMI & IRQ
+	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
 
-	lda	#$AA				; software product identification entry
-	sta	$00D555				; $5555 + $8000 (SNES LoROM address)
+	lda	#$AA							; software product identification entry
+	sta	$00D555							; $5555 + $8000 (SNES LoROM address)
 	lda	#$55
-	sta	$00AAAA				; $2AAA + $8000 (SNES LoROM address)
+	sta	$00AAAA							; $2AAA + $8000 (SNES LoROM address)
 	lda	#$90
 	sta	$00D555
 
 	WaitTwoFrames
 
-	lda	$008000				; manufacturer code (AT29C010A: $1F - SST39SF010A: $BF)
+	lda	$008000							; manufacturer code (AT29C010A: $1F - SST39SF010A: $BF)
 	sta	temp
-	lda	$008001				; device code (AT29C010A: $D5 - SST39SF010A: $B5)
+	lda	$008001							; device code (AT29C010A: $D5 - SST39SF010A: $B5)
 	sta	temp+1
 
-	lda	#$AA				; software product identification exit
+	lda	#$AA							; software product identification exit
 	sta	$00D555
 	lda	#$55
 	sta	$00AAAA
@@ -196,8 +196,8 @@ SPIdentification:
 
 	WaitTwoFrames
 
-	lda	#$81				; Vblank NMI + Auto Joypad Read
-	sta	REG_NMITIMEN			; re-enable Vblank NMI
+	lda	#$81							; Vblank NMI + Auto Joypad Read
+	sta	REG_NMITIMEN						; re-enable Vblank NMI
 	cli
 	rtl
 
@@ -206,7 +206,7 @@ SPIdentification_End:
 
 
 Flash_AT29C010A:
-	sei					; disable NMI & IRQ
+	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
 
 	lda	#$00
@@ -310,17 +310,17 @@ __NextSectorBank3:
 	cpx	#$8000
 	bne	__NextSectorBank3
 
-	WaitTwoFrames				; this helps prevent palette glitches after resetting
+	WaitTwoFrames							; this helps prevent palette glitches after resetting
 
 	lda	#%10000001
-	sta	CONFIGWRITESTATUS			; reset PowerPak, stay in boot mode
+	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
 
 Flash_AT29C010A_End:
 
 
 
 Flash_SST39SF010A:
-	sei					; disable NMI & IRQ
+	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
 
 	lda	#$00
@@ -331,7 +331,7 @@ Flash_SST39SF010A:
 	ldx	#$0000
 
 __Prepare4KBSectorBank0:
-	lda	#$AA				; sector erase command sequence
+	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
 	sta	$00AAAA
@@ -372,7 +372,7 @@ __Write4KBSectorBank0:
 	ldx	#$0000
 
 __Prepare4KBSectorBank1:
-	lda	#$AA				; sector erase command sequence
+	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
 	sta	$00AAAA
@@ -413,7 +413,7 @@ __Write4KBSectorBank1:
 	ldx	#$0000
 
 __Prepare4KBSectorBank2:
-	lda	#$AA				; sector erase command sequence
+	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
 	sta	$00AAAA
@@ -454,7 +454,7 @@ __Write4KBSectorBank2:
 	ldx	#$0000
 
 __Prepare4KBSectorBank3:
-	lda	#$AA				; sector erase command sequence
+	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
 	sta	$00AAAA
@@ -492,10 +492,10 @@ __Write4KBSectorBank3:
 	cpx	#$8000
 	bne	__Prepare4KBSectorBank3
 
-	WaitTwoFrames				; this helps prevent palette glitches after resetting
+	WaitTwoFrames							; this helps prevent palette glitches after resetting
 
 	lda	#%10000001
-	sta	CONFIGWRITESTATUS			; reset PowerPak, stay in boot mode
+	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
 
 Flash_SST39SF010A_End:
 
@@ -504,9 +504,9 @@ Flash_SST39SF010A_End:
 ; **************************** Subroutines *****************************
 
 VerifyUpdateFile:
-	lda	#$C5				; string at offset $7FC5: "PowerPak" (part of internal ROM name),
-	sta	DMAWRITELO				; this ensures UPDATE.ROM actually contains a PowerPak bootloader
-	lda	#$7F				; while not preventing a possibly intended downgrade
+	lda	#$C5							; string at offset $7FC5: "PowerPak" (part of internal ROM name),
+	sta	DMAWRITELO						; this ensures UPDATE.ROM actually contains a PowerPak bootloader
+	lda	#$7F							; while not preventing a possibly intended downgrade
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK
@@ -545,7 +545,7 @@ VerifyUpdateFile:
 	rts
 
 __CorruptUpdateROM:
-	jsr	ClearSpriteText			; remove "Loading ..." message
+	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "Error!", 4
 

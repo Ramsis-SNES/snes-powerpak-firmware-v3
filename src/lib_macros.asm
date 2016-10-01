@@ -55,10 +55,10 @@
 .ACCU 8
 .INDEX 16
 
-.MACRO SetCursorPos				; SetCursorPos  y, x
-	ldx	#32*\1+32*minPrintY + \2+minPrintX	; add values of indention constants
+.MACRO SetCursorPos							; SetCursorPos  y, x
+	ldx	#32*\1+32*minPrintY + \2+minPrintX			; add values of indention constants
 	stx	Cursor
-	stz	BGPrintMon				; reset BG monitor value to zero (start on BG1)
+	stz	BGPrintMon						; reset BG monitor value to zero (start on BG1)
 .ENDM
 
 
@@ -66,17 +66,17 @@
 .MACRO ClearLine
 	clc
 	lda.b	#\1
-	adc.b	#minPrintY			; add Y indention
+	adc.b	#minPrintY						; add Y indention
 
 	jsr	PrintClearLine
 .ENDM
 
 
 
-.MACRO PrintString				; shortened for v3.00 by ManuLöwe
+.MACRO PrintString							; shortened for v3.00 by ManuLöwe
 	jsr	PrintF
 
-	.DB \1, 0				; instead of a return address (-1), the string address (-1) gets pushed onto the stack
+	.DB \1, 0							; instead of a return address (-1), the string address (-1) gets pushed onto the stack
 .ENDM
 
 
@@ -114,7 +114,7 @@ __CheckJoypad\@:
 	wai
 
 	lda	Joy1New
-	and	#$F0F0				; B, Y, Select, Start (no d-pad), A, X, L, R
+	and	#$F0F0							; B, Y, Select, Start (no d-pad), A, X, L, R
 
 	beq	__CheckJoypad\@
 
@@ -149,10 +149,10 @@ __FrameDelay\@:
 ; -------------------------- draw upper border
 	ldx	#32*\2 + \1
 
-	lda	#$20				; upper left corner
-	sta	TextBuffer.BG1, x			; start on BG1
+	lda	#$20							; upper left corner
+	sta	TextBuffer.BG1, x					; start on BG1
 
-	lda	#$22				; horizontal line
+	lda	#$22							; horizontal line
 
 __DrawUpperBorder\@:
 	sta	TextBuffer.BG2, x
@@ -164,26 +164,26 @@ __DrawUpperBorder\@:
 	cpx	#32*\2 + \1 + \3
 	bne	__DrawUpperBorder\@
 
-	lda	#$24				; upper right corner
+	lda	#$24							; upper right corner
 	sta	TextBuffer.BG2, x
 
 	bra	__GoToNextLine\@
 
 ; -------------------------- draw left & right border
 __DrawLRBorder\@:
-	lda	#$26				; left vertical line
+	lda	#$26							; left vertical line
 	sta	TextBuffer.BG1, x
 
 ;	Accu16
 
 ;	txa
 ;	clc
-;	adc	#\3					; go to right border
+;	adc	#\3							; go to right border
 ;	tax
 
 ;	Accu8
 
-	lda	#$40				; space
+	lda	#$40							; space
 
 	ldy	#$0000
 
@@ -198,7 +198,7 @@ __ClearTextInsideFrame\@:
 	cpy	#\3
 	bne	__ClearTextInsideFrame\@
 
-	lda	#$28				; right vertical line
+	lda	#$28							; right vertical line
 	sta	TextBuffer.BG2, x
 
 __GoToNextLine\@:
@@ -206,7 +206,7 @@ __GoToNextLine\@:
 
 	txa
 	clc
-	adc	#32 - \3				; go to next line
+	adc	#32 - \3						; go to next line
 	tax
 
 	Accu8
@@ -215,10 +215,10 @@ __GoToNextLine\@:
 	bne	__DrawLRBorder\@
 
 ; -------------------------- draw lower border
-	lda	#$2A				; lower left corner
+	lda	#$2A							; lower left corner
 	sta	TextBuffer.BG1, x
 
-	lda	#$22				; horizontal line
+	lda	#$22							; horizontal line
 
 __DrawLowerBorder\@:
 	sta	TextBuffer.BG2, x
@@ -230,7 +230,7 @@ __DrawLowerBorder\@:
 	cpx	#32*(\2+\4) + \1 + \3
 	bne	__DrawLowerBorder\@
 
-	lda	#$2C				; lower right corner
+	lda	#$2C							; lower right corner
 	sta	TextBuffer.BG2, x
 .ENDM
 
@@ -250,7 +250,7 @@ __DrawLowerBorder\@:
 
 	jsr	PrintSpriteText
 
-	.DB \3, 0				; the string address (-1) gets pushed onto the stack
+	.DB \3, 0							; the string address (-1) gets pushed onto the stack
 .ENDM
 
 
@@ -261,7 +261,7 @@ __DrawLowerBorder\@:
 ; Effect: Moves cursor sprite graphics off the screen.
 
 .MACRO HideCursorSprite
-	lda.b	#$FF				; hide cursor
+	lda.b	#$FF							; hide cursor
 	sta.b	cursorX
 
 	lda.b	#$F0
@@ -278,22 +278,22 @@ __DrawLowerBorder\@:
 ; Expects: A 8 bit, X/Y 16 bit
 
 .MACRO DMA_CH0
-	lda	#\1					; DMA mode (8 bit)
+	lda	#\1							; DMA mode (8 bit)
  	sta	$4300
 
-	lda	#\4					; B bus register (8 bit)
+	lda	#\4							; B bus register (8 bit)
 	sta	$4301
 
-	ldx	#\3					; data offset (16 bit)
+	ldx	#\3							; data offset (16 bit)
 	stx	$4302
 
-	lda	#\2					; data bank (8 bit)
+	lda	#\2							; data bank (8 bit)
 	sta	$4304
 
-	ldx	#\5					; data length (16 bit)
+	ldx	#\5							; data length (16 bit)
 	stx	$4305
 
-	lda	#%00000001				; initiate DMA transfer (channel 0)
+	lda	#%00000001						; initiate DMA transfer (channel 0)
 	sta	$420B
 .ENDM
 
@@ -314,28 +314,28 @@ __DrawLowerBorder\@:
 .MACRO DMA_WaitHblank
 
 __WaitForHblank\@:
-	bit	REG_HVBJOY				; wait for Hblank period flag to get set
+	bit	REG_HVBJOY						; wait for Hblank period flag to get set
 	bvc	__WaitForHblank\@
 
-	lda	#\1					; DMA mode (8 bit)
+	lda	#\1							; DMA mode (8 bit)
  	sta	$4310
 
-	lda	#\5					; B bus register (8 bit)
+	lda	#\5							; B bus register (8 bit)
 	sta	$4311
 
-	lda	#\4					; data offset, low byte (8 bit)
+	lda	#\4							; data offset, low byte (8 bit)
 	sta	$4312
 
-	lda	#\3					; data offset, high byte (8 bit)
+	lda	#\3							; data offset, high byte (8 bit)
 	sta	$4313
 
-	lda	#\2					; data bank (8 bit)
+	lda	#\2							; data bank (8 bit)
 	sta	$4314
 
-	ldx	\6					; data length (sourceBytes16 variable, 512 bytes)
+	ldx	\6							; data length (sourceBytes16 variable, 512 bytes)
 	stx	$4315
 
-	lda	#%00000010				; initiate DMA transfer (channel 1)
+	lda	#%00000010						; initiate DMA transfer (channel 1)
 	sta	$420B
 .ENDM
 
@@ -359,13 +359,13 @@ __WaitForHblank\@:
 
 	jsr	ClearFindEntry
 
-	ldx	#$0001				; number of file types to look for (1)
+	ldx	#$0001							; number of file types to look for (1)
 	stx	extNum
 
 	ldx	#$0000
 
 __LoadFileNameLoop\@:
-	lda.w	FileName\@, x			; load filename and store it in findEntry
+	lda.w	FileName\@, x						; load filename and store it in findEntry
 	cmp	#'.'
 	beq	__FileNameComplete\@
 	sta	findEntry, x
@@ -374,8 +374,8 @@ __LoadFileNameLoop\@:
 	bne	__LoadFileNameLoop\@
 
 __FileNameComplete\@:
-	inx					; skip '.'
-	lda.w	FileName\@, x			; load extension and store it in extMatchX
+	inx								; skip '.'
+	lda.w	FileName\@, x						; load extension and store it in extMatchX
 	sta	extMatch1
 
 	inx
@@ -388,7 +388,7 @@ __FileNameComplete\@:
 
 	Accu16
 
-	lda	baseDirCluster			; "POWERPAK" dir start
+	lda	baseDirCluster						; "POWERPAK" dir start
 	sta	sourceCluster
 
 	lda	baseDirCluster+2
@@ -396,10 +396,10 @@ __FileNameComplete\@:
 
 	Accu8
 
-	stz	CLDConfigFlags			; use WRAM buffer, don't skip hidden files
+	stz	CLDConfigFlags						; use WRAM buffer, don't skip hidden files
 
-	jsr	CardLoadDir				; "POWERPAK" dir
-	jsr	DirFindEntry			; get first cluster of file to look for
+	jsr	CardLoadDir						; "POWERPAK" dir
+	jsr	DirFindEntry						; get first cluster of file to look for
 
 	Accu16
 
@@ -432,33 +432,33 @@ __FileName_End\@:
 .ACCU 8
 .INDEX 16
 
-	pei	(destLo)				; push destLo/destHi onto stack
+	pei	(destLo)						; push destLo/destHi onto stack
 
 	jsr	LoadNextSectorNum
 
 	Accu16
 
-	pla					; pull destLo/destHi from stack
+	pla								; pull destLo/destHi from stack
 	sta	destLo
 
 ; check for last sector
 ; FAT32 last cluster = 0x0FFFFFFF
 ; FAT16 last cluster = 0x0000FFFF
 
-	lda	fat32Enabled			; check for FAT32
+	lda	fat32Enabled						; check for FAT32
 	and	#$0001
 	bne	__LastClusterMaskFAT32\@
 
-	stz	temp+2				; if FAT16, high word = $0000
+	stz	temp+2							; if FAT16, high word = $0000
 	bra	__LastClusterMaskDone\@
 
 __LastClusterMaskFAT32\@:
-	lda	#$0FFF				; if FAT32, high word = $0FFF
+	lda	#$0FFF							; if FAT32, high word = $0FFF
 	sta	temp+2
 
-__LastClusterMaskDone\@:			; if cluster = last cluster, jump to last entry found
+__LastClusterMaskDone\@:						; if cluster = last cluster, jump to last entry found
 	lda	sourceCluster
-	cmp	#$FFFF				; low word = $FFFF (FAT16/32)
+	cmp	#$FFFF							; low word = $FFFF (FAT16/32)
 	bne	__NextSector\@
 
 	lda	sourceCluster+2
@@ -467,7 +467,7 @@ __LastClusterMaskDone\@:			; if cluster = last cluster, jump to last entry found
 
 	Accu8
 
-	bra	_f					; last cluster (intentional forward jump, "beyond" of the macro)
+	bra	_f							; last cluster (intentional forward jump, "beyond" of the macro)
 
 __NextSector\@:
 	Accu8
@@ -510,7 +510,7 @@ __WaitForVblankEnd2\@:
 .MACRO CheckToggleBit
 
 __DQ6Toggling\@:
-	bit	$008000				; wait for DQ6 bit toggling to stop
+	bit	$008000							; wait for DQ6 bit toggling to stop
 	bvs	__DQ6NextTest\@
 
 	bit	$008000

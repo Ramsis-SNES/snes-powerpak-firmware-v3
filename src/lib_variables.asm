@@ -195,7 +195,7 @@
 	.DEFINE ADDR_CGRAM_MAIN_GFX	$80
 	.DEFINE ADDR_CGRAM_FONT_SPR	$B0
 
-	.DEFINE ADDR_VRAM_BG1_TILEMAP	$0000	; reminder: each tilemap is 64×32 (2048) tiles = 4096 bytes in size
+	.DEFINE ADDR_VRAM_BG1_TILEMAP	$0000				; reminder: each tilemap is 64×32 (2048) tiles = 4096 bytes in size
 	.DEFINE ADDR_VRAM_BG2_TILEMAP	$0800
 	.DEFINE ADDR_VRAM_BG1_TILES	$2000
 	.DEFINE ADDR_VRAM_BG2_TILES	$4000
@@ -306,7 +306,7 @@
 	sourceType		db
 	sourceEntryLo		db
 	sourceEntryHi		db
-	sourceEntryBank		db		; 16 bytes and counting
+	sourceEntryBank		db					; 16 bytes and counting
 
 	destEntryLo		db
 	destEntryHi		db
@@ -320,7 +320,7 @@
 	filesInDir		dw
 	temp			dsb 8
 	selectedEntry		dw
-	lfnFound		db		; 36 bytes and counting
+	lfnFound		db					; 36 bytes and counting
 
 	sourceSector		dsb 4
 	sourceCluster		dsb 4
@@ -335,38 +335,37 @@
 
 	fat16RootSectors	db
 	rootDirCluster		dsb 4
-	baseDirCluster		dsb 4		; "baseDir" = "POWERPAK" directory
+	baseDirCluster		dsb 4					; "baseDir" = "POWERPAK" directory
 	sectorCounter		db
 
-	Cursor			dw		; 76 bytes and counting
+	Cursor			dw					; 76 bytes and counting
 
-	Joy1			dw		; Current button state of joypad1, bit0=0 if it is a valid joypad
-	Joy2			dw		; same thing for all pads...
+	Joy1			dw					; Current button state of joypad1, bit0=0 if it is a valid joypad
+	Joy2			dw					; same thing for all pads...
 
-	Joy1Press		dw		; Holds joypad1 keys that are pressed and have been
-						; pressed since clearing this mem location
-	Joy2Press		dw		; same thing for all pads...
-						; X Y TL  TR . . . .
-						; A B sel st U D L R
+	Joy1Press		dw					; Holds joypad1 keys that are pressed and have been pressed since clearing this mem location
+	Joy2Press		dw					; same thing for all pads...
+									; X Y TL  TR . . . .
+									; A B sel st U D L R
 	Joy1New			dw
 	Joy2New			dw
 
 	Joy1Old			dw
-	Joy2Old			dw		; 92 bytes and counting
+	Joy2Old			dw					; 92 bytes and counting
 
-	findEntry		dsb 9		; 8 bytes at most for short file names + NUL-terminator
+	findEntry		dsb 9					; 8 bytes at most for short file names + NUL-terminator
 
-	extMatch1		dsb 11		; 11 file types at most to look for during CardLoadDir
+	extMatch1		dsb 11					; 11 file types at most to look for during CardLoadDir
 	extMatch2		dsb 11
 	extMatch3		dsb 11
-	extNum			dw		; holds number of file extensions to look for (16 bit for X/Y register use)
+	extNum			dw					; holds number of file extensions to look for (16 bit for X/Y register use)
 
 	scrollY			db
 	scrollYCounter		db
 	scrollYUp		db
-	scrollYDown		db		; 140 bytes and counting
+	scrollYDown		db					; 140 bytes and counting
 
-	cursorX			db		; cursorX/cursorY should be kept in consecutive order due to occasional 16-bit writes
+	cursorX			db					; cursorX/cursorY should be kept in consecutive order due to occasional 16-bit writes
 	cursorY			db
 	cursorYCounter		db
 	cursorYUp		db
@@ -381,7 +380,7 @@
 	saveSize		db
 	useBattery		db
 
-	DP_ColdBootCheck3	db		; 152 bytes and counting
+	DP_ColdBootCheck3	db					; 152 bytes and counting
 
 	gameSize		dw
 	gameResetVector		dw
@@ -392,15 +391,15 @@
 	gameROMMbits		db
 	sramSizeByte		db
 
-	ggcode			dsb 4		; 197 bytes and counting
+	ggcode			dsb 4					; 197 bytes and counting
 
-	CLDConfigFlags		db		; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set,
-						; b = use SDRAM buffer if set, WRAM buffer if clear]
-						; The h flag is checked (& reset) in CardLoadDir only.
-						; The b flag is checked & reset in CardLoadDir,
-						; set & reset in DirPrintEntry, checked (not modified) in DirGetEntry.
-						; Reminder: Supporting both buffers is mandatory because FPGA programming --
-						; and thus, SDRAM unlocking -- can only occur after TOPLEVEL.BIT has been loaded.
+	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set,
+									; b = use SDRAM buffer if set, WRAM buffer if clear]
+									; The h flag is checked (& reset) in CardLoadDir only.
+									; The b flag is checked & reset in CardLoadDir,
+									; set & reset in DirPrintEntry, checked (not modified) in DirGetEntry.
+									; Reminder: Supporting both buffers is mandatory because FPGA programming --
+									; and thus, SDRAM unlocking -- can only occur after TOPLEVEL.BIT has been loaded.
 
 	dontUseDMA		db
 
@@ -408,48 +407,48 @@
 	bankOffset		dw
 	partitionIndex		dw
 
-	headerType		db		; holds ROM header type ($01 = SWC, $02 = GD3, $FF = unknown)
+	headerType		db					; holds ROM header type ($01 = SWC, $02 = GD3, $FF = unknown)
 	fixheader		db
 
-	audioPC			dsb 2		; audio variables for blargg's SPC player
+	audioPC			dsb 2					; audio variables for blargg's SPC player
 	audioA			db
 	audioX			db
 	audioY			db
 	audioPSW		db
 	audioSP			db
-	spcTimer		dsb 4		; 217 bytes and counting
+	spcTimer		dsb 4					; 217 bytes and counting
 
-	BGPrintMon		db		; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
-	DP_SelectionFlags	db		; rrrrrrrf [r = Reserved, f = file was chosen if set]
+	BGPrintMon		db					; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
+	DP_SelectionFlags	db					; rrrrrrrf [r = Reserved, f = file was chosen if set]
 
-	DP_HDMAchannels		db		; 21wbmr00 [2 = BG2 horizontal scroll offset, 1 = BG1 horizontal scroll offset, w = main/subscreen window, b = background color gradient, m = color math, r = Reserved, 0 = reserved for normal DMA]. Variable content is copied to $420C during Vblank.
+	DP_HDMAchannels		db					; 21wbmr00 [2 = BG2 horizontal scroll offset, 1 = BG1 horizontal scroll offset, w = main/subscreen window, b = background color gradient, m = color math, r = Reserved, 0 = reserved for normal DMA]. Variable content is copied to $420C during Vblank.
 
-	DP_SprTextMon		dw		; keeps track of sprite-based text buffer filling level
-	DP_SprTextPalette	db		; holds palette to use when printing sprite-based text
+	DP_SprTextMon		dw					; keeps track of sprite-based text buffer filling level
+	DP_SprTextPalette	db					; holds palette to use when printing sprite-based text
 
-	DP_cursorX_BAK		db		; backup variables for warm boot and/or file browser
+	DP_cursorX_BAK		db					; backup variables for warm boot and/or file browser
 	DP_cursorY_BAK		db
 	DP_sourceCluster_BAK	dsb 4
-	DP_StackPointer_BAK	dw		; 231 bytes and counting
-	DP_SubDirCounter	dw		; used in the file browser
+	DP_StackPointer_BAK	dw					; 231 bytes and counting
+	DP_SubDirCounter	dw					; used in the file browser
 
-	DP_ThemeFileClusterLo	dw		; cluster of selected theme file
+	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
 	DP_ThemeFileClusterHi	dw
 
-	spc_ptr			dsb 3		; SNESMod variables (up to, and including, "digi_src2")
+	spc_ptr			dsb 3					; SNESMod variables (up to, and including, "digi_src2")
 	spc_v			db
 	spc_bank		db
 	spc1			dsb 2
 	spc2			dsb 2
 	spc_fread		db
 	spc_fwrite		db
-	spc_pr			dsb 4		; port record [for interruption]
+	spc_pr			dsb 4					; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE						; 255 of 256 bytes used
+.ENDE									; 255 of 256 bytes used
 
 
 
-.ENUM $1B					; "temp" variable area
+.ENUM $1B								; "temp" variable area
 	digi_src		dsb 3
 	digi_src2		dsb 3
 .ENDE
@@ -470,17 +469,17 @@
 
 
 .STRUCT oam_low
-	Cursor			dsb 16		; only 4 lower bytes (one 16×16 sprite) used
+	Cursor			dsb 16					; only 4 lower bytes (one 16×16 sprite) used
 	Buttons			dsb 48
 	PowerPakLogo		dsb 64
 	MainGFX			dsb 256
-	Text			dsb 128		; for one line of text (32 chars)
+	Text			dsb 128					; for one line of text (32 chars)
 .ENDST
 
 
 
 .STRUCT oam_high
-	Cursor			db		; only 2 lower bits (one 16×16 sprite) used
+	Cursor			db					; only 2 lower bits (one 16×16 sprite) used
 	Buttons			dsb 3
 	PowerPakLogo		dsb 4
 	MainGFX			dsb 16
@@ -490,43 +489,43 @@
 
 
 .STRUCT hdma_tables
-	BG			dsb 1121	; HDMA table for BG color gradient
-	ColorMath		dsb 10		; HDMA table for SPC player color math
-	ScrollBG1		dsb 21		; 2 HDMA tables (4-byte transfer per BG) for scroll offsets
+	BG			dsb 1121				; HDMA table for BG color gradient
+	ColorMath		dsb 10					; HDMA table for SPC player color math
+	ScrollBG1		dsb 21					; 2 HDMA tables (4-byte transfer per BG) for scroll offsets
 	ScrollBG2		dsb 21
-	Window			dsb 13		; HDMA table for windowing
+	Window			dsb 13					; HDMA table for windowing
 .ENDST
 
 
 
 .STRUCT temp_entry
 	tempName		dsb 123
-	tempFlags		db		; '$7B' / rrrrrrhd [r = Reserved, h = Hidden, d = Directory]
-	tempCluster		dsb 4		; '$7C'-'$7F'
+	tempFlags		db					; '$7B' / rrrrrrhd [r = Reserved, h = Hidden, d = Directory]
+	tempCluster		dsb 4					; '$7C'-'$7F'
 .ENDST
 
 
 
 .STRUCT game_name
 	gName			dsb 124
-	gCluster		dsb 4		; '$7C'-'$7F'
+	gCluster		dsb 4					; '$7C'-'$7F'
 .ENDST
 
 
 
 .STRUCT save_name
 	sName			dsb 124
-	sCluster		dsb 4		; '$7C'-'$7F'
+	sCluster		dsb 4					; '$7C'-'$7F'
 .ENDST
 
 
 
 .STRUCT game_genie
-	CharOffset		dw		; GG char offset, used when printing codes
-	Codes			dsb 40		; five GameGenie codes, each 8 bytes long
-	RealHex			dsb 8		; real hex equivalent of GG hex characters
-	Decoded			dsb 40		; decoded GG codes
-	Scratchpad		dsb 4		; GG decoding scratchpad
+	CharOffset		dw					; GG char offset, used when printing codes
+	Codes			dsb 40					; five GameGenie codes, each 8 bytes long
+	RealHex			dsb 8					; real hex equivalent of GG hex characters
+	Decoded			dsb 40					; decoded GG codes
+	Scratchpad		dsb 4					; GG decoding scratchpad
 .ENDST
 
 
@@ -534,22 +533,22 @@
 ; ******************* Variables in lower 8K of WRAM ********************
 
 .ENUM $200
-	codeBuffer		dsb 1024	; 1 KiB for WRAM flashing routines
+	codeBuffer		dsb 1024				; 1 KiB for WRAM flashing routines
 	sectorBuffer1		dsb 512
 
-	tempEntry	INSTANCEOF temp_entry	; 128 bytes
-	gameName	INSTANCEOF game_name	; ditto
-	saveName	INSTANCEOF save_name	; ditto
-	SpriteBuf1	INSTANCEOF oam_low	; 512 bytes
-	SpriteBuf2	INSTANCEOF oam_high	; 32 bytes
-	GameGenie	INSTANCEOF game_genie	; 94 bytes
+	tempEntry	INSTANCEOF temp_entry				; 128 bytes
+	gameName	INSTANCEOF game_name				; ditto
+	saveName	INSTANCEOF save_name				; ditto
+	SpriteBuf1	INSTANCEOF oam_low				; 512 bytes
+	SpriteBuf2	INSTANCEOF oam_high				; 32 bytes
+	GameGenie	INSTANCEOF game_genie				; 94 bytes
 .ENDE
 ; -------------------------- total: 3071 ($BFF) bytes
 
 
 
-.ENUM $C00					; more SNESMod variables
-	spc_fifo		dsb 256		; 128-byte command fifo
+.ENUM $C00								; more SNESMod variables
+	spc_fifo		dsb 256					; 128-byte command fifo
 	spc_sfx_next		db
 	spc_q			db
 	digi_init		db
@@ -557,26 +556,26 @@
 	digi_vp			db
 	digi_remain		dsb 2
 	digi_active		db
-	digi_copyrate		db		; SNESMod: 265 bytes
+	digi_copyrate		db					; SNESMod: 265 bytes
 .ENDE
 
 
 
-.ENUM $C00					; SPC RAM buffer variables (memory area shared with SNESMod vars)
+.ENUM $C00								; SPC RAM buffer variables (memory area shared with SNESMod vars)
 	spcRAM1stBytes		dsb 2
 	spcFLGReg		db
 	spcKONReg		db
 	spcDSPRegAddr		db
 	spcCONTROLReg		db
 	spcIOPorts		dsb 4
-	spcIPLBuffer		dsb 238		; SPC RAM buffer part 1: "lower" 248 bytes
+	spcIPLBuffer		dsb 238					; SPC RAM buffer part 1: "lower" 248 bytes
 .ENDE
 
 
 
-.ENUM $C00					; sic! (spcF8Buffer only uses the "upper" 264 of its assigned 512 bytes)
+.ENUM $C00								; sic! (spcF8Buffer only uses the "upper" 264 of its assigned 512 bytes)
 	spcF8Buffer		dsb 512
-	spcRegBuffer		dsb 128		; SPC RAM buffer total: 640 bytes
+	spcRegBuffer		dsb 128					; SPC RAM buffer total: 640 bytes
 .ENDE
 ; -------------------------- total: 3711 ($E7F) bytes (reminder: stack is <= $1FFF)
 
@@ -585,21 +584,21 @@
 ; ********************** Variables in upper WRAM ***********************
 
 .ENUM $7E2000
-	TextBuffer	INSTANCEOF text_buffer	; 4096 bytes
+	TextBuffer	INSTANCEOF text_buffer				; 4096 bytes
 .ENDE
 
 
 
 .ENUM $7E3000
-	LogBuffer		dsb 2048	; for writing error messages to ERROR.LOG
-	HDMAtable	INSTANCEOF hdma_tables	; 1186 bytes
-	SpriteFWT		dsb 128		; font width table for sprite-based font
+	LogBuffer		dsb 2048				; for writing error messages to ERROR.LOG
+	HDMAtable	INSTANCEOF hdma_tables				; 1186 bytes
+	SpriteFWT		dsb 128					; font width table for sprite-based font
 .ENDE
 
 
 
 .ENUM $7F0000
-	dirBuffer	dsb 65536		; 64 KiB (512×128 bytes) for directory buffering, also used as a buffer for high RAM of SPC files
+	dirBuffer	dsb 65536					; 64 KiB (512*128 bytes) for directory buffering, also used as a buffer for high RAM of SPC files
 .ENDE
 
 

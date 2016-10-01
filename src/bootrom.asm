@@ -11,13 +11,15 @@
 
 ; ************************* Assembler settings *************************
 
-;.DEFINE DEMOMODE				; PowerPak demo (e.g. for emulation)
-;.DEFINE SHOWDEBUGMSGS				; print stack pointer, selectedEntry, frame length counter etc.
-;.DEFINE DEBUG					; don't uncomment this (effects untested)
+;.DEFINE DEMOMODE							; PowerPak demo (e.g. for emulation)
+;.DEFINE SHOWDEBUGMSGS							; print stack pointer, selectedEntry, frame length counter etc.
+;.DEFINE DEBUG								; don't uncomment this (effects untested)
 
 
 
 ; ********************** ROM makeup, SNES header ***********************
+
+.EMPTYFILL		$FF
 
 .MEMORYMAP
 	DEFAULTSLOT	0
@@ -29,13 +31,13 @@
 
 .ROMBANKMAP
 	BANKSTOTAL	4
-	BANKSIZE	$8000			; ROM banks are 32 KBytes in size
-	BANKS		4			; 4 ROM banks = 1Mbit
+	BANKSIZE	$8000						; ROM banks are 32 KBytes in size
+	BANKS		4						; 4 ROM banks = 1Mbit
 .ENDRO
 
 
 
-.SNESHEADER					; this also calculates ROM checksum & complement
+.SNESHEADER								; this also calculates ROM checksum & complement
 	ID		"SNES"
 	NAME		"SNES PowerPak Loader "
 	LOROM
@@ -50,14 +52,10 @@
 
 
 
-.EMPTYFILL		$FF
-
-
-
 .BANK 0 SLOT 0
 .ORG $7FB0
 
-	.DB		"00"			; new licensee code (likely irrelevant)
+	.DB		"00"						; new licensee code (likely irrelevant)
 
 
 
@@ -85,6 +83,7 @@
 
 
 
+; -------------------------- empty vectors
 .BANK 0 SLOT 0
 .ORG 0
 
@@ -99,8 +98,8 @@ EmptyHandler:
 
 ; **************** Variables, macros, library routines *****************
 
-	.INCLUDE "lib_variables.asm"		; global variables
-	.INCLUDE "lib_macros.asm"		; macros
+.INCLUDE "lib_variables.asm"						; global variables
+.INCLUDE "lib_macros.asm"						; macros
 
 
 
@@ -138,7 +137,7 @@ STR_Firmware_BuildNum_End:
 	.DB 0
 
 ;STR_Firmware_Maker:
-	.DB $A9, " by www.ManuLoewe.de", 0	; $A9 = copyright symbol
+	.DB $A9, " by www.ManuLoewe.de", 0				; $A9 = copyright symbol
 
 ;STR_Firmware_Timestamp:
 	.DB "Assembled ", WLA_TIME, 0
@@ -164,8 +163,8 @@ CONST_Zeroes:
 
 .SECTION "libs" SEMIFREE
 
-	.INCLUDE "lib_joypads.inc.asm"		; SNES joypad routines
-	.INCLUDE "lib_sprites.inc.asm"		; SNES sprite setup routines
+.INCLUDE "lib_joypads.inc.asm"						; SNES joypad routines
+.INCLUDE "lib_sprites.inc.asm"						; SNES sprite setup routines
 
 .ENDS
 
@@ -174,21 +173,21 @@ CONST_Zeroes:
 ; -------------------------- main loader code
 .SECTION "MainCode" SEMIFREE
 
-	.INCLUDE "main_boot.inc.asm"		; main bootloader code
-	.INCLUDE "main_cf_interface.inc.asm"
-	.INCLUDE "main_filebrowser.inc.asm"
-	.INCLUDE "main_gfxsetup.inc.asm"	; SNES screen setup/Vblank/scrolling routines
-	.INCLUDE "main_romspc.inc.asm"
-	.INCLUDE "main_options.inc.asm"
-	.INCLUDE "main_gamegenie.inc.asm"
-	.INCLUDE "main_rommapping.inc.asm"
-	.INCLUDE "main_sram.inc.asm"
-	.INCLUDE "main_settings.inc.asm"
-	.INCLUDE "main_theme.inc.asm"		; theme file handler
-	.INCLUDE "main_devnote.inc.asm"		; developer's note
-	.INCLUDE "main_spcplayer.inc.asm"	; SPC player
-	.INCLUDE "main_flasher.inc.asm"
-	.INCLUDE "lib_strings.inc.asm"		; text engine
+.INCLUDE "main_boot.inc.asm"						; main bootloader code
+.INCLUDE "main_cf_interface.inc.asm"
+.INCLUDE "main_filebrowser.inc.asm"
+.INCLUDE "main_gfxsetup.inc.asm"					; SNES screen setup/Vblank/scrolling routines
+.INCLUDE "main_romspc.inc.asm"
+.INCLUDE "main_options.inc.asm"
+.INCLUDE "main_gamegenie.inc.asm"
+.INCLUDE "main_rommapping.inc.asm"
+.INCLUDE "main_sram.inc.asm"
+.INCLUDE "main_settings.inc.asm"
+.INCLUDE "main_theme.inc.asm"						; theme file handler
+.INCLUDE "main_devnote.inc.asm"						; developer's note
+.INCLUDE "main_spcplayer.inc.asm"					; SPC player
+.INCLUDE "main_flasher.inc.asm"
+.INCLUDE "lib_strings.inc.asm"						; text engine
 
 .ENDS
 
@@ -201,9 +200,9 @@ CONST_Zeroes:
 
 .SECTION "CharacterData" FORCE
 
-	.INCLUDE "static_gfxdata.inc.asm"	; sprites, fonts, palettes
-	.INCLUDE "static_hdma_tables.inc.asm"
-	.INCLUDE "static_font_width_table.inc.asm"
+.INCLUDE "static_gfxdata.inc.asm"					; sprites, fonts, palettes
+.INCLUDE "static_hdma_tables.inc.asm"
+.INCLUDE "static_font_width_table.inc.asm"
 
 .ENDS
 
@@ -216,9 +215,9 @@ CONST_Zeroes:
 
 .SECTION "SoundStuff" FORCE
 
-	.INCLUDE "lib_spcload.inc.asm"		; SPC loader
-	.INCLUDE "lib_snesmod.inc.asm"		; SNESMod
-	.INCLUDE "static_sm_spc_alek.inc.asm"	; SPC700 machine code for SnesMod
+.INCLUDE "lib_spcload.inc.asm"						; SPC loader
+.INCLUDE "lib_snesmod.inc.asm"						; SNESMod
+.INCLUDE "static_sm_spc_alek.inc.asm"					; SPC700 machine code for SnesMod
 
 .ENDS
 
@@ -233,7 +232,7 @@ CONST_Zeroes:
 
 SOUNDBANK:
 
-	.INCBIN "soundbnk.bnk"			; music binary data (for developer's note)
+.INCBIN "soundbnk.bnk"							; music binary data (for developer's note)
 
 .ENDS
 

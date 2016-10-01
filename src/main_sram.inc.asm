@@ -32,7 +32,7 @@
 InitSRMBrowser:
 	FindFile "SAVES.   "
 
-	lda	#$01				; number of file types to look for (1, SRM only)
+	lda	#$01							; number of file types to look for (1, SRM only)
 	sta	extNum
 	stz	extNum+1
 
@@ -45,33 +45,33 @@ InitSRMBrowser:
 	lda	#'M'
 	sta	extMatch3
 
-	lda	#2					; set subdirectory counter accordingly
+	lda	#2							; set subdirectory counter accordingly
 	sta	DP_SubDirCounter
 	stz	DP_SubDirCounter+1
 
 	jsr	FileBrowser
 
-	lda	DP_SelectionFlags			; check if file was selected
+	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
-;	bne	SRAMFileSelected			; yes, process file
-	beq	__SRAMBrowserEnd			; no, jump out
+;	bne	SRAMFileSelected					; yes, process file
+	beq	__SRAMBrowserEnd					; no, jump out
 
 
 
 ; -------------------------- SRAM file selected
 ;SRAMFileSelected:
-;	lda	#%00000001				; SRM file selected
+;	lda	#%00000001						; SRM file selected
 ;	sta	DP_SelectionFlags
 
 	Accu16
 
 	ldy	#$0000
 
--	lda	tempEntry, y			; copy SRM file name + cluster
+-	lda	tempEntry, y						; copy SRM file name + cluster
 	sta	saveName, y
 	iny
 	iny
-	cpy	#$0080				; 128 bytes
+	cpy	#$0080							; 128 bytes
 	bne	-
 
 	Accu8
@@ -86,13 +86,13 @@ __SRAMBrowserEnd:
 BattUsedInitSaveSRAM:
 	DrawFrame 0, 11, 31, 11
 
-	lda	#92					; patch HDMA table in WRAM with scanline values matching the questions "window" border
+	lda	#92							; patch HDMA table in WRAM with scanline values matching the questions "window" border
 	sta	HDMAtable.ColorMath+0
 
 	lda	#86
 	sta	HDMAtable.ColorMath+3
 
-	lda	#%00001000				; enable color math channel
+	lda	#%00001000						; enable color math channel
 	tsb	DP_HDMAchannels
 
 	SetCursorPos 11, 0
@@ -101,9 +101,9 @@ BattUsedInitSaveSRAM:
 
 	SetCursorPos 14, 1
 
-	jsr	LoadLastGame			; load last game info
+	jsr	LoadLastGame						; load last game info
 
-	lda	saveName.sCluster			; if cluster=0, no file loaded previously
+	lda	saveName.sCluster					; if cluster=0, no file loaded previously
 	bne	__AutoSaveEntry
 
 	lda	saveName.sCluster+1
@@ -123,17 +123,17 @@ BattUsedInitSaveSRAM:
 	bra	__AutoSaveMenuNext
 
 __AutoSaveEntry:
-	lda	#$88				; cursor line = (cursorY - $18) / $08 (in this case, $0E=14)
+	lda	#$88							; cursor line = (cursorY - $18) / $08 (in this case, $0E=14)
 	sta	cursorY
 
 	PrintString "Save SRAM to the previously loaded file:"
 
 	ldy	#$0000
 
--	lda	saveName, y				; copy save name to tempEntry for printing
+-	lda	saveName, y						; copy save name to tempEntry for printing
 	sta	tempEntry, y
 	iny
-	cpy	#$0038				; only copy 56 characters
+	cpy	#$0038							; only copy 56 characters
 	bne	-
 
 	SetCursorPos 15, 1
@@ -149,7 +149,7 @@ __AutoSaveMenuNext:
 	lda	#$0D
 	sta	cursorX
 
-	stz	Joy1New				; reset input buttons
+	stz	Joy1New							; reset input buttons
 	stz	Joy1New+1
 	stz	Joy1Press
 	stz	Joy1Press+1
@@ -174,7 +174,7 @@ SRAMQuestionsLoop:
 	and	#%00001000
 	beq	+
 
-	jsr	PrevButton				; up pressed
+	jsr	PrevButton						; up pressed
 
 +
 
@@ -185,7 +185,7 @@ SRAMQuestionsLoop:
 	and	#%00000100
 	beq	+
 
-	jsr	NextButton				; down pressed
+	jsr	NextButton						; down pressed
 
 +
 
@@ -196,29 +196,29 @@ SRAMQuestionsLoop:
 ; -------------------------- selection made
 __SRAMSelectionMade:
 	lda	cursorY
-	cmp	#$88				; if at "Save to previous file", do just that :-)
+	cmp	#$88							; if at "Save to previous file", do just that :-)
 	beq	__AutoSaveSRAM
 
-	cmp	#$A0				; if at "Select a file", go to SRAM browser
+	cmp	#$A0							; if at "Select a file", go to SRAM browser
 	beq	__SelectSRAMFile
 
-	jmp	__SRAMSavedOrCancelled		; otherwise, discard SRAM
+	jmp	__SRAMSavedOrCancelled					; otherwise, discard SRAM
 
 __SelectSRAMFile:
-	lda	#%00001000				; disable color math channel
+	lda	#%00001000						; disable color math channel
 	trb	DP_HDMAchannels
 
 	jsr	SpriteMessageLoading
-	jsr	InitSRMBrowser			; launch SRAM browser
+	jsr	InitSRMBrowser						; launch SRAM browser
 
-	lda	DP_SelectionFlags			; back from browser, check again if SRM file was picked or not
+	lda	DP_SelectionFlags					; back from browser, check again if SRM file was picked or not
 	and	#%00000001
 	bne	__SRAMFilePicked
 
-	jmp	BattUsedInitSaveSRAM		; no SRM file picked --> go back to questions
+	jmp	BattUsedInitSaveSRAM					; no SRM file picked --> go back to questions
 
 __AutoSaveSRAM:
-	lda	saveName.sCluster			; if cluster=0, no file loaded previously ...
+	lda	saveName.sCluster					; if cluster=0, no file loaded previously ...
 	bne	__SRAMFilePicked
 
 	lda	saveName.sCluster+1
@@ -230,46 +230,46 @@ __AutoSaveSRAM:
 	lda	saveName.sCluster+3
 	bne	__SRAMFilePicked
 
-	jmp	SRAMQuestionsLoop			; ... so go back to questions loop
+	jmp	SRAMQuestionsLoop					; ... so go back to questions loop
 
 __SRAMFilePicked:
 	jsr	PrintClearScreen
 
-	DrawFrame 0, 15, 31, 5			; draw a smaller frame for success message
+	DrawFrame 0, 15, 31, 5						; draw a smaller frame for success message
 
-	lda	#124				; patch HDMA table in WRAM with scanline values matching the message "window" border
+	lda	#124							; patch HDMA table in WRAM with scanline values matching the message "window" border
 	sta	HDMAtable.ColorMath+0
 
 	lda	#38
 	sta	HDMAtable.ColorMath+3
 
-	lda	#%00001000				; enable color math channel
+	lda	#%00001000						; enable color math channel
 	tsb	DP_HDMAchannels
 
 	jsr	SaveSRAMFile
 
 	WaitForUserInput
 
-__SRAMSavedOrCancelled:				; if cursor was at "Cancel" (cursorY=$A8), go back to intro as well
+__SRAMSavedOrCancelled:							; if cursor was at "Cancel" (cursorY=$A8), go back to intro as well
 	lda	#$0F
 
--	wai					; screen fade-out loop
+-	wai								; screen fade-out loop
 
-	dec	a					; 15 / 3 = 5 frames
+	dec	a							; 15 / 3 = 5 frames
 	dec	a
 	dec	a
 	sta	$2100
 	bne	-
 
-	lda	#%00000001				; no more battery flag
+	lda	#%00000001						; no more battery flag
 	sta	CONFIGWRITESTATUS
 
 	HideCursorSprite
 
-	lda	#%00001000				; disable color math channel
+	lda	#%00001000						; disable color math channel
 	trb	DP_HDMAchannels
 
- 	lda	#52					; reset scanline values in WRAM HDMA table to the SPC player "window" border
+ 	lda	#52							; reset scanline values in WRAM HDMA table to the SPC player "window" border
 	sta	HDMAtable.ColorMath+0
 
 	lda	#126
@@ -282,7 +282,7 @@ __SRAMSavedOrCancelled:				; if cursor was at "Cancel" (cursorY=$A8), go back to
 
 ; ************************** SRAM navigation ***************************
 
-NextButton:					; $88 -> $A0 -> $A8
+NextButton:								; $88 -> $A0 -> $A8
 	lda	cursorY
 	clc
 	adc	#$08
@@ -306,7 +306,7 @@ __NextButtonDone2:
 
 
 
-PrevButton:					; $A8 -> $A0 -> $88
+PrevButton:								; $A8 -> $A0 -> $88
 	lda	cursorY
 	sec
 	sbc	#$08
@@ -333,11 +333,11 @@ __PrevButtonDone2:
 ; ***************************** SRAM saver *****************************
 
 SaveSRAMFile:
-	jsr	SpriteInit				; purge OAM to suppress sprite artifacts // FIXME, prob. unnecessary (use HideCursorSprite)
+	jsr	SpriteInit						; purge OAM to suppress sprite artifacts // FIXME, prob. unnecessary (use HideCursorSprite)
 
 	Accu16
 
-	lda	saveName.sCluster			; copy save cluster to source cluster
+	lda	saveName.sCluster					; copy save cluster to source cluster
 	sta	sourceCluster
 
 	lda	saveName.sCluster+2
@@ -354,7 +354,7 @@ SaveSRAMFile:
 	SetCursorPos 15, 0
 	PrintString "Saving SRAM file to CF card ..."
 
-	wai					; make sure the message appears on the screen
+	wai								; make sure the message appears on the screen
 
 	lda	#kSourceSDRAM
 	sta	sourceType
@@ -362,7 +362,7 @@ SaveSRAMFile:
 	jsr	CardWriteFile
 
 	SetCursorPos 15, 0
-	PrintString "SRAM file saved successfully!  "	; don't remove trailing spaces
+	PrintString "SRAM file saved successfully!  "			; don't remove trailing spaces
 
 	SetCursorPos 16, 0
 	PrintString "Press any button to return to the titlescreen."

@@ -17,13 +17,6 @@
 
 
 
-;.DEFINE sx		0
-;.DEFINE sy		1
-;.DEFINE sframe 		2
-;.DEFINE spriority	3
-
-
-
 SpriteInit:
 	php	
 
@@ -33,7 +26,7 @@ SpriteInit:
 
 __Init_OAM_lo:
 	lda #$F0F0
-	sta SpriteBuf1, x			; initialize all sprites to be off the screen
+	sta SpriteBuf1, x						; initialize all sprites to be off the screen
 
 	inx
 	inx
@@ -48,17 +41,17 @@ __Init_OAM_lo:
 
 	Accu8
 
-	lda #%10101010				; large sprites for everything except the sprite font
+	lda #%10101010							; large sprites for everything except the sprite font
 
 	ldx #$0000
 
 __Init_OAM_hi1:
 	sta SpriteBuf2, x
 	inx
-	cpx #$0018				; see .STRUCT oam_high
+	cpx #$0018							; see .STRUCT oam_high
 	bne __Init_OAM_hi1
 
-	lda #%00000000				; small sprites
+	lda #%00000000							; small sprites
 
 __Init_OAM_hi2:
 	sta SpriteBuf2, x
@@ -66,18 +59,10 @@ __Init_OAM_hi2:
 	cpx #$0020
 	bne __Init_OAM_hi2
 
-	;set the sprite to the highest priority
-	;lda #$30
-	;lda #%00110000
-	;sta SpriteBuf1+spriority
-
-	;lda #$00
-	;sta SpriteBuf1+sframe
-
-	lda #$80				; tile num for cursor, next is palette
+	lda #$80							; tile num for cursor, next is palette
 	sta SpriteBuf1.Cursor+2
 
-	lda #$03				; vhoopppc Vert Horiz priOrity Palette Charmsb
+	lda #$03							; vhoopppc Vert Horiz priOrity Palette Charmsb
 	sta SpriteBuf1.Cursor+3
 
 	HideCursorSprite
@@ -94,24 +79,24 @@ rts
 .ACCU 8
 .INDEX 16
 
-HideButtonSprites:				; this moves SNES joypad button sprites off the screen
+HideButtonSprites:							; this moves SNES joypad button sprites off the screen
 	lda #$F0
 	ldx #$0000
 
 __Write2SpriteBufButtons:
-	sta SpriteBuf1.Buttons, x		; X
+	sta SpriteBuf1.Buttons, x					; X
 	inx
-	sta SpriteBuf1.Buttons, x		; Y
+	sta SpriteBuf1.Buttons, x					; Y
 	inx
-	inx					; skip tile num & tile properties
+	inx								; skip tile num & tile properties
 	inx
-	cpx #$0030				; 48 bytes
+	cpx #$0030							; 48 bytes
 	bne __Write2SpriteBufButtons
 rts
 
 
 
-HideLogoSprites:				; this moves main graphics sprites off the screen
+HideLogoSprites:							; this moves main graphics sprites off the screen
 	lda #%01010101
 	ldx #$0000
 

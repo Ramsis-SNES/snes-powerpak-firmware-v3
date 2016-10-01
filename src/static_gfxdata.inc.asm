@@ -31,10 +31,10 @@
 ; used at all (for both BG1 and BG2).
 
 BG_Palette:
-	.DW $0000				; main backdrop (black)
-	.DW $0C63				; font drop shadow (dark grey)
-	.DW $0000				; unused color
-	.DW $7FFF				; font (white)
+	.DW $0000							; main backdrop (black)
+	.DW $0C63							; font drop shadow (dark grey)
+	.DW $0000							; unused color
+	.DW $7FFF							; font (white)
 
 
 
@@ -47,67 +47,67 @@ Sprite_Palettes:
 
 
 ; -------------------------- Palettes 0-2: graphics
-	.INCBIN PALETTE_MAIN_GFX		; main graphics
-	.INCBIN PALETTE_CURSOR_BUTTONS		; arrow-style cursor, SNES joypad buttons
-	.INCBIN PALETTE_POWERPAK		; small PowerPak logo
+	.INCBIN PALETTE_MAIN_GFX					; main graphics
+	.INCBIN PALETTE_CURSOR_BUTTONS					; arrow-style cursor, SNES joypad buttons
+	.INCBIN PALETTE_POWERPAK					; small PowerPak logo
 
 
 
 ; -------------------------- Palette 3: white font
-	.DW $0000				; unused color
-	.DW $0C63				; font drop shadow (dark grey)
-	.DW $0000				; unused color
-	.DW $7FFF				; font (white)
+	.DW $0000							; unused color
+	.DW $0C63							; font drop shadow (dark grey)
+	.DW $0000							; unused color
+	.DW $7FFF							; font (white)
 
-.REPEAT 12					; 12 unused colors
+.REPEAT 12								; 12 unused colors
 	.DW $FFFF
 .ENDR
 
 
 
 ; -------------------------- Palette 4: red font
-	.DW $0000				; unused color
-	.DW $0C63				; font drop shadow (dark grey)
-	.DW $0000				; unused color
-	.DW $0C7F				; font (red)
+	.DW $0000							; unused color
+	.DW $0C63							; font drop shadow (dark grey)
+	.DW $0000							; unused color
+	.DW $0C7F							; font (red)
 
-.REPEAT 12					; 12 unused colors
+.REPEAT 12								; 12 unused colors
 	.DW $FFFF
 .ENDR
 
 
 
 ; -------------------------- Palette 5: green font
-	.DW $0000				; unused color
-	.DW $0C63				; font drop shadow (dark grey)
-	.DW $0000				; unused color
-	.DW $0FE3				; font (green)
+	.DW $0000							; unused color
+	.DW $0C63							; font drop shadow (dark grey)
+	.DW $0000							; unused color
+	.DW $0FE3							; font (green)
 
-.REPEAT 12					; 12 unused colors
+.REPEAT 12								; 12 unused colors
 	.DW $FFFF
 .ENDR
 
 
 
 ; -------------------------- Palette 6: blue font
-	.DW $0000				; unused color
-	.DW $0C63				; font drop shadow (dark grey)
-	.DW $0000				; unused color
-	.DW $7CE7				; font (blue)
+	.DW $0000							; unused color
+	.DW $0C63							; font drop shadow (dark grey)
+	.DW $0000							; unused color
+	.DW $7CE7							; font (blue)
 
-.REPEAT 12					; 12 unused colors
+.REPEAT 12								; 12 unused colors
 	.DW $FFFF
 .ENDR
 
 
 
 ; -------------------------- Palette 7: yellow font
-	.DW $0000				; unused color
-	.DW $0C63				; font drop shadow (dark grey)
-	.DW $0000				; unused color
-	.DW $0FFF				; font (yellow)
+	.DW $0000							; unused color
+	.DW $0C63							; font drop shadow (dark grey)
+	.DW $0000							; unused color
+	.DW $0FFF							; font (yellow)
 
-.REPEAT 12					; 12 unused colors
+.REPEAT 12								; 12 unused colors
 	.DW $FFFF
 .ENDR
 
@@ -116,7 +116,7 @@ Sprite_Palettes:
 ; ************************ Font character data *************************
 
 Font:
-	.INCBIN BG_FONT_2BPP			; font for both BG layers, to be "expanded" into VRAM
+	.INCBIN BG_FONT_2BPP						; font for both BG layers, to be "expanded" into VRAM
 
 
 
@@ -127,11 +127,11 @@ Font:
 ; of the sprite buffer.
 
 SpriteTiles:
-	.INCBIN SPRITE_FONT_4BPP		; 4bpp sprite font (4 KiB)
-	.INCBIN MAIN_GFX			; 8 KiB
-	.INCBIN CURSOR_BUTTONS			; 2 KiB
+	.INCBIN SPRITE_FONT_4BPP					; 4bpp sprite font (4 KiB)
+	.INCBIN MAIN_GFX						; 8 KiB
+	.INCBIN CURSOR_BUTTONS						; 2 KiB
 
-	.INCBIN POWERPAK_SMALL	READ 256	; small PowerPak logo (2 KiB)
+	.INCBIN POWERPAK_SMALL	READ 256				; small PowerPak logo (2 KiB)
 	.INCBIN POWERPAK_SMALL	SKIP 512	READ 256
 	.INCBIN POWERPAK_SMALL	SKIP 256	READ 256
 	.INCBIN POWERPAK_SMALL	SKIP 768	READ 256
