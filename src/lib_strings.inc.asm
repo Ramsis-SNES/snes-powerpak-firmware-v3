@@ -42,110 +42,109 @@ PrintFStart:
 	Index16
 
 PrintFLoop:
-	LDA $0000,X				; read next format string character
-	BEQ PrintFDone				; check for NUL terminator
+	lda	$0000,X				; read next format string character
+	beq	PrintFDone				; check for NUL terminator
 	INX					; increment input pointer
-	CMP #'%'
-	BEQ PrintFFormat			; handle format character
-	CMP #'\'
-	BEQ PrintFControl			; handle control character
+	cmp	#'%'
+	beq	PrintFFormat			; handle format character
+	cmp	#'\'
+	beq	PrintFControl			; handle control character
 
 NormalPrint:
-	JSR FillTextBuffer			; print the character on BG1/2
-	BRA PrintFLoop
+	jsr	FillTextBuffer			; print the character on BG1/2
+	bra	PrintFLoop
 
 PrintFDone:
 	plp					; restore processor status
 	phx					; push return address (-1) onto stack (X now points to NUL terminator)
-rts
+	rts
 
 
 
 PrintFControl:
-	LDA $0000,X				; read control character
-	BEQ PrintFDone				; check for NUL terminator
+	lda	$0000,X				; read control character
+	beq	PrintFDone				; check for NUL terminator
 	INX					; increment input pointer
-	CMP #'n'
-_cn:	BNE _ct
+	cmp	#'n'
+_cn:	bne	_ct
 
 	AccuIndex16
 
-	LDA Cursor				; get current position
+	lda	Cursor				; get current position
 	CLC
-	ADC #$0020				; move to the next line
-	AND #$FFE0
-	ora #minPrintX				; add horizontal indention
-	STA Cursor				; save new position
+	adc	#$0020				; move to the next line
+	and	#$FFE0
+	ora	#minPrintX				; add horizontal indention
+	sta	Cursor				; save new position
 
 	Accu8				; 8b mem, 16b X
 
-	stz BGPrintMon				; reset BG monitor value
-	BRA PrintFLoop
-_ct:	CMP #'t'
-	BNE _defaultC
+	stz	BGPrintMon				; reset BG monitor value
+	bra	PrintFLoop
+_ct:	cmp	#'t'
+	bne	_defaultC
 
 	AccuIndex16
 
-	LDA Cursor				; get current position
+	lda	Cursor				; get current position
 	CLC
-;	ADC #$0008				; move to the next tab
-;	AND #$FFF8
-	adc #$0004				; smaller tab size (4 tiles = 8 hi-res characters)
-	and #$fffc
-;	adc #$0002				; use this instead for even smaller tabs
-;	and #$fffe
-	STA Cursor				; save new position
+;	adc	#$0008				; move to the next tab
+;	and	#$FFF8
+	adc	#$0004				; smaller tab size (4 tiles = 8 hi-res characters)
+	and	#$fffc
+;	adc	#$0002				; use this instead for even smaller tabs
+;	and	#$fffe
+	sta	Cursor				; save new position
 
 	Accu8				; 8b mem, 16b X
 
-	stz BGPrintMon				; reset BG monitor value
-	BRA PrintFLoop
+	stz	BGPrintMon				; reset BG monitor value
+	bra	PrintFLoop
 _defaultC:
-	LDA #'\'				; normal backslash
-	BRA NormalPrint
+	lda	#'\'				; normal backslash
+	bra	NormalPrint
 
 PrintFFormat:
-	LDA $0000,X				; read format character
-	BEQ PrintFDone				; check for NUL terminator
+	lda	$0000,X				; read format character
+	beq	PrintFDone				; check for NUL terminator
 	INX					; increment input pointer
-_sf:	CMP #'s'
-	BNE _df
+_sf:	cmp	#'s'
+	bne	_df
 	PHX					; preserve current format string pointer
-	LDX 0,Y					; load sub-string pointer
+	ldx	0,Y					; load sub-string pointer
 	INY
 	INY
-	JSR PrintSubstring			; print sub-string
+	jsr	PrintSubstring			; print sub-string
 	PLX
-	BRA PrintFLoop
-_df:	CMP #'d'
-	BNE _bf
-	JSR PrintInt16				; print 16-bit integer
-	bra PrintFLoop
-_bf:	CMP #'b'
-	BNE _xf
-	JSR PrintInt8				; print 8-bit integer
-	bra PrintFLoop
-_xf:	CMP #'x'
-	BNE _defaultF
-	JSR PrintHex8				; print 8-bit hex integer
-	bra PrintFLoop
+	bra	PrintFLoop
+_df:	cmp	#'d'
+	bne	_bf
+	jsr	PrintInt16				; print 16-bit integer
+	bra	PrintFLoop
+_bf:	cmp	#'b'
+	bne	_xf
+	jsr	PrintInt8				; print 8-bit integer
+	bra	PrintFLoop
+_xf:	cmp	#'x'
+	bne	_defaultF
+	jsr	PrintHex8				; print 8-bit hex integer
+	bra	PrintFLoop
 _defaultF:
-	LDA #'%'
-	bra NormalPrint
+	lda	#'%'
+	bra	NormalPrint
 
 
 
 PrintSubstring:
-	LDA $0000,X				; read next format string character
-	BEQ __PrintSubstringDone		; check for NUL terminator
+	lda	$0000,X				; read next format string character
+	beq	__PrintSubstringDone		; check for NUL terminator
 	INX					; increment input pointer
 
-	JSR FillTextBuffer			; print the character on BG1/2
-	BRA PrintSubstring
+	jsr	FillTextBuffer			; print the character on BG1/2
+	bra	PrintSubstring
 
 __PrintSubstringDone:
-
-rts
+	rts
 
 
 
@@ -169,38 +168,38 @@ rts
 
 FillTextBuffer:					; expectations: A = 8 bit, X/Y = 16 bit
 	pha
-	lda BGPrintMon
-	bne __FillTextBufferBG2			; if BG monitor value is not zero, use BG2
+	lda	BGPrintMon
+	bne	__FillTextBufferBG2			; if BG monitor value is not zero, use BG2
 
 __FillTextBufferBG1:
-	inc BGPrintMon				; otherwise, change value and use BG1
+	inc	BGPrintMon				; otherwise, change value and use BG1
 
 	pla
 	phx
 
-	ldx Cursor
+	ldx	Cursor
 
-	asl					; character code × 2 so it matches hi-res font tile location
-	sta TextBuffer.BG1, x			; write it to the BG1 text buffer
+	asl	a				; character code × 2 so it matches hi-res font tile location
+	sta	TextBuffer.BG1, x			; write it to the BG1 text buffer
 
-	bra __FillTextBufferDone		; ... and done
+	bra	__FillTextBufferDone		; ... and done
 
 __FillTextBufferBG2:
-	stz BGPrintMon				; reset BG monitor value
+	stz	BGPrintMon				; reset BG monitor value
 
 	pla
 	phx
 
-	ldx Cursor
+	ldx	Cursor
 
-	asl					; character code × 2
-	sta TextBuffer.BG2, x			; write it to the BG2 text buffer
+	asl	a				; character code × 2
+	sta	TextBuffer.BG2, x			; write it to the BG2 text buffer
 	inx					; ... and advance text cursor position
-	stx Cursor
+	stx	Cursor
 
 __FillTextBufferDone:
 	plx
-rts
+	rts
 
 
 
@@ -223,11 +222,11 @@ PrintSpriteText:
 	Accu8
 	Index16
 
-	ldy DP_SprTextMon			; start where there is some unused sprite text buffer
+	ldy	DP_SprTextMon			; start where there is some unused sprite text buffer
 
 __PrintSpriteTextLoop:
-	LDA $0000,X				; read next string character
-	BEQ __PrintSpriteTextDone		; check for NUL terminator
+	lda	$0000,X				; read next string character
+	beq	__PrintSpriteTextDone		; check for NUL terminator
 	INX					; increment input pointer
 
 	phx					; preserve input pointer
@@ -235,22 +234,22 @@ __PrintSpriteTextLoop:
 
 	Accu16
 
-	and #$00FF				; mask off whatever is stored in B
+	and	#$00FF				; mask off whatever is stored in B
 	tax
 
 	Accu8
 
-	lda Cursor
-	sta SpriteBuf1.Text, y			; X position
+	lda	Cursor
+	sta	SpriteBuf1.Text, y			; X position
 
 	clc
-	adc.l SpriteFWT, x			; advance cursor position as per font width table entry
-	sta Cursor
+	adc.l	SpriteFWT, x			; advance cursor position as per font width table entry
+	sta	Cursor
 
 	iny
 
-	lda Cursor+1
-	sta SpriteBuf1.Text, y			; Y position
+	lda	Cursor+1
+	sta	SpriteBuf1.Text, y			; Y position
 
 	iny
 
@@ -258,29 +257,29 @@ __PrintSpriteTextLoop:
 	plx					; restore input pointer
 
 ;	clc
-;	adc #$40				; tile num offset (relative to ASCII char value)
-	sta SpriteBuf1.Text, y			; tile num = ASCII value
+;	adc	#$40				; tile num offset (relative to ASCII char value)
+	sta	SpriteBuf1.Text, y			; tile num = ASCII value
 
 	iny
 
-	lda DP_SprTextPalette
-	asl a					; shift palette num to bit 1-3
-;	ora #$01				; add upper 1 bit to tile num
-	sta SpriteBuf1.Text, y			; tile attributes
+	lda	DP_SprTextPalette
+	asl	a					; shift palette num to bit 1-3
+;	ora	#$01				; add upper 1 bit to tile num
+	sta	SpriteBuf1.Text, y			; tile attributes
 
 	iny
-	cpy #$0080				; if sprite buffer is full, reset
-	bcc +
+	cpy	#$0080				; if sprite buffer is full, reset
+	bcc	+
 
-	ldy #$0000
-+	sty DP_SprTextMon			; keep track of sprite text buffer filling level
+	ldy	#$0000
++	sty	DP_SprTextMon			; keep track of sprite text buffer filling level
 
-	bra __PrintSpriteTextLoop
+	bra	__PrintSpriteTextLoop
 
 __PrintSpriteTextDone:
 	plp					; restore processor status
 	phx					; push return address onto stack (X now points to end of string)
-rts
+	rts
 
 
 
@@ -293,49 +292,48 @@ rts
 ;Notes: Uses Print to output ASCII to stdout
 
 PrintInt16:					; assumes 8b mem, 16b index
-	LDA #$00
+	lda	#$00
 	PHA					; push $00
-	LDA $0000,Y
-	STA $4204				; DIVC.l
-	LDA $0001,Y
-	STA $4205				; DIVC.h  ... DIVC = [Y]
+	lda	$0000,Y
+	sta	$4204				; DIVC.l
+	lda	$0001,Y
+	sta	$4205				; DIVC.h  ... DIVC = [Y]
 	INY
 	INY
 
 DivLoop:
-	LDA #$0A	
-	STA $4206				; DIVB = 10 --- division starts here (need to wait 16 cycles)
+	lda	#$0A	
+	sta	$4206				; DIVB = 10 --- division starts here (need to wait 16 cycles)
 	NOP					; 2 cycles
 	NOP					; 2 cycles
 	NOP					; 2 cycles
 	PHA					; 3 cycles
 	PLA					; 4 cycles
-	LDA #'0'				; 2 cycles
+	lda	#'0'				; 2 cycles
 	CLC					; 2 cycles
-	ADC $4216				; A = '0' + DIVC % DIVB
+	adc	$4216				; A = '0' + DIVC % DIVB
 	PHA					; push character
-	LDA $4214				; Result.l -> DIVC.l
-	STA $4204
-	BEQ _Low_0
-	LDA $4215				; Result.h -> DIVC.h
-	STA $4205
-	BRA DivLoop
+	lda	$4214				; Result.l -> DIVC.l
+	sta	$4204
+	beq	_Low_0
+	lda	$4215				; Result.h -> DIVC.h
+	sta	$4205
+	bra	DivLoop
 
 _Low_0:
-	LDA $4215				; Result.h -> DIVC.h
-	STA $4205
-	BEQ IntPrintLoop			; if ((Result.l==$00) and (Result.h==$00)) then we're done, so print
-	BRA DivLoop
+	lda	$4215				; Result.h -> DIVC.h
+	sta	$4205
+	beq	IntPrintLoop			; if ((Result.l==$00) and (Result.h==$00)) then we're done, so print
+	bra	DivLoop
 
 IntPrintLoop:					; until we get to the end of the string...
 	PLA					; keep pulling characters and printing them
-	BEQ _EndOfInt
-	JSR FillTextBuffer			; write them to the text buffer
-	BRA IntPrintLoop
+	beq	_EndOfInt
+	jsr	FillTextBuffer			; write them to the text buffer
+	bra	IntPrintLoop
 
 _EndOfInt:
-
-RTS
+	rts
 
 
 
@@ -346,21 +344,21 @@ RTS
 ;Notes: Uses Print to output ASCII to stdout
 
 PrintInt8:					; assumes 8b mem, 16b index
-	LDA $0000,Y
+	lda	$0000,Y
 	INY
 
 PrintInt8_noload:
-	STA $4204
-	LDA #$00
-	STA $4205
+	sta	$4204
+	lda	#$00
+	sta	$4205
 	PHA
-	BRA DivLoop
+	bra	DivLoop
 
 PrintInt16_noload:				; assumes 8b mem, 16b index
-	LDA #$00
+	lda	#$00
 	PHA					; push $00
-	STX $4204				; DIVC = X
-	JSR DivLoop
+	stx	$4204				; DIVC = X
+	jsr	DivLoop
 
 
 
@@ -371,34 +369,34 @@ PrintInt16_noload:				; assumes 8b mem, 16b index
 ;Notes: Uses Print to output ASCII to stdout
 
 PrintHex8:					; assumes 8b mem, 16b index
-	lda $0000,Y
+	lda	$0000,Y
 	iny
 
 PrintHex8_noload:
 	pha
-	lsr A
-	lsr A
-	lsr A
-	lsr A
-	jsr PrintHexNibble
+	lsr	a
+	lsr	a
+	lsr	a
+	lsr	a
+	jsr	PrintHexNibble
 	pla
-	and #$0F
-	jsr PrintHexNibble
-rts	
+	and	#$0F
+	jsr	PrintHexNibble
+	rts	
 
 PrintHexNibble:					; assumes 8b mem, 16b index
-	cmp #$0A
-	bcs _nletter
+	cmp	#$0A
+	bcs	_nletter
 	clc
-	adc #'0'
-	jsr FillTextBuffer			; write it to the text buffer
-rts
+	adc	#'0'
+	jsr	FillTextBuffer			; write it to the text buffer
+	rts
 
 _nletter: 	
 	clc
-	adc #'A'-10		
-	jsr FillTextBuffer			; write it to the text buffer
-rts
+	adc	#'A'-10		
+	jsr	FillTextBuffer			; write it to the text buffer
+	rts
 
 
 
@@ -406,75 +404,77 @@ rts
 
 PrintClearLine:
 	pha					; A = number of line to clear
-	asl a
-	asl a
-	asl a
-	asl a
-	asl a
-	sta Cursor
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+	asl	a
+	sta	Cursor
 
 	pla
-	lsr a
-	lsr a
-	lsr a
-	sta Cursor+1
+	lsr	a
+	lsr	a
+	lsr	a
+	sta	Cursor+1
 
-	ldx Cursor
-	ldy #$0000
-	lda #$40				; space (hi-res tile number)
+	ldx	Cursor
+	ldy	#$0000
+	lda	#$40				; space (hi-res tile number)
 
--	sta TextBuffer.BG1, x			; clear BG1 text buffer
-	sta TextBuffer.BG2, x			; clear BG2 text buffer
+-	sta	TextBuffer.BG1, x			; clear BG1 text buffer
+	sta	TextBuffer.BG2, x			; clear BG2 text buffer
 	inx
 	iny
-	cpy #$0020				; $20 chars = one "line"
-	bne -
-rts
+	cpy	#$0020				; $20 chars = one "line"
+	bne	-
+
+	rts
 
 
 
 PrintClearScreen:
 	Accu16
 
-	lda #$4040				; overwrite 2 tiles at once ($40 = space)
-	ldx #$0000
+	lda	#$4040				; overwrite 2 tiles at once ($40 = space)
+	ldx	#$0000
 
--	sta TextBuffer.BG1, x
-	sta TextBuffer.BG2, x
+-	sta	TextBuffer.BG1, x
+	sta	TextBuffer.BG2, x
 	inx
 	inx
-	cpx #$0400				; 1024 bytes (lower 32×32 tilemaps only)
-	bne -
+	cpx	#$0400				; 1024 bytes (lower 32×32 tilemaps only)
+	bne	-
 
 	Accu8
 
-	stz cursorYCounter			; reset scrolling parameters
-	stz cursorYUp
-	stz cursorYDown
+	stz	cursorYCounter			; reset scrolling parameters
+	stz	cursorYUp
+	stz	cursorYDown
 
-	stz scrollY
-	stz scrollYCounter
-	stz scrollYUp
-	stz scrollYDown
+	stz	scrollY
+	stz	scrollYCounter
+	stz	scrollYUp
+	stz	scrollYDown
 
 ClearSpriteText:
 	Accu16
 
-	lda #$F0F0
-	ldy #$0000
+	lda	#$F0F0
+	ldy	#$0000
 
--	sta SpriteBuf1.Text, y			; Y, X
+-	sta	SpriteBuf1.Text, y			; Y, X
 	iny
 	iny
 	iny
 	iny
-	cpy #$0080				; 128 / 4 = 32 tiles
-	bne -
+	cpy	#$0080				; 128 / 4 = 32 tiles
+	bne	-
 
-	stz DP_SprTextMon			; reset filling level
+	stz	DP_SprTextMon			; reset filling level
 
 	Accu8
-rts
+
+	rts
 
 
 

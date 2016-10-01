@@ -12,9 +12,7 @@
 ; ************************* Assembler settings *************************
 
 ;.DEFINE DEMOMODE				; PowerPak demo (e.g. for emulation)
-
 ;.DEFINE SHOWDEBUGMSGS				; print stack pointer, selectedEntry, frame length counter etc.
-
 ;.DEFINE DEBUG					; don't uncomment this (effects untested)
 
 
@@ -133,7 +131,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11331"
+	.DB "11334"
 
 STR_Firmware_BuildNum_End:
 

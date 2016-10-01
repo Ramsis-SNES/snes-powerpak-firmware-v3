@@ -26,23 +26,23 @@ spc700_load:
 	Index16
 
 	sei					; Disable NMI & IRQ
-	stz REG_NMITIMEN			; The SPC player code is really timing sensitive ;)
+	stz	REG_NMITIMEN			; The SPC player code is really timing sensitive ;)
 
-	jsr InitWRAMBuffer			; buffer parts of SPC dump to avoid timing problems
-	jsr upload_dsp_regs			; Upload S-DSP registers
-	jsr upload_high_ram			; Upload 63.5K of SPC700 ram
-	jsr upload_low_ram			; Upload rest of ram
-	jsr restore_final			; Restore SPC700 state & start execution
+	jsr	InitWRAMBuffer			; buffer parts of SPC dump to avoid timing problems
+	jsr	upload_dsp_regs			; Upload S-DSP registers
+	jsr	upload_high_ram			; Upload 63.5K of SPC700 ram
+	jsr	upload_low_ram			; Upload rest of ram
+	jsr	restore_final			; Restore SPC700 state & start execution
 
-	lda REG_RDNMI				; clear NMI flag
+	lda	REG_RDNMI				; clear NMI flag
 
-	lda #$81				; VBlank NMI + Auto Joypad Read
-	sta REG_NMITIMEN			; re-enable VBlank NMI
+	lda	#$81				; VBlank NMI + Auto Joypad Read
+	sta	REG_NMITIMEN			; re-enable VBlank NMI
 
 ;	cli					; never mind, PLP restores this
 
 	plp
-rtl
+	rtl
 
 
 
@@ -53,148 +53,148 @@ upload_dsp_regs:
 
 ; ---- Begin upload
 
-	ldy #$0002
-	jsr spc_begin_upload
+	ldy	#$0002
+	jsr	spc_begin_upload
 
 ; ---- Upload loader
 
-	ldx #$0000
+	ldx	#$0000
 -
-	lda.l loader,x
-	jsr spc_upload_byte
+	lda.l	loader,x
+	jsr	spc_upload_byte
 	inx
-	cpy #31					; size of loader
-	bne -
+	cpy	#31					; size of loader
+	bne	-
 
 ; ---- Upload SP, PC & PSW
 
-	lda.l audioSP				; SP
-	jsr spc_upload_byte
-	lda.l audioPC+1				; PC 2
-	jsr spc_upload_byte
-	lda.l audioPC				; PC 1
-	jsr spc_upload_byte
-	lda.l audioPSW				; PSW
-	jsr spc_upload_byte
+	lda.l	audioSP				; SP
+	jsr	spc_upload_byte
+	lda.l	audioPC+1				; PC 2
+	jsr	spc_upload_byte
+	lda.l	audioPC				; PC 1
+	jsr	spc_upload_byte
+	lda.l	audioPSW				; PSW
+	jsr	spc_upload_byte
 
 ; ---- Upload DSP registers
 
-	ldx #$0000
+	ldx	#$0000
 -
 ; initialize FLG and KON ($6c/$4c) to avoid artifacts
-	cpx #$4C
-	bne +
-	lda #$00
-	bra upload_skip_load
+	cpx	#$4C
+	bne	+
+	lda	#$00
+	bra	upload_skip_load
 +
-	cpx #$6C
-	bne +
-	lda #$E0
-	bra upload_skip_load
+	cpx	#$6C
+	bne	+
+	lda	#$E0
+	bra	upload_skip_load
 +
-	lda.l spcRegBuffer, x
+	lda.l	spcRegBuffer, x
 upload_skip_load:
-	jsr spc_upload_byte
+	jsr	spc_upload_byte
 	inx
-	cpx #128
-	bne -
+	cpx	#128
+	bne	-
 
 ; --- Upload fixed values for $F1-$F3
 
-	ldy #$00F1
-	jsr spc_next_upload
+	ldy	#$00F1
+	jsr	spc_next_upload
 
-	lda #$80				; stop timers
-	jsr spc_upload_byte
-	lda #$6c				; get dspaddr set for later
-	jsr spc_upload_byte
-	lda #$60
-	jsr spc_upload_byte
+	lda	#$80				; stop timers
+	jsr	spc_upload_byte
+	lda	#$6c				; get dspaddr set for later
+	jsr	spc_upload_byte
+	lda	#$60
+	jsr	spc_upload_byte
 
 ; ---- Upload $f8-$1ff
 
-	ldy #$00F8
-	jsr spc_next_upload
+	ldy	#$00F8
+	jsr	spc_next_upload
 
-	ldx #$00F8
+	ldx	#$00F8
 -
-	lda.l spcF8Buffer, x
-	jsr spc_upload_byte
+	lda.l	spcF8Buffer, x
+	jsr	spc_upload_byte
 	inx
-	cpx #$200
-	bne -
+	cpx	#$200
+	bne	-
 
 ; ---- Execute loader
 
-	ldy #$0002
-	jsr spc_execute
-rts
+	ldy	#$0002
+	jsr	spc_execute
+	rts
 
 ;---------------------------------------
 
 upload_high_ram:
 
-	ldy #$0002
-	jsr spc_begin_upload
+	ldy	#$0002
+	jsr	spc_begin_upload
 
 ; ---- Upload transfer routine
 
-	ldx #$0000
+	ldx	#$0000
 -
-	lda.l transfer,x
-	jsr spc_upload_byte
+	lda.l	transfer,x
+	jsr	spc_upload_byte
 	inx
-	cpy #44					; size of transfer routine
-	bne -
+	cpy	#44					; size of transfer routine
+	bne	-
 
-	ldx #$023f				; prepare transfer address
+	ldx	#$023f				; prepare transfer address
 
 ; ---- Execute transfer routine
 
-	ldy #$0002
-	sty REG_APUIO2
-	stz REG_APUIO1
-	lda REG_APUIO0
-	inc a
-	inc a
-	sta REG_APUIO0
+	ldy	#$0002
+	sty	REG_APUIO2
+	stz	REG_APUIO1
+	lda	REG_APUIO0
+	inc	a
+	inc	a
+	sta	REG_APUIO0
 ; Wait for acknowledgement
 -
-	cmp REG_APUIO0
-	bne -
+	cmp	REG_APUIO0
+	bne	-
 
 ; ---- Burst transfer of 63.5K using custom routine
 
 outer_transfer_loop:
-	ldy #$003f				; 3
+	ldy	#$003f				; 3
 inner_transfer_loop:
-	lda.l $7F0000,x				; 5 |
-	sta REG_APUIO0				; 4 |
-	lda.l $7F0040,x				; 5 |
-	sta REG_APUIO1				; 4 |
-	lda.l $7F0080,x				; 5 |
-	sta REG_APUIO2				; 4 |
-	lda.l $7F00C0,x				; 5 |
-	sta REG_APUIO3				; 4 |
+	lda.l	$7F0000,x				; 5 |
+	sta	REG_APUIO0				; 4 |
+	lda.l	$7F0040,x				; 5 |
+	sta	REG_APUIO1				; 4 |
+	lda.l	$7F0080,x				; 5 |
+	sta	REG_APUIO2				; 4 |
+	lda.l	$7F00C0,x				; 5 |
+	sta	REG_APUIO3				; 4 |
 	tya					; 2 >> 38 cycles
 -
-	cmp REG_APUIO3				; 4 |
-	bne -					; 3 |
+	cmp	REG_APUIO3				; 4 |
+	bne	-					; 3 |
 	dex					; 2 |
 	dey					; 2 |
-	bpl inner_transfer_loop			; 3 >> 14 cycles
+	bpl	inner_transfer_loop			; 3 >> 14 cycles
 
-	rep #$21				; 3 | // Accu16, clear carry
+	rep	#$21				; 3 | // Accu16, clear carry
 	txa					; 2 |
-	adc #$140				; 3 |
+	adc	#$140				; 3 |
 	tax					; 2 |
 
 	Accu8					; 3 |
 
-	cpx #$003f				; 3 |
-	bne outer_transfer_loop			; 3 >> 19 cycles
+	cpx	#$003f				; 3 |
+	bne	outer_transfer_loop			; 3 >> 19 cycles
 
-rts
+	rts
 
 ;---------------------------------------
 
@@ -202,234 +202,235 @@ upload_low_ram:
 
 ; ---- Upload $0002-$00EF using IPL
 
-	ldy #$0002
-	jsr spc_begin_upload
+	ldy	#$0002
+	jsr	spc_begin_upload
 
-	ldx #$0002
+	ldx	#$0002
 -
-	lda.l spcIPLBuffer, x
-	jsr spc_upload_byte
+	lda.l	spcIPLBuffer, x
+	jsr	spc_upload_byte
 	inx
-	cpx #$00F0
-	bne -
-rts
+	cpx	#$00F0
+	bne	-
+
+	rts
 
 ;---------------------------------------
 ; Executes final restoration code
 
 restore_final:
-	jsr start_exec_io			; prepare execution from I/O registers
+	jsr	start_exec_io			; prepare execution from I/O registers
 
-;	stz $420d				; SPC700 I/O code requires SLOW timing
+;	stz	$420d				; SPC700 I/O code requires SLOW timing
 
 ; ---- Restore first two bytes of RAM
 
-	lda.l spcRAM1stBytes
+	lda.l	spcRAM1stBytes
 	xba
-	lda #$e8				; MOV A,#spcRAM1stBytes
+	lda	#$e8				; MOV A,#spcRAM1stBytes
 	tax
-	jsr exec_instr
-	ldx #$00C4				; MOV $00,A
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$00C4				; MOV $00,A
+	jsr	exec_instr
 
-	lda.l spcRAM1stBytes+1
+	lda.l	spcRAM1stBytes+1
 	xba
-	lda #$e8				; MOV A,#spcRAM1stBytes+1
+	lda	#$e8				; MOV A,#spcRAM1stBytes+1
 	tax
-	jsr exec_instr
-	ldx #$01C4				; MOV $01,A
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$01C4				; MOV $01,A
+	jsr	exec_instr
 
 ; ---- Restore SP
 
-	lda.l audioSP
+	lda.l	audioSP
 	sec
-	sbc #3
+	sbc	#3
 	xba
-	lda #$cd				; MOV X,#audioSP
+	lda	#$cd				; MOV X,#audioSP
 	tax
-	jsr exec_instr
-	ldx #$bd				; MOV SP,X
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$bd				; MOV SP,X
+	jsr	exec_instr
 
 ; ---- Restore X
 
-	lda.l audioX
+	lda.l	audioX
 	xba
-	lda #$cd				; MOV X,#audioX
+	lda	#$cd				; MOV X,#audioX
 	tax
-	jsr exec_instr
+	jsr	exec_instr
 
 ; ---- Restore Y
 
-	lda.l audioY
+	lda.l	audioY
 	xba
-	lda #$8d				; MOV Y,#audioY
+	lda	#$8d				; MOV Y,#audioY
 	tax
-	jsr exec_instr
+	jsr	exec_instr
 
 ; ---- Restore DSP FLG register
 
-	lda.l spcFLGReg
+	lda.l	spcFLGReg
 	xba
-	lda #$e8				; MOV A,#spcFLGReg
+	lda	#$e8				; MOV A,#spcFLGReg
 	tax
-	jsr exec_instr
-	ldx #$f3C4				; MOV $f3,A -> $f2 has been set-up before by SPC700 loader
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$f3C4				; MOV $f3,A -> $f2 has been set-up before by SPC700 loader
+	jsr	exec_instr
 
 ; ---- wait a bit (the newer S-APU takes its time to ramp up the volume)
-	lda #$10
+	lda	#$10
 -	pha
-	jsr WaitABit
+	jsr	WaitABit
 	pla
-	dec a
-	bne -
+	dec	a
+	bne	-
 
 ; ---- Restore DSP KON register
 
-	lda #$4C
+	lda	#$4C
 	xba
-	lda #$e8				; MOV A,#$4c
+	lda	#$e8				; MOV A,#$4c
 	tax
-	jsr exec_instr
-	ldx #$f2C4				; MOV $f2,A
-	jsr exec_instr
-	lda.l spcKONReg
+	jsr	exec_instr
+	ldx	#$f2C4				; MOV $f2,A
+	jsr	exec_instr
+	lda.l	spcKONReg
 	xba
-	lda #$e8				; MOV A,#spcKONReg
+	lda	#$e8				; MOV A,#spcKONReg
 	tax
-	jsr exec_instr
-	ldx #$f3C4				; MOV $f3,A
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$f3C4				; MOV $f3,A
+	jsr	exec_instr
 
 ; ---- Restore DSP register address
 
-	lda.l spcDSPRegAddr
+	lda.l	spcDSPRegAddr
 	xba
-	lda #$e8				; MOV A,#spcDSPRegAddr
+	lda	#$e8				; MOV A,#spcDSPRegAddr
 	tax
-	jsr exec_instr
-	ldx #$f2C4				; MOV dest,A
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$f2C4				; MOV dest,A
+	jsr	exec_instr
 
 ; ---- Restore CONTROL register
 
-	lda.l spcCONTROLReg
-	and #$CF				; don't clear input ports
+	lda.l	spcCONTROLReg
+	and	#$CF				; don't clear input ports
 	xba
-	lda #$e8				; MOV A,#spcCONTROLReg
+	lda	#$e8				; MOV A,#spcCONTROLReg
 	tax
-	jsr exec_instr
-	ldx #$f1C4  				; MOV $F1,A
-	jsr exec_instr
+	jsr	exec_instr
+	ldx	#$f1C4  				; MOV $F1,A
+	jsr	exec_instr
 
 ;---- Restore A
 
-	lda.l audioA
+	lda.l	audioA
 	xba
-	lda #$e8				; MOV A,#audioA
+	lda	#$e8				; MOV A,#audioA
 	tax
-	jsr exec_instr
+	jsr	exec_instr
 
 ;---- Restore PSW and PC
 
-	ldx #$7F00				; NOP; RTI
-	stx REG_APUIO0
-	lda #$FC				; Patch loop to execute instruction just written
-	sta REG_APUIO3
+	ldx	#$7F00				; NOP; RTI
+	stx	REG_APUIO0
+	lda	#$FC				; Patch loop to execute instruction just written
+	sta	REG_APUIO3
 
 ;---- restore IO ports $f4 - $f7
 
 	Accu16
 
-	lda.l spcIOPorts
+	lda.l	spcIOPorts
 	tax
-	lda.l spcIOPorts+2
-	sta REG_APUIO2
-	stx REG_APUIO0				; last to avoid overwriting RETI before run
+	lda.l	spcIOPorts+2
+	sta	REG_APUIO2
+	stx	REG_APUIO0				; last to avoid overwriting RETI before run
 
 	Accu8
 
-;	lda #$01
-;	sta $420d				; restore FAST CPU operation
-rts
+;	lda	#$01
+;	sta	$420d				; restore FAST CPU operation
+	rts
 
 ;---------------------------------------
 
 spc_begin_upload:
-	sty REG_APUIO2				; Set address
+	sty	REG_APUIO2				; Set address
 
-	ldy #$BBAA				; Wait for SPC
+	ldy	#$BBAA				; Wait for SPC
 -
-	cpy REG_APUIO0
-	bne -
+	cpy	REG_APUIO0
+	bne	-
 
-	lda #$CC				; Send acknowledgement
-	sta REG_APUIO1
-	sta REG_APUIO0
+	lda	#$CC				; Send acknowledgement
+	sta	REG_APUIO1
+	sta	REG_APUIO0
 
 -       					; Wait for acknowledgement
-	cmp REG_APUIO0
-	bne -
+	cmp	REG_APUIO0
+	bne	-
 
-	ldy #0					; Initialize index
-rts
+	ldy	#0					; Initialize index
+	rts
 
 ;---------------------------------------
 
 spc_upload_byte:
-	sta REG_APUIO1
+	sta	REG_APUIO1
 
 	tya					; Signal it's ready
-	sta REG_APUIO0
+	sta	REG_APUIO0
 -     						; Wait for acknowledgement
-	cmp REG_APUIO0
-	bne -
+	cmp	REG_APUIO0
+	bne	-
 
 	iny
-rts
+	rts
 
 ;---------------------------------------
 
 spc_next_upload:
-	sty REG_APUIO2
+	sty	REG_APUIO2
 
 ; Send command
 ; Special case operation has been fully tested.
-	lda REG_APUIO0
-	inc a
-	inc a
-	bne +
-	inc a
+	lda	REG_APUIO0
+	inc	a
+	inc	a
+	bne	+
+	inc	a
 +
-	sta REG_APUIO1
-	sta REG_APUIO0
+	sta	REG_APUIO1
+	sta	REG_APUIO0
 
 ; Wait for acknowledgement
 -
-	cmp REG_APUIO0
-	bne -
+	cmp	REG_APUIO0
+	bne	-
 
-	ldy #0
+	ldy	#0
 	rts
 
 ;---------------------------------------
 
 spc_execute:
-	sty REG_APUIO2
+	sty	REG_APUIO2
 
-	stz REG_APUIO1
+	stz	REG_APUIO1
 
-	lda REG_APUIO0
-	inc a
-	inc a
-	sta REG_APUIO0
+	lda	REG_APUIO0
+	inc	a
+	inc	a
+	sta	REG_APUIO0
 
 ; Wait for acknowledgement
 -
-	cmp REG_APUIO0
-	bne -
+	cmp	REG_APUIO0
+	bne	-
 
 	rts
 
@@ -438,35 +439,35 @@ spc_execute:
 start_exec_io:
 
 ; Set execution address
-	ldx #$00F5
-	stx REG_APUIO2
+	ldx	#$00F5
+	stx	REG_APUIO2
 
-	stz REG_APUIO1      			; NOP
-	ldx #$FE2F      			; BRA *-2
+	stz	REG_APUIO1      			; NOP
+	ldx	#$FE2F      			; BRA *-2
 
 ; Signal to SPC that we're ready
-	lda REG_APUIO0
-	inc a
-	inc a
-	sta REG_APUIO0
+	lda	REG_APUIO0
+	inc	a
+	inc	a
+	sta	REG_APUIO0
 
 ; Wait for acknowledgement
 -
-	cmp REG_APUIO0
-	bne -
+	cmp	REG_APUIO0
+	bne	-
 
 ; Quickly write branch
-	stx REG_APUIO2
-rts
+	stx	REG_APUIO2
+	rts
 
 ;---------------------------------------
 
 exec_instr:
 
 ; Replace instruction
-	stx REG_APUIO0
-	lda #$FC
-	sta REG_APUIO3      			; 30
+	stx	REG_APUIO0
+	lda	#$FC
+	sta	REG_APUIO3      			; 30
 
         ; SPC BRA loop takes 4 cycles, so it reads
         ; the branch offset every 4 SPC cycles (84 master).
@@ -477,9 +478,9 @@ exec_instr:
         ; offset.
 
         ; 48 minimum, 90 maximum
-        ora #0
-        ora #0
-        ora #0
+        ora	#0
+        ora	#0
+        ora	#0
         nop
         nop
         nop
@@ -498,8 +499,8 @@ exec_instr:
 	pld ;5
 
         ; Patch loop to skip first two bytes
-	lda #$FE        ; 16
-	sta REG_APUIO3      ; 30
+	lda	#$FE        ; 16
+	sta	REG_APUIO3      ; 30
 
         ; 38 minimum (assuming 66 delay above)
 	phd ; 4
@@ -513,7 +514,7 @@ exec_instr:
 	pld
 	phd
 	pld
-rts
+	rts
 
 
 
@@ -522,14 +523,15 @@ rts
 ; based on a routine written by ikari_01
 
 WaitABit:
--	lda REG_HVBJOY
-	and #%10000000				; Vblank period flag
-	bne -
+-	lda	REG_HVBJOY
+	and	#%10000000				; Vblank period flag
+	bne	-
 
--	lda REG_HVBJOY
-	and #%10000000
-	beq -
-rts
+-	lda	REG_HVBJOY
+	and	#%10000000
+	beq	-
+
+	rts
 
 
 
@@ -543,79 +545,80 @@ InitWRAMBuffer:
 
 ; copy DSP registers to buffer
 
-	lda #$91
-	sta DMAWRITEBANK
+	lda	#$91
+	sta	DMAWRITEBANK
 
-	lda #$01
-	sta DMAWRITEHI
+	lda	#$01
+	sta	DMAWRITEHI
 
-	lda #$00
-	sta DMAWRITELO
+	lda	#$00
+	sta	DMAWRITELO
 
-	ldx #$0000
+	ldx	#$0000
 -
-	lda DMAREADDATA				; reminder: DMAREADDATA auto-increments
-	sta spcRegBuffer, x
+	lda	DMAREADDATA				; reminder: DMAREADDATA auto-increments
+	sta	spcRegBuffer, x
 	inx
-	cpx #$0080
-	bne -
+	cpx	#$0080
+	bne	-
 
 ; copy $f8-$1ff to buffer
 
-	lda #$90
-	sta DMAWRITEBANK
+	lda	#$90
+	sta	DMAWRITEBANK
 
-	lda #$01
-	sta DMAWRITEHI
+	lda	#$01
+	sta	DMAWRITEHI
 
-	lda #$F8
-	sta DMAWRITELO
+	lda	#$F8
+	sta	DMAWRITELO
 
-	ldx #$00F8
+	ldx	#$00F8
 -
-	lda DMAREADDATA
-	sta spcF8Buffer, x
+	lda	DMAREADDATA
+	sta	spcF8Buffer, x
 	inx
-	cpx #$0200
-	bne -
+	cpx	#$0200
+	bne	-
 
 ; copy $0002-$00EF (IPL) to buffer
 
-;	lda #$90
-;	sta DMAWRITEBANK
+;	lda	#$90
+;	sta	DMAWRITEBANK
 
-	lda #$01
-	sta DMAWRITEHI
+	lda	#$01
+	sta	DMAWRITEHI
 
-	lda #$02
-	sta DMAWRITELO
+	lda	#$02
+	sta	DMAWRITELO
 
-	ldx #$0002
+	ldx	#$0002
 -
-	lda DMAREADDATA
-	sta spcIPLBuffer, x
+	lda	DMAREADDATA
+	sta	spcIPLBuffer, x
 	inx
-	cpx #$00F0
-	bne -
+	cpx	#$00F0
+	bne	-
 
 ; copy SPC RAM data to buffer
 
-	ldx #$0000
+	ldx	#$0000
 
-;	lda #$90
-;	sta DMAWRITEBANK
+;	lda	#$90
+;	sta	DMAWRITEBANK
 
-	lda #$01				; SPC RAM data starts at XX 01 00 (where XX = bank no.)
-	sta DMAWRITEHI
+	lda	#$01				; SPC RAM data starts at XX 01 00 (where XX = bank no.)
+	sta	DMAWRITEHI
 
-	lda #$00
-	sta DMAWRITELO
+	lda	#$00
+	sta	DMAWRITELO
 
--	lda DMAREADDATA
-	sta $7F0000, x
+-	lda	DMAREADDATA
+	sta	$7F0000, x
 	inx
-	bne -					; copy 65536 bytes
-rts
+	bne	-					; copy 65536 bytes
+
+	rts
 
 
 
@@ -646,7 +649,7 @@ loader:				; .org $0002
 	.byt $BF		; next:	mov a,(x)+
 	.byt $CB,$F2		;	mov $F2,y
 	.byt $C4,$F3		;	mov $F3,a
-	.byt $FC		;	inc y
+	.byt $FC		;	inc	y
 	.byt $10,-8		;	bpl next
 
 	.byt $8F,$6C,$F2	;	mov $F2,#FLG	; set for later
@@ -672,15 +675,15 @@ transfer:			; .org $0002
 	.byt $CB,$F7		;	mov $F7,Y
 	.byt $D6,$C0,$02	; mov3: mov !$02C0+y,a
 	.byt $00		;  nop ; give some time for S-CPU HDMA / WRAM refresh
-	.byt $DC 		;	dec y
+	.byt $DC 		;	dec	y
 	.byt $10,-26		;	bpl quad
 	; Increment MSBs of addresses
-	.byt $AB,$0A		;	inc mov0+2
-	.byt $AB,$0F		;	inc mov1+2
-	.byt $AB,$14		;	inc mov2+2
-	.byt $AB,$1B		;	inc mov3+2
-	.byt $1D    		;	dec x
-	.byt $D0,-39		;	bne page
+	.byt $AB,$0A		;	inc	mov0+2
+	.byt $AB,$0F		;	inc	mov1+2
+	.byt $AB,$14		;	inc	mov2+2
+	.byt $AB,$1B		;	inc	mov3+2
+	.byt $1D    		;	dec	x
+	.byt $D0,-39		;	bne	page
 	; Rerun loader
 	.byt $5F,$C0,$FF	;	jmp $FFC0
 
@@ -697,28 +700,28 @@ apu_ram_init:
 	phk					; set data bank = program bank
 	plb
 
-	ldy #$0002
-	jsr spc_begin_upload
-	ldx #$0000
+	ldy	#$0002
+	jsr	spc_begin_upload
+	ldx	#$0000
 
--	lda.w apu_ram_init_code, x
-	jsr spc_upload_byte
+-	lda.w	apu_ram_init_code, x
+	jsr	spc_upload_byte
 	inx
-	cpx #38
-	bne -
+	cpx	#38
+	bne	-
 
-	ldx #$0002
-	stx REG_APUIO2
-	stz REG_APUIO1
-	lda REG_APUIO0
-	inc a
-	inc a
-	sta REG_APUIO0
--	cmp REG_APUIO0
-	bne -
+	ldx	#$0002
+	stx	REG_APUIO2
+	stz	REG_APUIO1
+	lda	REG_APUIO0
+	inc	a
+	inc	a
+	sta	REG_APUIO0
+-	cmp	REG_APUIO0
+	bne	-
 
 	plp
-rtl
+	rtl
 
 
 

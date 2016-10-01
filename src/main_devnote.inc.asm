@@ -13,33 +13,33 @@ GotoDevNote:
 	Accu8
 	Index16
 
-	jsr ClearSpriteText			; remove "Loading ..." message
+	jsr	ClearSpriteText			; remove "Loading ..." message
 
 
 
 ; -------------------------- clear upper 32×32 tilemap in case the SPC player was used
 	Accu16
 
-	lda #$4040				; overwrite 2 tiles at once ($40 = space)
-	ldx #$0400				; start at upper 32×32 tilemap
+	lda	#$4040				; overwrite 2 tiles at once ($40 = space)
+	ldx	#$0400				; start at upper 32×32 tilemap
 
--	sta TextBuffer.BG1, x
-	sta TextBuffer.BG2, x
+-	sta	TextBuffer.BG1, x
+	sta	TextBuffer.BG2, x
 	inx
 	inx
-	cpx #$0800				; 1024 bytes
-	bne -
+	cpx	#$0800				; 1024 bytes
+	bne	-
 
 	Accu8
 
 
 
 ; -------------------------- start music
-	lda #$00
-	jsl spcPlay
+	lda	#$00
+	jsl	spcPlay
 
-	lda #224
-	jsl spcSetModuleVolume
+	lda	#224
+	jsl	spcSetModuleVolume
 
 
 
@@ -101,156 +101,156 @@ GotoDevNote:
 
 
 ; -------------------------- show mosaic effect
-	lda #$93				; enable mosaic on BG1 & BG2, start with block size 9
+	lda	#$93				; enable mosaic on BG1 & BG2, start with block size 9
 
--	sta $2106
+-	sta	$2106
 	wai					; show mosaic for one frame
 	sec
-	sbc #$10				; reduce block size by 1
-	cmp #$F3				; smallest block size ($03) processed on last iteration?
-	bne -
+	sbc	#$10				; reduce block size by 1
+	cmp	#$F3				; smallest block size ($03) processed on last iteration?
+	bne	-
 
-	stz $2106				; turn off mosaic effect
+	stz	$2106				; turn off mosaic effect
 
 
 
 ; -------------------------- show button hints
 	Accu16
 
-	lda #$B014				; Y, X
-	sta SpriteBuf1.Buttons
+	lda	#$B014				; Y, X
+	sta	SpriteBuf1.Buttons
 
-	lda #$03A0				; tile properties, tile num for A button
-	sta SpriteBuf1.Buttons+2
+	lda	#$03A0				; tile properties, tile num for A button
+	sta	SpriteBuf1.Buttons+2
 
-	lda #$C014				; Y, X
-	sta SpriteBuf1.Buttons+4
+	lda	#$C014				; Y, X
+	sta	SpriteBuf1.Buttons+4
 
-	lda #$03A2				; tile properties, tile num for B button
-	sta SpriteBuf1.Buttons+6
+	lda	#$03A2				; tile properties, tile num for B button
+	sta	SpriteBuf1.Buttons+6
 
-	lda #$C020				; Y, X
-	sta SpriteBuf1.Buttons+8
+	lda	#$C020				; Y, X
+	sta	SpriteBuf1.Buttons+8
 
-	lda #$03A4				; tile properties, tile num for Y button
-	sta SpriteBuf1.Buttons+10
+	lda	#$03A4				; tile properties, tile num for Y button
+	sta	SpriteBuf1.Buttons+10
 
-	lda #$B04E				; Y, X
-	sta SpriteBuf1.Buttons+12
+	lda	#$B04E				; Y, X
+	sta	SpriteBuf1.Buttons+12
 
-	lda #$03AC				; tile properties, tile num for Start button highlighted
-	sta SpriteBuf1.Buttons+14
+	lda	#$03AC				; tile properties, tile num for Start button highlighted
+	sta	SpriteBuf1.Buttons+14
 
 	Accu8
 
-	lda #$01				; page 1
-	sta temp+7
+	lda	#$01				; page 1
+	sta	temp+7
 
-	stz Joy1New				; reset input buttons
-	stz Joy1New+1
-	stz Joy1Press
-	stz Joy1Press+1
+	stz	Joy1New				; reset input buttons
+	stz	Joy1New+1
+	stz	Joy1Press
+	stz	Joy1Press+1
 
 
 
 ; -------------------------- dev's note loop
 DevNoteLoop:
-	jsl spcProcess
+	jsl	spcProcess
 
 	wai
 
 
 
 ; -------------------------- check for A button = toggle "page" switching
-	lda Joy1New
-	and #%10000000
-	beq ++
+	lda	Joy1New
+	and	#%10000000
+	beq	++
 
-	lda temp+7				; what page are we on?
-	cmp #$01
-	beq +
+	lda	temp+7				; what page are we on?
+	cmp	#$01
+	beq	+
 
-	lda #$01				; set page = 1
-	sta temp+7
-	jsr GotoDevNotePage1
-	bra ++
+	lda	#$01				; set page = 1
+	sta	temp+7
+	jsr	GotoDevNotePage1
+	bra	++
 
-+	inc temp+7				; set page = 2
-	jsr GotoDevNotePage2
++	inc	temp+7				; set page = 2
+	jsr	GotoDevNotePage2
 
 ++
 
 
 
 ; -------------------------- check for B button = (re-)start music
-	lda Joy1New+1
-	and #%10000000
-	beq +
+	lda	Joy1New+1
+	and	#%10000000
+	beq	+
 
-	lda #$00
-	jsl spcPlay
+	lda	#$00
+	jsl	spcPlay
 
-	lda #224
-	jsl spcSetModuleVolume
+	lda	#224
+	jsl	spcSetModuleVolume
 
 +
 
 
 
 ; -------------------------- check for Y button = fade out music
-	lda Joy1New+1
-	and #%01000000
-	beq +
+	lda	Joy1New+1
+	and	#%01000000
+	beq	+
 
-	jsr FadeOutMusic
+	jsr	FadeOutMusic
 
 +
 
 
 
 ; -------------------------- check for Start button = reset to intro
-	lda Joy1Press+1
-	and #%00010000
-	beq DevNoteLoop
+	lda	Joy1Press+1
+	and	#%00010000
+	beq	DevNoteLoop
 
 
 
 ; -------------------------- Start pressed, reset
-	lda #$0E				; reduce screen brightness by 1
-	sta $2100
+	lda	#$0E				; reduce screen brightness by 1
+	sta	$2100
 
-	lda #224
+	lda	#224
 
 -	wai
 
 	sec					; fade out music within 224/8 = 28 frames (~ 0.5 seconds)
-	sbc #8
+	sbc	#8
 	pha
 
-	jsl spcSetModuleVolume
-	jsl spcProcess
+	jsl	spcSetModuleVolume
+	jsl	spcProcess
 
 	pla
 
 	pha					; make the screen fade to black at the same time
 
-	lsr a					; volume / 16 = screen brightness :-)
-	lsr a
-	lsr a
-	lsr a
+	lsr	a					; volume / 16 = screen brightness :-)
+	lsr	a
+	lsr	a
+	lsr	a
 
-	sta $2100
+	sta	$2100
 
 	pla
-	bne -
+	bne	-
 
-	jsl spcStop
-	jsl spcProcess
+	jsl	spcStop
+	jsl	spcProcess
 
 	wai
 
-	lda #%10000001
-	sta CONFIGWRITESTATUS			; reset PowerPak, stay in boot mode
+	lda	#%10000001
+	sta	CONFIGWRITESTATUS			; reset PowerPak, stay in boot mode
 
 
 
@@ -263,41 +263,41 @@ GotoDevNotePage1:
 ; -------------------------- hide PowerPak logo sprites
 	Accu16
 
-	lda #$F0F0
-	ldx #$0000
+	lda	#$F0F0
+	ldx	#$0000
 
--	sta SpriteBuf1.PowerPakLogo, x
+-	sta	SpriteBuf1.PowerPakLogo, x
 	inx
 	inx
 	inx
 	inx
-	cpx #$0040				; 16 tiles
-	bne -
+	cpx	#$0040				; 16 tiles
+	bne	-
 
 	Accu8
 
 
 
 ; -------------------------- horizontal scroll effect to the left
-	lda #$00
+	lda	#$00
 
 -	sec
-	sbc #$10
-	sta $210D
-	stz $210D
-	sta $210F
-	stz $210F
+	sbc	#$10
+	sta	$210D
+	stz	$210D
+	sta	$210F
+	stz	$210F
 
 	wai
 
-	cmp #$00
-	bne -
+	cmp	#$00
+	bne	-
 
-	stz $210D
-	stz $210D
-	stz $210F
-	stz $210F
-rts
+	stz	$210D
+	stz	$210D
+	stz	$210F
+	stz	$210F
+	rts
 
 
 
@@ -306,103 +306,104 @@ GotoDevNotePage2:
 
 
 ; -------------------------- horizontal scroll effect to the right
-	lda #$00
+	lda	#$00
 
 -	clc
-	adc #$10
-	sta $210D
-	stz $210D
-	sta $210F
-	stz $210F
+	adc	#$10
+	sta	$210D
+	stz	$210D
+	sta	$210F
+	stz	$210F
 
 	wai
 
-	cmp #$F0
-	bne -
+	cmp	#$F0
+	bne	-
 
-	lda #$01
-	stz $210D
-	sta $210D
-	stz $210F
-	sta $210F
+	lda	#$01
+	stz	$210D
+	sta	$210D
+	stz	$210F
+	sta	$210F
 
 
 
 ; -------------------------- Show PowerPak logo sprites
 	Accu16
 
-	lda #$889A				; Y, X
-	sta temp
+	lda	#$889A				; Y, X
+	sta	temp
 
-	lda #$05C0				; tile properties, tile num
-	sta temp+2
+	lda	#$05C0				; tile properties, tile num
+	sta	temp+2
 
-	ldx #$0000
+	ldx	#$0000
 
--	lda temp
-	sta SpriteBuf1.PowerPakLogo, x
+-	lda	temp
+	sta	SpriteBuf1.PowerPakLogo, x
 	clc
-	adc #$0010				; X += 16
-	sta temp
+	adc	#$0010				; X += 16
+	sta	temp
 	inx
 	inx
 
-	lda temp+2
-	sta SpriteBuf1.PowerPakLogo, x
+	lda	temp+2
+	sta	SpriteBuf1.PowerPakLogo, x
 	clc
-	adc #$0002				; tile num += 2
-	sta temp+2
+	adc	#$0002				; tile num += 2
+	sta	temp+2
 	inx
 	inx
 
-	bit #$0006				; check if last 3 bits of tile num clear = one row of 4 (large) sprites done?
-	bne -					; "inner" loop
+	bit	#$0006				; check if last 3 bits of tile num clear = one row of 4 (large) sprites done?
+	bne	-					; "inner" loop
 
-	lda temp
-	and #$FF9A				; reset X = $9A
+	lda	temp
+	and	#$FF9A				; reset X = $9A
 	clc
-	adc #$1000				; Y += 16
-	sta temp
+	adc	#$1000				; Y += 16
+	sta	temp
 
-	cpx #$0020				; after 8 (large) sprites, advance tile num by 16
-	bne +
+	cpx	#$0020				; after 8 (large) sprites, advance tile num by 16
+	bne	+
 
-	lda temp+2
+	lda	temp+2
 	clc
-	adc #$0010				; tile num += 16 (i.e., skip one row of 8*8 tiles)
-	sta temp+2
+	adc	#$0010				; tile num += 16 (i.e., skip one row of 8*8 tiles)
+	sta	temp+2
 
-+	cpx #$0040				; 64 / 4 = 16 (large) sprites done?
-	bne -					; "outer" loop
++	cpx	#$0040				; 64 / 4 = 16 (large) sprites done?
+	bne	-					; "outer" loop
 
 	Accu8
-rts
+
+	rts
 
 
 
 ; *************************** Misc. effects ****************************
 
 FadeOutMusic:
-	lda #224
+	lda	#224
 
 -	wai
 	sec					; fade out music within 224/8 = 28 frames (~ 0.5 seconds)
-	sbc #8
+	sbc	#8
 	pha
 
-	jsl spcSetModuleVolume
+	jsl	spcSetModuleVolume
 
-	jsl spcProcess
+	jsl	spcProcess
 
 	pla
-	bne -
+	bne	-
 
-	jsl spcStop
+	jsl	spcStop
 
-	jsl spcProcess
+	jsl	spcProcess
 
 	wai
-rts
+	rts
 
 
 

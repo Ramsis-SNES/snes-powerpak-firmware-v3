@@ -119,7 +119,7 @@ sb_send:
 
 	WaitForAPUIO0
 
-	inc a			; increment counter (port0 data)
+	inc	a			; increment counter (port0 data)
 ;----------------------------------------------------------------------
 sb_start:
 ;----------------------------------------------------------------------
@@ -134,8 +134,8 @@ sb_start:
 
 	WaitForAPUIO0
 
-	inc a			; add 2 or so...
-	inc a			;--------------------------------------
+	inc	a			; add 2 or so...
+	inc	a			;--------------------------------------
 				; mask data so invalid 80h message wont get sent
 	stz	REG_APUIO1	; port1=0
 	ldx	#SPC_BOOT	; port2,3 = entry point
@@ -145,61 +145,61 @@ sb_start:
 
 	WaitForAPUIO0		; final sync
 
-	stz REG_APUIO0
+	stz	REG_APUIO0
 	
-	stz spc_v		; reset V
-	stz spc_q		; reset Q
-	stz spc_fwrite		; reset command fifo
-	stz spc_fread		;
-	stz spc_sfx_next	;
+	stz	spc_v		; reset V
+	stz	spc_q		; reset Q
+	stz	spc_fwrite		; reset command fifo
+	stz	spc_fread		;
+	stz	spc_sfx_next	;
 	
-	stz spc_pr+0
-	stz spc_pr+1
-	stz spc_pr+2
-	stz spc_pr+3
+	stz	spc_pr+0
+	stz	spc_pr+1
+	stz	spc_pr+2
+	stz	spc_pr+3
 
-	stz spc_ptr+0
-	stz spc_ptr+1
-	stz spc_ptr+2
-	stz spc_bank
+	stz	spc_ptr+0
+	stz	spc_ptr+1
+	stz	spc_ptr+2
+	stz	spc_bank
 
-	stz spc1+0
-	stz spc1+1
-	stz spc2+0
-	stz spc2+1
+	stz	spc1+0
+	stz	spc1+1
+	stz	spc2+0
+	stz	spc2+1
 
-	stz digi_src+0
-	stz digi_src+1
-	stz digi_src+2
-	stz digi_src2+0
-	stz digi_src2+1
-	stz digi_src2+2
+	stz	digi_src+0
+	stz	digi_src+1
+	stz	digi_src+2
+	stz	digi_src2+0
+	stz	digi_src2+1
+	stz	digi_src2+2
 
-	stz SoundTable+0
-	stz SoundTable+1
-	stz SoundTable+2
+	stz	SoundTable+0
+	stz	SoundTable+1
+	stz	SoundTable+2
 
-	stz spc_sfx_next
+	stz	spc_sfx_next
 
-	stz digi_init
-	stz digi_pitch
-	stz digi_vp
-	stz digi_remain+0
-	stz digi_remain+1
-	stz digi_active
-	stz digi_copyrate
+	stz	digi_init
+	stz	digi_pitch
+	stz	digi_vp
+	stz	digi_remain+0
+	stz	digi_remain+1
+	stz	digi_active
+	stz	digi_copyrate
 
-	ldx #$0
-	lda #$0
--	sta spc_fifo,x
+	ldx	#$0
+	lda	#$0
+-	sta	spc_fifo,x
 	inx
-	cpx #$ff
-	bne -
+	cpx	#$ff
+	bne	-
 
 ;----------------------------------------------------------------------
 ; driver installation successful
 ;----------------------------------------------------------------------
-rtl
+	rtl
 ;----------------------------------------------------------------------
 
 ;**********************************************************************
@@ -239,7 +239,7 @@ spcLoad:
 	incptr
 	
 	sty	spc1		; pointer += listsize*2
-	asl			;
+	asl	a		;
 	adc	spc1		;
 
 	bmi	+		;
@@ -316,7 +316,7 @@ transfer_sources:
 
 	sta	spc_pr+1
 	stz	spc_sfx_next	; reset sfx counter
-rtl
+	rtl
 
 ;--------------------------------------------------------------
 ; spc1 = source index
@@ -334,8 +334,8 @@ transfer_source:
 	rep	#A_8BIT		; x = length (bytes->words)
 	lda	[spc_ptr], y	;
 	incptr			;
-	inc a			;
-	lsr			;
+	inc	a		;
+	lsr	a		;
 	tax			;
 	lda	[spc_ptr], y	; port2,3 = loop point
 	sta	REG_APUIO2
@@ -389,7 +389,7 @@ end_transfer:
 	WaitForAPUIO1
 
 	sta	spc_pr+1
-rts
+	rts
 
 ;--------------------------------------------------------------
 ; spc2 = table offset
@@ -404,7 +404,7 @@ get_address:
 	rep	#A_8BIT		;
 	stx	spc1		;
 	txa			;
-	asl			;
+	asl	a		;
 	adc	spc1		;
 	adc	spc2		;
 	sta	spc_ptr		;
@@ -421,7 +421,7 @@ get_address:
 	ply			;
 	stz	spc_ptr
 	stz	spc_ptr+1
-rts
+	rts
 	
 	
 ;**********************************************************************
@@ -445,7 +445,7 @@ QueueMessage:
 	stx	spc_fwrite		;
 	rep	#XY_8BIT		;
 	cli				;
-rtl
+	rtl
 
 ;**********************************************************************
 ; flush fifo (force sync)
@@ -469,7 +469,7 @@ xspcFlush:
 	jsr	xspcProcessMessages	;
 	bra	xspcFlush		;
 @exit:
-rts
+	rts
 	
 xspcProcessMessages:
 	sep	#XY_8BIT		; 8-bit index during this function
@@ -520,7 +520,7 @@ xspcProcessMessages:
 @xexit2:
 ;----------------------------------------------------------------------
 	rep	#XY_8BIT		; restore 16-bit index
-rts
+	rts
 
 ;**********************************************************************
 ; process spc messages for x time
@@ -583,7 +583,7 @@ spcProcessMessages:
 @exit2:
 ;----------------------------------------------------------------------
 	plp				; restore processor status
-rtl
+	rtl
 	
 ;**********************************************************************
 ; x = starting position
@@ -619,7 +619,7 @@ spcTest:			;#
 	sta	spc_v		;#
 	sta.l	REG_APUIO1	;#
 	plp			;#
-rts				;#
+	rts			;#
 ;--------------------------------#
 ; ################################
 
@@ -634,7 +634,7 @@ spcReadStatus:
 	bne	spcReadStatus		;
 	dex				;
 	bne	@loop			;
-rts
+	rts
 	
 ;**********************************************************************
 ; read position register
@@ -647,7 +647,7 @@ spcReadPosition:
 	bne	spcReadPosition		;
 	dex				;
 	bne	@loop2			;
-rts
+	rts
 
 ;**********************************************************************
 spcGetCues:
@@ -662,7 +662,7 @@ spcGetCues:
 	bcs	+
 	adc	#16
 +
-rts
+	rts
 
 ;**********************************************************************
 ; x = volume
@@ -732,7 +732,7 @@ spcAllocateSoundRegion:
 	sta	spc_v			;
 	sta	spc_pr+1		;
 ;----------------------------------------------------------------------
-rtl
+	rtl
 
 	
 ;============================================================================
@@ -743,7 +743,7 @@ spcProcessStream:
 	bne	+			;
 	sep	#A_8BIT			;
 	stz	digi_active		;
-rts
+	rts
 
 +	sep	#A_8BIT			;
 ;-----------------------------------------------------------------------
@@ -785,7 +785,7 @@ rts
 	sec				;
 	sbc	digi_remain		;
 	eor	#$FFFF			;
-	inc a				;
+	inc	a			;
 	sta	digi_remain		;
 	pla				;
 @copysat:				;
@@ -796,7 +796,7 @@ rts
 	sep	#XY_8BIT		; spc1 = nn*3 (amount of tribytes to copy)
 	tax				; x = vbyte
 	sta	spc1			;
-	asl				;
+	asl	a			;
 	clc				;
 	adc	spc1			;
 	sta	spc1			;
@@ -840,12 +840,12 @@ rts
 	and	#255			;
 	adc	digi_src		;
 	sta	digi_src		;
-	inc a				;
-	inc a				;
+	inc	a			;
+	inc	a			;
 	sta	digi_src2		;
 	sep	#A_8BIT			;
 ;-----------------------------------------------------------------------
-rts
+	rts
 	
 
 
