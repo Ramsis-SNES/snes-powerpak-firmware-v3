@@ -20,11 +20,13 @@ StartGame:
 
  	SetCursorPos 1, 0
 
-;SetCursorPos 27, 1
-;PrintString "FPGA STATUS = "
-;lda CONFIGREADSTATUS
-;sta errorCode
-;PrintHexNum errorCode
+;	SetCursorPos 27, 1
+;	PrintString "FPGA STATUS = "
+
+;	lda	CONFIGREADSTATUS
+;	sta	errorCode
+
+;	PrintHexNum errorCode
 
 	ldx	#$0000
 
@@ -41,7 +43,6 @@ ClearBanks:
 
 	lda	gameName.gCluster
 	sta	sourceCluster
-
 	lda	gameName.gCluster+2
 	sta	sourceCluster+2
 
@@ -52,15 +53,11 @@ ClearBanks:
 	lda	#>sectorBuffer1
 	sta	destHi							; put into sector RAM
 	stz	destBank
-
 	stz	sectorCounter
 	stz	bankCounter
-
 	jsr	 ClusterToLBA						; sourceCluster -> first sourceSector
-
 	lda	#kDestWRAM
 	sta	destType
-
 	jsr	 CardReadSector						; sector -> WRAM
 	jsr	 CopierHeaderCheck					; check for copier header
 
@@ -70,39 +67,31 @@ ClearBanks:
 	PrintString "Loading game ..."
 
 	wai
-
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK						; read file to beginning of SDRAM
-
 	jsr	 CardReadGameFill
-
 	lda	headerType
 	bne	__CopyROM2SDRAMDone					; if already found header, don't check game size
-
 	lda	gameSize
 	beq	__CopyROM2SDRAMDone
 
 	PrintString "\nUnknown header or file size, but I'll try again ..."
 
 	wai
-
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK						; read file to beginning of SDRAM
-
 	lda	#$FF							; force header skipping even when no known header found
 	sta	headerType
-
 	jsr	 CardReadGameFill					; copy again, forcing header skip
 
 __CopyROM2SDRAMDone:
-
 	wai
-
 	ldy	#gameSize						; print ROM sectors in decimal ### FIXME add FAT32 excess cluster mask
+
 	PrintString "\nLoaded %d sectors = "
 
 	lda	gameSize+1
@@ -115,7 +104,6 @@ FixMbits:
 	lda	gameROMMbits
 	cmp	#9
 	beq	Fix9or10Mbits
-
 	cmp	#10
 	bne	FixMbitsDone
 
@@ -135,7 +123,6 @@ LoadSave:
 
 	lda	saveName.sCluster
 	bne	LoadSaveStart
-
 	lda	saveName.sCluster+2
 	bne	LoadSaveStart
 
@@ -151,7 +138,6 @@ LoadSaveStart:
 
 	lda	saveName.sCluster
 	sta	sourceCluster
-
 	lda	saveName.sCluster+2
 	sta	sourceCluster+2
 
@@ -162,16 +148,13 @@ LoadSaveStart:
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
-
 	stz	sectorCounter
 	stz	bankCounter
-
 	lda	#kDestSDRAM
 	sta	destType
-
 	jsr	 CardReadFile
-
 	ldy	#gameSize						; print SRAM sectors in decimal
+
 	PrintString "present, loaded %d sectors = "
 
 	lsr	gameSize
@@ -191,48 +174,46 @@ CheckInternalHeaderExHi:
 	sta	DMAWRITEHI
 	lda	#$40
 	sta	DMAWRITEBANK						; check for internal header  40FFC0
-
 	jsr	 CopyROMInfo
 
-;PrintString "/nmapper="
-;PrintHexNum gameROMMapper
+;	PrintString "/nmapper="
+;	PrintHexNum gameROMMapper
 
 	lda	gameROMMapper
 
-; cmp #$35
-; beq CheckInternalHeaderExHiType
-
+;	cmp	#$35
+; 	beq	CheckInternalHeaderExHiType
 	cmp	#$25
 	beq	CheckInternalHeaderExHiType
 	bra	NotInternalHeaderExHi
 
 CheckInternalHeaderExHiType:
 
-; PrintString "/nMAP good "
+;	PrintString "/nMAP good "
 
 	lda	gameROMType
 	cmp	#$06							; ROM type must be <= 5
 	bcs	NotInternalHeaderExHi
 
-;PrintString "/nROM good "
+;	PrintString "/nROM good "
 
 	lda	#$60
 	cmp	gameROMMbits						; ROM size <= 96Mbits
 	bcc	NotInternalHeaderExHi
 
-;PrintString "SIZE good "
+;	PrintString "SIZE good "
 
 	lda	#$08
 	cmp	saveSize						; SRAM size <= 8d
 	bcc	NotInternalHeaderExHi
 
-;PrintString "RAM good "
+;	PrintString "RAM good "
 
 	lda	gameResetVector+1
 	cmp	#$80							; reset vector goes to >= 8000
 	bcc	NotInternalHeaderExHi
 
-;PrintString "RESET good "
+;	PrintString "RESET good "
 
 	jmp	InternalHeaderIsExHi
 
@@ -248,49 +229,37 @@ CheckInternalHeaderHi:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK						; check for internal header $FFC0
-
 	jsr	 CopyROMInfo
-
 	lda	fixheader
 	beq	CheckInternalHeaderHiMapper				; don't fix the header
-
 	lda	#$21
 	sta	gameROMMapper						; assume HiROM
 
 CheckInternalHeaderHiMapper:
 	lda	gameROMMapper
 
-;cmp #$20
-;beq CheckInternalHeaderHiType
-
+;	cmp	#$20
+;	beq	CheckInternalHeaderHiType
 	cmp	#$21
 	beq	CheckInternalHeaderHiType
-
-;cmp #$22
-;beq CheckInternalHeaderHiType
-
+;	cmp	#$22
+;	beq	CheckInternalHeaderHiType
 	cmp	#$25
 	bne	NotInternalHeaderHi
-
-
 
 CheckInternalHeaderHiType:
 	lda	gameROMType
 	cmp	#$06							; ROM type must be <= 5
 	bcs	NotInternalHeaderHi
-
 	lda	#$40
 	cmp	gameROMMbits						; ROM size <= 64Mbits
 	bcc	NotInternalHeaderHi
-
 	lda	#$08
 	cmp	saveSize						; SRAM size <= 8d
 	bcc	NotInternalHeaderHi
-
 	lda	gameResetVector+1
 	cmp	#$80							; reset vector goes to >= 8000
 	bcc	NotInternalHeaderHi
-
 	jmp	InternalHeaderIsHi
 
 NotInternalHeaderHi:
@@ -305,12 +274,9 @@ CheckInternalHeaderLo:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK						; check for internal header $7FC0
-
 	jsr	 CopyROMInfo
-
 	lda	fixheader
 	beq	CheckInternalHeaderLoMapper				; don't fix the header
-
 	lda	#$20
 	sta	gameROMMapper						; assume LoROM
 
@@ -318,59 +284,55 @@ CheckInternalHeaderLoMapper:
 	lda	gameROMMbits
 	cmp	#$60
 	beq	InternalHeaderIs96
-
 	lda	gameROMMapper
 	cmp	#$20
 	beq	CheckInternalHeaderLoType
-
-;cmp #$21
-;beq CheckInternalHeaderLoType
-
+;	cmp	#$21
+;	beq	CheckInternalHeaderLoType
 	cmp	#$22
 	beq	CheckInternalHeaderLoType
-
-;cmp #$25
-;beq CheckInternalHeaderLoType
-
+;	cmp	#$25
+;	beq	CheckInternalHeaderLoType
 	bra	NotInternalHeaderLo
 
 CheckInternalHeaderLoType:
 	lda	gameROMType
 	cmp	#$06							; ROM type must be <= 5
 	bcs	NotInternalHeaderLo
-
 	lda	#$20
 	cmp	gameROMMbits						; ROM size <= 32Mbits
 	bcc	NotInternalHeaderLo
-
 	lda	#$08
 	cmp	saveSize						; SRAM size <= 8d
 	bcc	NotInternalHeaderLo
-
 	lda	gameResetVector+1
 	cmp	#$80							; reset vector goes to >= 8000
 	bcc	NotInternalHeaderLo
-
 	bra	InternalHeaderIsLo
 
 NotInternalHeaderLo:
 	PrintString "\nNo $7FC0 header"
+
 	jmp	NoInternalHeader
 
 InternalHeaderIs96:
 	PrintString "\n96Mbit ROM"
+
 	bra	InternalHeaderDone
 
 InternalHeaderIsExHi:
 	PrintString "\nHeader at $40FFC0"
+
 	bra	InternalHeaderDone
 
 InternalHeaderIsLo:
 	PrintString "\nHeader at $7FC0"
+
 	bra	InternalHeaderDone
 
 InternalHeaderIsHi:
 	PrintString "\nHeader at $FFC0"
+
 ;	bra	InternalHeaderDone
 
 InternalHeaderDone:
@@ -389,8 +351,8 @@ ROMBattCheck:
 	beq	ROMHasBatt
 
 	PrintString "\nSavegame not"
-	stz	useBattery						; no battery when no SRAM
 
+	stz	useBattery						; no battery when no SRAM
 	bra	ROMBattCheckDone
 
 ROMHasBatt:
@@ -405,9 +367,7 @@ SetSRAMSize:
 	lda	saveSize
 	sta	destLo
 	stz	destHi
-
 	ldy	destLo
-
 	lda	SRAMSizes, y
 	sta	sramSizeByte
 	sta	CONFIGWRITESRAMSIZE
@@ -417,7 +377,6 @@ PrintSRAMSize:
 	sta	sourceLo
 	lda	SRAMTextHi, y
 	sta	sourceHi
-
 	ldy	#sourceLo
 
 	PrintString " supported, %s KB SRAM added"
@@ -481,10 +440,11 @@ CheckExHiROMBanking:
 
 CheckExHiROMBankingDone:
 
-;  PrintString "\nMapper "
-;  PrintHexNum gameROMMapper
-;  PrintString " unsupported"
-;  jmp FatalError
+;	PrintString "\nMapper "
+;	PrintHexNum gameROMMapper
+;	PrintString " unsupported"
+
+;	jmp	FatalError
 
 
 
@@ -492,6 +452,7 @@ LoROMBanking:
 	PrintString "\nLoROM "
 	PrintNum gameROMMbits
 	PrintString " Mbit"
+
 	lda	gameROMMbits
 	lsr	a
 	lsr	a
@@ -511,7 +472,6 @@ LoROMBanking:
 	lsr	a
 	lsr	a
 	sta	sourceHi
-
 	lda	#<LoRom4Mbit
 	clc
 	adc	sourceLo
@@ -519,7 +479,6 @@ LoROMBanking:
 	lda	#>LoRom4Mbit
 	adc	sourceHi
 	sta	destHi
-
 	jsr	 CopyBanks
 
 
@@ -527,6 +486,7 @@ LoROMBanking:
 LoROMSRAM:
 	lda	saveSize
 	beq	LoROMBankingDone
+
 	PrintString "\nSRAM in 7x/Fx"
 
 	lda	#$7F
@@ -537,30 +497,28 @@ LoROMSRAM:
 
 LoROMBankingDone:
 
-
-
 	lda	#$00
 	sta	CONFIGWRITESRAMLO					; no SRAM in $6000-$7fff
 	sta	CONFIGWRITESRAMHI
-
 	jmp	SetROMBankingDone
 
 
 
 ExLoROMBanking:
 	PrintString "\nExLoROM "
+
 	lda	gameROMMbits
 
 ExLoROMBanking48Mbit:
 	cmp	#$30
 	bne	ExLoROMBankingNot48Mbit
+
 	PrintString "48Mbit"
 
 	lda	#<ExLoRom48Mbit
 	sta	destLo
 	lda	#>ExLoRom48Mbit
 	sta	destHi
-
 	jmp	ExLoROMBankingLoop
 
 ExLoROMBankingNot48Mbit:
@@ -570,6 +528,7 @@ ExLoROMBankingNot48Mbit:
 ExLoROMBanking64Mbit:
 	cmp	#$40
 	bne	ExLoROMBankingNot64Mbit
+
 	PrintString "64Mbit"
 
 	lda	#<ExLoRom64Mbit
@@ -580,12 +539,9 @@ ExLoROMBanking64Mbit:
 
 ExLoROMBankingNot64Mbit:
 
-
-
 	lda	fixheader						; ExLoROM of wrong size found
 	cmp	#$01
 	bne	ExLoROMTryHeaderFix					; header fix already attempted
-
 	jmp	FatalError
 
 
@@ -595,25 +551,22 @@ ExLoROMTryHeaderFix:
 
 	SetCursorPos 1, 0
 
-;  PrintString "\nExLoROM "
-;  PrintNum gameROMMbits
-;  PrintString " Mbit unsupported"
-;  PrintString "\nRetrying with fixed header ..."
-
+;	PrintString "\nExLoROM "
+;	PrintNum gameROMMbits
+;	PrintString " Mbit unsupported"
+;	PrintString "\nRetrying with fixed header ..."
 	PrintString "Unsupported ExLoROM size, but I'll try to fix it ..."
 
 	lda	#$01
 	sta	fixheader
 	lda	#$FF
 	sta	headerType
-
 	jmp	CheckInternalHeaderHi
 
 
 
 ExLoROMBankingLoop:
 	jsr	 CopyBanks
-
 	jmp	LoROMSRAM
 
 
@@ -642,7 +595,6 @@ HiROMBanking:
 	lsr	a
 	lsr	a
 	sta	sourceHi
-
 	lda	#<HiRom4Mbit
 	clc
 	adc	sourceLo
@@ -650,9 +602,7 @@ HiROMBanking:
 	lda	#>HiRom4Mbit
 	adc	sourceHi
 	sta	destHi
-
 	jsr	 CopyBanks
-
 	lda	saveSize
 	beq	HiROMNoSRAM
 
@@ -697,7 +647,6 @@ ExHiROMBanking:
 	lda	#$00
 	sta	CONFIGWRITESRAMLO					; no SRAM
 	sta	CONFIGWRITESRAMHI
-
 	lda	gameROMMbits
 
 
@@ -705,23 +654,25 @@ ExHiROMBanking:
 ExHiROMBanking48Mbit:
 	cmp	#$30
 	bne	ExHiROMBankingNot48Mbit
+
 	PrintString "48Mbit"
+
 	lda	#<ExHiRom48Mbit
 	sta	destLo
 	lda	#>ExHiRom48Mbit
 	sta	destHi
 
-;PrintString "\nSRAM in $80-BF:$6000-7FFF"
-;lda #$00
- ; sta CONFIGWRITESRAMLO           ;;sram in 6000-7fff = 00 0F
-;lda #$0F
-;sta CONFIGWRITESRAMHI
+;	PrintString "\nSRAM in $80-BF:$6000-7FFF"
+;	lda	#$00
+;	sta	CONFIGWRITESRAMLO           ;;sram in 6000-7fff = 00 0F
+;	lda	#$0F
+;	sta	CONFIGWRITESRAMHI
 
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
+
 	lda	#$0C
 	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
 	sta	CONFIGWRITESRAMHI
-
 	jmp	ExHiROMBankingLoop
 
 ExHiROMBankingNot48Mbit:
@@ -731,7 +682,9 @@ ExHiROMBankingNot48Mbit:
 ExHiROMBanking64Mbit:
 	cmp	#$40
 	bne	ExHiROMBankingNot64Mbit
+
 	PrintString "64Mbit"
+
 	lda	#<ExHiRom64Mbit
 	sta	destLo
 	lda	#>ExHiRom64Mbit
@@ -745,7 +698,9 @@ ExHiROMBankingNot64Mbit:
 ExHiROMBanking96Mbit:
 	cmp	#$60
 	bne	ExHiROMBankingNot96Mbit
+
 	PrintString "96Mbit"
+
 	lda	#<ExHiRom96Mbit
 	sta	destLo
 	lda	#>ExHiRom96Mbit
@@ -753,22 +708,20 @@ ExHiROMBanking96Mbit:
 	bra	ExHiROMSRAM
 
 ExHiROMBankingNot96Mbit:
-
 	PrintNum gameROMMbits
 	PrintString "Mbit unsupported"
-
-
 
 ExHiROMSRAM:
 	lda	saveSize
 	beq	ExHiROMBankingLoop
+
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
+
 	lda	#$0C
 	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
 	sta	CONFIGWRITESRAMHI
 
 ExHiROMBankingLoop:
-
 	jsr	 CopyBanks
 
 ExHiROMBankingDone:
@@ -787,12 +740,9 @@ ROMDSPCheck:
 	beq	ROMHasDSP
 	cmp	#$05
 	beq	ROMHasDSP
-
 	jmp	ROMDSPCheckDone
 
 ROMHasDSP:
-
-
 
 ;DSPCheck:
 	lda	#$04							; turn on HiROM chip
@@ -800,8 +750,6 @@ ROMHasDSP:
 	lda	$007000
 	and	#%10000000
 	bne	DSPGood
-
-
 
 DSPBad:
 	lda	#$00
@@ -811,19 +759,15 @@ DSPBad:
 
 	jmp	FatalError
 
-
-
 DSPGood:
 	lda	#$00
 	sta	CONFIGWRITEDSP						; turn off DSP
 	lda	gameROMMapper
 	cmp	#$21
 	beq	HiROMDSP						; HiROM
-
 	lda	gameROMMbits						; LoROM 16MB
 	cmp	#$09
 	bcs	LoROM16DSP
-
 	bra	LoROM8DSP
 
 
@@ -838,6 +782,7 @@ HiROMDSP:
 
 LoROM8DSP:
 	PrintString "\nLoROM DSP1 4-8Mb"				; $20-3f:8000-ffff
+
 	lda	#$01
 	sta	CONFIGWRITEDSP
 	lda	#$00
@@ -855,6 +800,7 @@ LoROM8DSP:
 
 LoROM16DSP:
 	PrintString "\nLoROM DSP1 16Mb"					; $60-6f:0000-7fff
+
 	lda	#$02
 	sta	CONFIGWRITEDSP
 	lda	#$00
@@ -867,26 +813,27 @@ LoROM16DSP:
 
 
 ROMDSPCheckDone:
-
 	jsr	 PrintBanks						; skip to avoid user confusion due to possible screen overflow
 
 
 
 ; -------------------------- GameGenie codes
 LoadGameGenie:
+;	lda	#$60
+;	sta	CONFIGWRITEBANK+$3F0
+;	lda	#$60
+;	sta	CONFIGWRITEBANK+$3E0
+;	lda	$F08000
+;	sta	errorCode
 
-;lda #$60
-;sta CONFIGWRITEBANK+$3F0
-;lda #$60
-;sta CONFIGWRITEBANK+$3E0
-;lda $F08000
-;sta errorCode
-;PrintHexNum errorCode
-;lda #$55
-;sta $F08000
-;lda $F08000
-;sta errorCode
-;PrintHexNum errorCode
+;	PrintHexNum errorCode
+
+;	lda	#$55
+;	sta	$F08000
+;	lda	$F08000
+;	sta	errorCode
+
+;	PrintHexNum errorCode
 
 	PrintString "\n"
 
@@ -919,36 +866,31 @@ LoadGameGenie:
 ;ResetSystem:
 	stz	Joy1New
 	stz	Joy1New+1
-
 	lda	Joy1Press+1
 	and	#%00100000						; if user holds Select, log screen and wait
 	beq	__ResetSystemNow
-
 	jsr	 LogScreenMessage
 
 ;	SetCursorPos 27, 1
 ;	PrintString "FPGA STATUS = "
+
 ;	lda	CONFIGREADSTATUS
 ;	sta	errorCode
+
 ;	PrintHexNum errorCode
 
 	WaitForUserInput
 
 __ResetSystemNow:
 	jsr	 SaveLastGame
-
 	lda	#$80							; enter forced blank, this should help suppress annoying effects
 	sta	$2100
-
 	sei								; disable NMI & IRQ so we can reset DMA registers before the game starts
 	stz	REG_NMITIMEN
-
 	stz	$420B							; turn off DMA & HDMA
 	stz	$420C
-
 	lda	#$FF							; fill DMA registers with initial values, this fixes Nightmare Busters (Beta ROM) crash upon boot
 	ldx	#$0000
-
 -	sta	$4300, x
 	sta	$4310, x
 	sta	$4320, x
@@ -957,7 +899,6 @@ __ResetSystemNow:
 	sta	$4350, x
 	sta	$4360, x
 	sta	$4370, x
-
 	inx
 	cpx	#$000B							; regs $43x0 through $43xA initialized?
 	bne	-
@@ -992,7 +933,6 @@ FatalError:
 
 	jsr	 PrintClearScreen
 	jmp	GotoIntroScreen						; return to titlescreen
-
 ;	lda	#%10000001						; alternatively:
 ;	sta	CONFIGWRITESTATUS					; Start pressed, reset PowerPak, stay in boot mode
 
@@ -1002,7 +942,6 @@ NoInternalHeader:
 	lda	fixheader
 	cmp	#$01
 	beq	NoInteralHeaderFixed					; header fix already attempted
-
 	jsr	 PrintClearScreen
 
 	SetCursorPos 1, 0
@@ -1011,7 +950,6 @@ NoInternalHeader:
 
 	lda	#$01
 	sta	fixheader
-
 	jmp	CheckInternalHeaderHi
 
 
@@ -1027,7 +965,6 @@ NoInteralHeaderFixed:
 
 CopyROMInfo:
 	ldx	#$0000
-
 -	lda	DMAREADDATA						; start at C0 (game title)
 	cmp	#$80							; check if character exceeds standard ASCII
 	bcc	+
@@ -1038,27 +975,30 @@ CopyROMInfo:
 	bne	-
 
 	stz	tempEntry, x						; NUL-terminate game title
-
 	lda	DMAREADDATA						; D5
 	sta	errorCode
 	and	#%11101111						; mask off fast/slow
 	sta	gameROMMapper
+
 	PrintString "\nMode $"
 	PrintHexNum errorCode
 
 	lda	DMAREADDATA						; D6
 	sta	gameROMType
+
 	PrintString ", Type $"
 	PrintHexNum gameROMType
 
 	lda	DMAREADDATA						; D7
 ;	sta	gameROMSize						; ROM size is taken from file size!
 	sta	errorCode
+
 	PrintString ", Size $"
 	PrintHexNum errorCode
 
 	lda	DMAREADDATA						; D8
 	sta	saveSize
+
 	PrintString ", SRAM $"
 	PrintHexNum saveSize
 
@@ -1081,193 +1021,130 @@ CopyROMInfo:
 
 CopyBanks:
 	ldy	#$0000
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$010
 	sta	gameBanks+$01
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$030
 	sta	gameBanks+$03
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$050
 	sta	gameBanks+$05
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$070
 	sta	gameBanks+$07
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$090
 	sta	gameBanks+$09
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$0B0
 	sta	gameBanks+$0B
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$0D0
 	sta	gameBanks+$0D
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$0F0
 	sta	gameBanks+$0F
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$110
 	sta	gameBanks+$11
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$130
 	sta	gameBanks+$13
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$150
 	sta	gameBanks+$15
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$170
 	sta	gameBanks+$17
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$190
 	sta	gameBanks+$19
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$1B0
 	sta	gameBanks+$1B
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$1D0
 	sta	gameBanks+$1D
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$1F0
 	sta	gameBanks+$1F
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$000
 	sta	gameBanks+$00
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$020
 	sta	gameBanks+$02
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$040
 	sta	gameBanks+$04
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$060
 	sta	gameBanks+$06
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$080
 	sta	gameBanks+$08
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$0A0
 	sta	gameBanks+$0A
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$0C0
 	sta	gameBanks+$0C
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$0E0
 	sta	gameBanks+$0E
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$100
 	sta	gameBanks+$10
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$120
 	sta	gameBanks+$12
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$140
 	sta	gameBanks+$14
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$160
 	sta	gameBanks+$16
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$180
 	sta	gameBanks+$18
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$1A0
 	sta	gameBanks+$1A
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$1C0
 	sta	gameBanks+$1C
-
 	iny
-
 	lda	[destLo], y
 	sta	CONFIGWRITEBANK+$1E0
 	sta	gameBanks+$1E
@@ -1298,7 +1175,9 @@ __PrintBanks1:
 __PrintBanks2:
 	lda	gameBanks, x
 	sta	errorCode
+
 	PrintHexNum errorCode
+
 	inx
 	inx
 	dey
@@ -1312,7 +1191,9 @@ __PrintBanks2:
 __PrintBanks3:
 	lda	gameBanks, x
 	sta	errorCode
+
 	PrintHexNum errorCode
+
 	inx
 	inx
 	dey
@@ -1331,15 +1212,12 @@ CopierHeaderCheck:
 	lda	sectorBuffer1+$08					; Super WildCard headers contain $AABB04 at offset $08-$0A
 	cmp	#$AA
 	bne	__SWCHeaderCheckDone
-
 	lda	sectorBuffer1+$09
 	cmp	#$BB
 	bne	__SWCHeaderCheckDone
-
 	lda	sectorBuffer1+$0A
 	cmp	#$04
 	bne	__SWCHeaderCheckDone
-
 	lda	#$01							; SWC copier header found
 	sta	headerType
 
@@ -1355,19 +1233,15 @@ __SWCHeaderCheckDone:
 	lda	sectorBuffer1+$00					; Game Doctor headered ROMs start with a "GAME" string
 	cmp	#'G'
 	bne	__CopierHeaderCheckDone
-
 	lda	sectorBuffer1+$01
 	cmp	#'A'
 	bne	__CopierHeaderCheckDone
-
 	lda	sectorBuffer1+$02
 	cmp	#'M'
 	bne	__CopierHeaderCheckDone
-
 	lda	sectorBuffer1+$03
 	cmp	#'E'
 	bne	__CopierHeaderCheckDone
-
 	lda	#$02
 	sta	headerType
 
@@ -1484,13 +1358,9 @@ ExHiRom96Mbit:
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F
 	.DB $00, $00, $00, $00, $30, $31, $32, $33, $00, $00, $00, $00, $34, $35, $36, $37
 
-
-
 SRAMSizes:
 	.DB %11111111, %11111111, %11111110, %11111100, %11111000, %11110000, %11100000, %11000000, %10000000, %00000000
 ;	       0          2          4          8        16          32           64       128        256         512
-
-
 
 SRAMTextLo:
 	.DB <SRAM0Kb, <SRAM16Kb, <SRAM32Kb, <SRAM64Kb, <SRAM128Kb, <SRAM256Kb, <SRAM512Kb, <SRAM1024Kb

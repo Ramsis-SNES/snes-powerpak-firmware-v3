@@ -120,7 +120,6 @@ STR_Firmware_VerNum:
 	.DB "3.00"
 
 STR_Firmware_VerNum_End:
-
 	.DB " "
 
 STR_Firmware_Codename:
@@ -133,7 +132,6 @@ STR_Firmware_BuildNum:
 	.DB "11334"
 
 STR_Firmware_BuildNum_End:
-
 	.DB 0
 
 ;STR_Firmware_Maker:

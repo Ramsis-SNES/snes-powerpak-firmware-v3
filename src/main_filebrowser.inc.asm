@@ -29,46 +29,36 @@ FileBrowser:
 
 	lda	DP_SubDirCounter					; check how much subdir data needs to be pushed onto stack
 	beq	+							; don't push anyhing if counter = 0
-
 	pea	(cursorYmin << 8) + cursorXfilebrowser			; push initial cursor position onto stack
 	pea	$0000							; push initial selectedEntry (always zero)
 	pei	(rootDirCluster+2)					; push source cluster of root directory
 	pei	(rootDirCluster)
-
 	lda	DP_SubDirCounter
 	cmp	#$0001
 	beq	+							; if counter = 1, don't push any more data
-
 	pea	(cursorYmin << 8) + cursorXfilebrowser			; cursor position
 	pea	$0000							; selectedEntry
 	pei	(baseDirCluster+2)					; source cluster of "POWERPAK" directory
 	pei	(baseDirCluster)
-
 +	lda	sourceCluster						; back up starting cluster of current dir
 	sta	DP_sourceCluster_BAK
-
 	lda	sourceCluster+2
 	sta	DP_sourceCluster_BAK+2
 
 	Accu8
 
 	stz	DP_SelectionFlags					; clear all selection-related flags
-
 	lda	#%00000011						; use SDRAM buffer, skip hidden files
 	sta	CLDConfigFlags
-
 	jsr	CardLoadDir						; load content of directory selected via sourceCluster (32-bit)
 	jsr	FileBrowserCheckDirEmpty
 
 .ACCU 16
 
 	stz	selectedEntry						; reset entry index
-
 	jsr	PrintPage
-
 	lda	#(cursorYmin << 8) + cursorXfilebrowser
 	sta	cursorX							; initial cursor position
-
 	stz	Joy1New							; reset input buttons
 	stz	Joy1Press
 
@@ -79,19 +69,19 @@ FileBrowser:
 __FileBrowserLoop:
 	wai
 
-
-
 .IFDEF SHOWDEBUGMSGS
 	SetCursorPos 22, 24
 	PrintHexNum selectedEntry+1
 	PrintString "-"
 	PrintHexNum selectedEntry
+
 	stz	BGPrintMon
 
 	SetCursorPos 23, 24
 	PrintHexNum filesInDir+1
 	PrintString "-"
 	PrintHexNum filesInDir
+
 	stz	BGPrintMon
 
 ;	SetCursorPos 0, 22
@@ -101,7 +91,6 @@ __FileBrowserLoop:
 
 ;	PrintHexNum temp+1						; print stack pointer (initial value: $1FFF)
 ;	PrintHexNum temp
-
 ;	SetCursorPos 1, 23
 ;	PrintHexNum DP_SubDirCounter
 .ENDIF
@@ -116,26 +105,20 @@ __FileBrowserLoop:
 __UpPressed:
 	lda	cursorYCounter
 	bne	__FileBrowserUpCheckDone
-
 	lda	scrollYCounter
 	bne	__FileBrowserUpCheckDone
-
 	lda	#$08
 	sta	speedScroll
 	lda	#$01
 	sta	speedCounter
-
 	jsr	ScrollUp
-
 	lda	Joy1Old+1
 	and	#%00001000
 	bne	__UpHeld
-
 	ldx	#14							; 14 frames
 
 __UpLongDelay:
 	wai
-
 	lda	Joy1+1
 	and	#%00001000
 	beq	__FileBrowserUpCheckDone
@@ -149,7 +132,6 @@ __UpHeld:
 
 __UpShortDelay:
 	wai
-
 	lda	Joy1+1
 	and	#%00001000
 	beq	__FileBrowserUpCheckDone
@@ -170,26 +152,20 @@ __FileBrowserUpCheckDone:
 __DownPressed:
 	lda	cursorYCounter
 	bne	__FileBrowserDownCheckDone
-
 	lda	scrollYCounter
 	bne	__FileBrowserDownCheckDone
-
 	lda	#$08
 	sta	speedScroll
 	lda	#$01
 	sta	speedCounter
-
 	jsr	ScrollDown
-
 	lda	Joy1Old+1
 	and	#%00000100
 	bne	__DownHeld
-
 	ldx	#14							; 14 frames
 
 __DownLongDelay:
 	wai
-
 	lda	Joy1+1
 	and	#%00000100
 	beq	__FileBrowserDownCheckDone
@@ -203,7 +179,6 @@ __DownHeld:
 
 __DownShortDelay:
 	wai
-
 	lda	Joy1+1
 	and	#%00000100
 	beq	__FileBrowserDownCheckDone
@@ -220,21 +195,16 @@ __FileBrowserDownCheckDone:
 	lda	Joy1Press+1
 	and	#%00000010
 	beq	__FileBrowserLeftCheckDone
-
 	lda	cursorYCounter
 	bne	__FileBrowserLeftCheckDone
-
 	lda	scrollYCounter
 	bne	__FileBrowserLeftCheckDone
-
 	lda	#$08
 ;	lda	#$04
 	sta	speedScroll
-
 	lda	#$01
 ;	lda	#$02
 	sta	speedCounter
-
 	jsr	ScrollUp
 
 __FileBrowserLeftCheckDone:
@@ -245,21 +215,16 @@ __FileBrowserLeftCheckDone:
 	lda	Joy1Press+1
 	and	#%00000001
 	beq	__FileBrowserRightCheckDone
-
 	lda	cursorYCounter
 	bne	__FileBrowserRightCheckDone
-
 	lda	scrollYCounter
 	bne	__FileBrowserRightCheckDone
-
 	lda	#$08
 ;	lda	#$04
 	sta	speedScroll
-
 	lda	#$01
 ;	lda	#$02
 	sta	speedCounter
-
 	jsr	ScrollDown
 
 __FileBrowserRightCheckDone:
@@ -276,16 +241,12 @@ __FileBrowserRightCheckDone:
 	lda	filesInDir						; if filesInDir <= maxFiles (i.e., there's only one "page"),
 	cmp	#maxFiles+1
 	bcc	__PgUpDone						; then do nothing at all
-
 	pei	(selectedEntry)						; preserve selectedEntry (16 bit)
-
 	jsr	SyncPage						; make selectedEntry = entry no. of file at top of screen
 	jsr	SelEntryDecPage
 	jsr	PrintPage						; new parameters set, print previous page
-
 	pla								; restore selectedEntry (16 bit)
 	sta	selectedEntry
-
 	jsr	SelEntryDecPage
 
 __PgUpDone:
@@ -305,16 +266,12 @@ __FileBrowserLCheckDone:
 	lda	filesInDir						; if filesInDir <= maxFiles (i.e., there's only one "page"),
 	cmp	#maxFiles+1
 	bcc	__PgDnDone						; then do nothing at all
-
 	pei	(selectedEntry)						; preserve selectedEntry (16 bit)
-
 	jsr	SyncPage						; make selectedEntry = entry no. of file at top of screen
 	jsr	SelEntryIncPage
 	jsr	PrintPage						; new parameters set, print next page
-
 	pla								; restore selectedEntry (16 bit)
 	sta	selectedEntry
-
 	jsr	SelEntryIncPage
 
 __PgDnDone:
@@ -332,13 +289,10 @@ __FileBrowserRCheckDone:
 __FileBrowserAorStartPressed:
 	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
 	sta	CLDConfigFlags
-
 	jsr	DirGetEntry						; get selected entry
-
 	lda	tempEntry.tempFlags					; check for "dir" flag
 	and	#$01
 	bne	+
-
 	jmp	__FileBrowserFileSelected
 
 +	Accu16
@@ -349,7 +303,6 @@ __FileBrowserAorStartPressed:
 __FileBrowserEntryHandler:
 	lda	selectedEntry
 	beq	+							; ... no, don't push anything if selectedEntry = 0 (always /. when not in root dir)
-
 	cmp	#$0001							; special case: selectedEntry = 1 (always /.. when not in root dir)
 	beq	__FileBrowserDirLevelUp
 
@@ -358,13 +311,10 @@ __FileBrowserSkipEntryHandler:
 	pei	(selectedEntry)						; push selectedEntry
 	pei	(DP_sourceCluster_BAK+2)				; push source cluster of current directory
 	pei	(DP_sourceCluster_BAK)
-
 	inc	DP_SubDirCounter					; increment subdirectory counter
-
 +	lda	tempEntry.tempCluster					; copy cluster of new directory, and save backup copy
 	sta	sourceCluster
 	sta	DP_sourceCluster_BAK
-
 	lda	tempEntry.tempCluster+2
 	sta	sourceCluster+2
 	sta	DP_sourceCluster_BAK+2
@@ -378,9 +328,7 @@ __FileBrowserSkipEntryHandler:
 	Accu16
 
 	stz	selectedEntry						; reset entry index
-
 	jsr	PrintPage
-
 	lda	#(cursorYmin << 8) + cursorXfilebrowser
 	sta	cursorX							; initial cursor position
 
@@ -411,7 +359,6 @@ __FileBrowserDirLevelUp:
 	pla								; load previous dir, save copy of starting cluster
 	sta	sourceCluster
 	sta	DP_sourceCluster_BAK
-
 	pla
 	sta	sourceCluster+2
 	sta	DP_sourceCluster_BAK+2
@@ -420,17 +367,14 @@ __FileBrowserDirLevelUp:
 
 	lda	#%00000011						; use SDRAM buffer, skip hidden files
 	sta	CLDConfigFlags
-
 	jsr	SpriteMessageLoading
 	jsr	CardLoadDir
 
 	Accu16
 
 	dec	DP_SubDirCounter					; decrement subdirectory counter
-
 	pla								; restore previous selectedEntry
 	sta	selectedEntry
-
 	pla								; restore previous cursor position
 	sta	DP_cursorX_BAK
 
@@ -459,21 +403,16 @@ __FileBrowserDirLevelUp:
 	sec								; make selectedEntry = file at the top of the screen
 	sbc	temp
 	bcs	+							; carry set --> new selectedEntry > 0
-
 	eor	#$FFFF							; carry clear --> underflow, selectedEntry < 0
 	inc	a							; make subtraction result positive
 	sta	temp
-
 	lda	filesInDir						; subtract underflow from filesInDir
 	sec
 	sbc	temp
 +	sta	selectedEntry
-
 	jsr	PrintPage						; new (old) parameters set, print page
-
 	pla								; restore selectedEntry
 	sta	selectedEntry
-
 	lda	DP_cursorX_BAK						; make cursor appear on the screen
 	sta	cursorX
 
@@ -487,7 +426,6 @@ __FileBrowserBCheckDone:
 	lda	Joy1New+1
 	and	#%00010000
 	beq	__FileBrowserStartCheckDone
-
 	jmp	__FileBrowserAorStartPressed
 
 __FileBrowserStartCheckDone:
@@ -502,7 +440,6 @@ __FileBrowserFileSelected:
 
 	lda	tempEntry.tempCluster					; copy file cluster to source cluster
 	sta	sourceCluster
-
 	lda	tempEntry.tempCluster+2
 	sta	sourceCluster+2
 
@@ -513,85 +450,57 @@ __FileBrowserFileSelected:
 	lda	#>sectorBuffer1
 	sta	destHi							; put first sector into sector RAM
 	stz	destBank
-
 	stz	sectorCounter
 	stz	bankCounter
-
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
-
 	lda	#kDestWRAM
 	sta	destType
-
 	jsr	CardReadSector						; sector -> WRAM
-
 	ldy	#$0000
-	
 	lda	sectorBuffer1, y					; check for ASCII string "SNES-SPC700"
 	cmp	#'S'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'N'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'E'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'S'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'-'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'S'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'P'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'C'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'7'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'0'
 	bne	+
-
 	iny
-
 	lda	sectorBuffer1, y
 	cmp	#'0'
 	bne	+
-
 	jmp	GotoSPCplayer						; SPC file detected, load player (from a user perspective, we aren't leaving the file browser anyway)
-
 +	lda	#%00000001						; file is not SPC, set "file selected" flag
 	sta	DP_SelectionFlags
 
@@ -600,14 +509,11 @@ __FileBrowserDone:
 
 	lda	DP_SubDirCounter
 	beq	+							; don't pull anything if in root dir
-
 	tax
-
 -	pla								; clean up the stack
 	pla
 	pla
 	pla
-
 	dex								; bytes to pull = DP_SubDirCounter * 8
 	bne	-
 
@@ -625,7 +531,6 @@ FileBrowserCheckDirEmpty:
 	lda	filesInDir						; check if dir contains relevant files
 	beq	+
 	rts
-
 +	pla								; clean up the stack (no rts from jsr FileBrowserCheckDirEmpty)
 
 	Accu8
@@ -653,27 +558,22 @@ PrintPage:
 	Accu8
 
 	stz	temp							; reset file counter
-
 	jsr	PrintClearScreen
 
 	SetCursorPos 0, 0
 
 -	inc	temp							; increment file counter
-
 	jsr	DirPrintEntry
 
 	Accu16
 
 	inc	selectedEntry						; increment entry index
-
 	lda	selectedEntry
 	cmp	filesInDir						; check if last file reached
 	bcc	+
-
 	lda	filesInDir						; yes, check if dir contains less files than can be put on the screen
 	cmp	#maxFiles+1
 	bcc	__PrintPageLoopDone
-
 	stz	selectedEntry						; there are more files, reset selectedEntry so that it "wraps around" 
 
 +	Accu8
@@ -692,10 +592,8 @@ __PrintPageLoopDone:
 
 	lda	#insertStandardTop					; standard values for scrolling
 	sta	insertTop
-
 	lda	#insertStandardBottom
 	sta	insertBottom
-
 	plp								; restore processor status
 	rts
 
@@ -704,13 +602,9 @@ __PrintPageLoopDone:
 DirPrintEntry:
 	lda	#%00000001						; use SDRAM buffer
 	sta	CLDConfigFlags
-
 	jsr	DirGetEntry
-
 	stz	tempEntry+56						; NUL-terminate entry string after 56 characters
-
 	ldy	#PTR_tempEntry
-
 	lda	tempEntry.tempFlags					; if "dir" flag is set, then print a slash in front of entry name
 	and	#%00000001
 	beq	__PrintFileOnly
@@ -722,7 +616,6 @@ __PrintFileOnly:
 	PrintString "  %s\n"
 
 __DirPrintEntryDone:
-
 	stz	CLDConfigFlags						; reset CLDConfigFlags
 	rts
 
@@ -735,11 +628,9 @@ SelEntryDecPage:							; decrement selectedEntry by one "page", wrap around zero
 	sec
 	sbc	#maxFiles						; subtract maxFiles for "previous page"
 	bcs	+							; carry set --> new selectedEntry >= 0
-
 	eor	#$FFFF							; carry clear --> underflow, selectedEntry < 0
 	inc	a							; make subtraction result positive
 	sta	temp+4
-
 	lda	filesInDir						; subtract underflow from filesInDir
 	sec
 	sbc	temp+4
@@ -754,7 +645,6 @@ SelEntryIncPage:							; increment selectedEntry by one "page", wrap around zero
 	adc	#maxFiles						; add maxFiles for "next page"
 	cmp	filesInDir
 	bcc	+							; new selectedEntry < filesInDir
-
 ;	sec								; carry set (and thus, sec intentionally commented out) --> overflow, selectedEntry >= filesInDir
 	sbc	filesInDir						; subtract filesInDir
 +	sta	selectedEntry						; e.g. if selectedEntry was (filesInDir+5) after the first addition, then it is now $0005)
@@ -782,16 +672,13 @@ SyncPage:
 	sec								; subtract difference so that selectedEntry now corresponds
 	sbc	temp							; to the file at the top of the screen
 	bcs	+							; carry set --> new selectedEntry > 0
-
 	eor	#$FFFF							; carry clear --> underflow, selectedEntry < 0
 	inc	a							; make subtraction result positive
 	sta	temp
-
 	lda	filesInDir						; subtract underflow from filesInDir
 	sec
 	sbc	temp
 +	sta	selectedEntry
-
 	plp								; restore processor status
 	rts
 

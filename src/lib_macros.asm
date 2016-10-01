@@ -67,7 +67,6 @@
 	clc
 	lda.b	#\1
 	adc.b	#minPrintY						; add Y indention
-
 	jsr	PrintClearLine
 .ENDM
 
@@ -88,7 +87,6 @@
 
 .MACRO PrintNum
 	lda	\1
-
 	jsr	PrintInt8_noload
 .ENDM
 
@@ -96,7 +94,6 @@
 
 .MACRO PrintHexNum
 	lda	\1
-
 	jsr	PrintHex8_noload
 .ENDM
 
@@ -112,10 +109,8 @@
 
 __CheckJoypad\@:
 	wai
-
 	lda	Joy1New
 	and	#$F0F0							; B, Y, Select, Start (no d-pad), A, X, L, R
-
 	beq	__CheckJoypad\@
 
 	Accu8
@@ -148,25 +143,19 @@ __FrameDelay\@:
 
 ; -------------------------- draw upper border
 	ldx	#32*\2 + \1
-
 	lda	#$20							; upper left corner
 	sta	TextBuffer.BG1, x					; start on BG1
-
 	lda	#$22							; horizontal line
 
 __DrawUpperBorder\@:
 	sta	TextBuffer.BG2, x
-
 	inx
-
 	sta	TextBuffer.BG1, x
-
 	cpx	#32*\2 + \1 + \3
 	bne	__DrawUpperBorder\@
 
 	lda	#$24							; upper right corner
 	sta	TextBuffer.BG2, x
-
 	bra	__GoToNextLine\@
 
 ; -------------------------- draw left & right border
@@ -184,16 +173,12 @@ __DrawLRBorder\@:
 ;	Accu8
 
 	lda	#$40							; space
-
 	ldy	#$0000
 
 __ClearTextInsideFrame\@:
 	sta	TextBuffer.BG2, x
-
 	inx
-
 	sta	TextBuffer.BG1, x
-
 	iny
 	cpy	#\3
 	bne	__ClearTextInsideFrame\@
@@ -217,16 +202,12 @@ __GoToNextLine\@:
 ; -------------------------- draw lower border
 	lda	#$2A							; lower left corner
 	sta	TextBuffer.BG1, x
-
 	lda	#$22							; horizontal line
 
 __DrawLowerBorder\@:
 	sta	TextBuffer.BG2, x
-
 	inx
-
 	sta	TextBuffer.BG1, x
-
 	cpx	#32*(\2+\4) + \1 + \3
 	bne	__DrawLowerBorder\@
 
@@ -244,10 +225,8 @@ __DrawLowerBorder\@:
 .MACRO PrintSpriteText
 	ldx	#((8*\1)-2)<<8 + 8*\2
 	stx	Cursor
-
 	lda	#\4
 	sta	DP_SprTextPalette
-
 	jsr	PrintSpriteText
 
 	.DB \3, 0							; the string address (-1) gets pushed onto the stack
@@ -263,7 +242,6 @@ __DrawLowerBorder\@:
 .MACRO HideCursorSprite
 	lda.b	#$FF							; hide cursor
 	sta.b	cursorX
-
 	lda.b	#$F0
 	sta.b	cursorY
 .ENDM
@@ -280,19 +258,14 @@ __DrawLowerBorder\@:
 .MACRO DMA_CH0
 	lda	#\1							; DMA mode (8 bit)
  	sta	$4300
-
 	lda	#\4							; B bus register (8 bit)
 	sta	$4301
-
 	ldx	#\3							; data offset (16 bit)
 	stx	$4302
-
 	lda	#\2							; data bank (8 bit)
 	sta	$4304
-
 	ldx	#\5							; data length (16 bit)
 	stx	$4305
-
 	lda	#%00000001						; initiate DMA transfer (channel 0)
 	sta	$420B
 .ENDM
@@ -316,25 +289,18 @@ __DrawLowerBorder\@:
 __WaitForHblank\@:
 	bit	REG_HVBJOY						; wait for Hblank period flag to get set
 	bvc	__WaitForHblank\@
-
 	lda	#\1							; DMA mode (8 bit)
  	sta	$4310
-
 	lda	#\5							; B bus register (8 bit)
 	sta	$4311
-
 	lda	#\4							; data offset, low byte (8 bit)
 	sta	$4312
-
 	lda	#\3							; data offset, high byte (8 bit)
 	sta	$4313
-
 	lda	#\2							; data bank (8 bit)
 	sta	$4314
-
 	ldx	\6							; data length (sourceBytes16 variable, 512 bytes)
 	stx	$4315
-
 	lda	#%00000010						; initiate DMA transfer (channel 1)
 	sta	$420B
 .ENDM
@@ -358,10 +324,8 @@ __WaitForHblank\@:
 .INDEX 16
 
 	jsr	ClearFindEntry
-
 	ldx	#$0001							; number of file types to look for (1)
 	stx	extNum
-
 	ldx	#$0000
 
 __LoadFileNameLoop\@:
@@ -377,11 +341,9 @@ __FileNameComplete\@:
 	inx								; skip '.'
 	lda.w	FileName\@, x						; load extension and store it in extMatchX
 	sta	extMatch1
-
 	inx
 	lda.w	FileName\@, x
 	sta	extMatch2
-
 	inx
 	lda.w	FileName\@, x
 	sta	extMatch3
@@ -390,14 +352,12 @@ __FileNameComplete\@:
 
 	lda	baseDirCluster						; "POWERPAK" dir start
 	sta	sourceCluster
-
 	lda	baseDirCluster+2
 	sta	sourceCluster+2
 
 	Accu8
 
 	stz	CLDConfigFlags						; use WRAM buffer, don't skip hidden files
-
 	jsr	CardLoadDir						; "POWERPAK" dir
 	jsr	DirFindEntry						; get first cluster of file to look for
 
@@ -405,7 +365,6 @@ __FileNameComplete\@:
 
 	lda	tempEntry.tempCluster
 	sta	sourceCluster
-
 	lda	tempEntry.tempCluster+2
 	sta	sourceCluster+2
 
@@ -433,7 +392,6 @@ __FileName_End\@:
 .INDEX 16
 
 	pei	(destLo)						; push destLo/destHi onto stack
-
 	jsr	LoadNextSectorNum
 
 	Accu16
@@ -512,7 +470,6 @@ __WaitForVblankEnd2\@:
 __DQ6Toggling\@:
 	bit	$008000							; wait for DQ6 bit toggling to stop
 	bvs	__DQ6NextTest\@
-
 	bit	$008000
 	bvc	__DeviceReady\@
 
@@ -532,7 +489,6 @@ __DeviceReady\@:
 	iny
 	iny
 	bmi	__no_overflow\@
-
 	inc	spc_ptr+2
 	ldy	#$8000
 

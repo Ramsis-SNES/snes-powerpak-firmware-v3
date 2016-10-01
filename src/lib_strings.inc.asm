@@ -139,7 +139,6 @@ PrintSubstring:
 	lda	$0000,X							; read next format string character
 	beq	__PrintSubstringDone					; check for NUL terminator
 	INX								; increment input pointer
-
 	jsr	FillTextBuffer						; print the character on BG1/2
 	bra	PrintSubstring
 
@@ -173,25 +172,18 @@ FillTextBuffer:								; expectations: A = 8 bit, X/Y = 16 bit
 
 __FillTextBufferBG1:
 	inc	BGPrintMon						; otherwise, change value and use BG1
-
 	pla
 	phx
-
 	ldx	Cursor
-
 	asl	a							; character code * 2 so it matches hi-res font tile location
 	sta	TextBuffer.BG1, x					; write it to the BG1 text buffer
-
 	bra	__FillTextBufferDone					; ... and done
 
 __FillTextBufferBG2:
 	stz	BGPrintMon						; reset BG monitor value
-
 	pla
 	phx
-
 	ldx	Cursor
-
 	asl	a							; character code * 2
 	sta	TextBuffer.BG2, x					; write it to the BG2 text buffer
 	inx								; ... and advance text cursor position
@@ -216,7 +208,6 @@ __FillTextBufferDone:
 PrintSpriteText:
 	plx								; pull return address (-1) from stack, which is actually the string address (-1)
 	inx								; make X = start of string
-
 	php								; preserve processor status
 
 	Accu8
@@ -228,7 +219,6 @@ __PrintSpriteTextLoop:
 	lda	$0000,X							; read next string character
 	beq	__PrintSpriteTextDone					; check for NUL terminator
 	INX								; increment input pointer
-
 	phx								; preserve input pointer
 	pha								; preserve ASCII value
 
@@ -241,39 +231,28 @@ __PrintSpriteTextLoop:
 
 	lda	Cursor
 	sta	SpriteBuf1.Text, y					; X position
-
 	clc
 	adc.l	SpriteFWT, x						; advance cursor position as per font width table entry
 	sta	Cursor
-
 	iny
-
 	lda	Cursor+1
 	sta	SpriteBuf1.Text, y					; Y position
-
 	iny
-
 	pla								; restore ASCII value
 	plx								; restore input pointer
-
 ;	clc
 ;	adc	#$40							; tile num offset (relative to ASCII char value)
 	sta	SpriteBuf1.Text, y					; tile num = ASCII value
-
 	iny
-
 	lda	DP_SprTextPalette
 	asl	a							; shift palette num to bit 1-3
 ;	ora	#$01							; add upper 1 bit to tile num
 	sta	SpriteBuf1.Text, y					; tile attributes
-
 	iny
 	cpy	#$0080							; if sprite buffer is full, reset
 	bcc	+
-
 	ldy	#$0000
 +	sty	DP_SprTextMon						; keep track of sprite text buffer filling level
-
 	bra	__PrintSpriteTextLoop
 
 __PrintSpriteTextDone:
@@ -410,17 +389,14 @@ PrintClearLine:
 	asl	a
 	asl	a
 	sta	Cursor
-
 	pla
 	lsr	a
 	lsr	a
 	lsr	a
 	sta	Cursor+1
-
 	ldx	Cursor
 	ldy	#$0000
 	lda	#$40							; space (hi-res tile number)
-
 -	sta	TextBuffer.BG1, x					; clear BG1 text buffer
 	sta	TextBuffer.BG2, x					; clear BG2 text buffer
 	inx
@@ -437,7 +413,6 @@ PrintClearScreen:
 
 	lda	#$4040							; overwrite 2 tiles at once ($40 = space)
 	ldx	#$0000
-
 -	sta	TextBuffer.BG1, x
 	sta	TextBuffer.BG2, x
 	inx
@@ -450,7 +425,6 @@ PrintClearScreen:
 	stz	cursorYCounter						; reset scrolling parameters
 	stz	cursorYUp
 	stz	cursorYDown
-
 	stz	scrollY
 	stz	scrollYCounter
 	stz	scrollYUp
@@ -461,7 +435,6 @@ ClearSpriteText:
 
 	lda	#$F0F0
 	ldy	#$0000
-
 -	sta	SpriteBuf1.Text, y					; Y, X
 	iny
 	iny

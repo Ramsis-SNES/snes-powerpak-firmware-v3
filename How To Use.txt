@@ -161,7 +161,7 @@ Further notes on theme data:
    ASSEMBLING THE SOURCE
 ______________________________________________________________________
 
-The sourcecode is best worked on using e.g. Programmer's Notepad with a tabulator size of 8 (comments usually sit on column 49). If you want to reassemble the source, you must obtain these tools used by the make script:
+The sourcecode is best worked on using e.g. Programmer's Notepad with a tabulator size of 8 (comments usually sit on column 73). If you want to reassemble the source, you must obtain these tools used by the make script:
 
 - WLA DX v9.6 Windows binaries (available here: http://forums.nesdev.com/viewtopic.php?f=12&t=12334 )
 - gfx2snes.exe and smconv.exe from Alekmaul's DevkitSnes v1.0.0 release

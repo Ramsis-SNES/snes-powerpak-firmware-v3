@@ -33,10 +33,8 @@ InitTXTBrowser:
 
 	lda	rootDirCluster						; start in root directory
 	sta	sourceCluster
-
 	lda	rootDirCluster+2
 	sta	sourceCluster+2
-
 	stz	DP_SubDirCounter					; reset subdirectory counter
 
 	Accu8
@@ -44,16 +42,12 @@ InitTXTBrowser:
 	lda	#$01							; number of file types to look for (1, TXT only)
 	sta	extNum
 	stz	extNum+1
-
 	lda	#'T'
 	sta	extMatch1
 	sta	extMatch3
-
 	lda	#'X'
 	sta	extMatch2
-
 	jsr	FileBrowser
-
 	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
 ;	bne	GGCodeListSelected					; yes, process file
@@ -69,7 +63,6 @@ GGCodeListSelected:
 
 	lda	tempEntry.tempCluster					; copy TXT file cluster to source cluster
 	sta	sourceCluster
-
 	lda	tempEntry.tempCluster+2
 	sta	sourceCluster+2
 
@@ -80,17 +73,12 @@ GGCodeListSelected:
 	lda	#>sectorBuffer1
 	sta	destHi							; put into sector RAM
 	stz	destBank
-
 	stz	sectorCounter
 	stz	bankCounter
-
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
-
 	lda	#kDestWRAM
 	sta	destType
-
 	jsr	CardReadSector						; sector -> WRAM
-
 	ldx	#$0000
 	ldy	#$0000
 
@@ -130,7 +118,6 @@ ReadLine:
 	beq	NextCode
 	cmp	#$0A
 	beq	NextCode
-
 	iny
 	cpy	#$0100							; CHANGEME --> read 256 bytes per line only ??
 ;	beq	ReadLoopDone
@@ -213,7 +200,6 @@ SaveCharNum:
 GameGenieClearCode:							; clears out one GG code at a time, expects code no. set to Y
 	ldx	#$0000							; (#$0000 = code 1, #$0008 = code 2, ... #$0020 = code 5)
 	lda	#$10							; $10 = underscore on code display
-
 -	sta	GameGenie.Codes, y
 	iny
 	inx
@@ -229,7 +215,6 @@ GameGenieClearAll:							; clears out all GG codes at once
 
 	ldy	#$0000
 	lda	#$1010							; $10 = underscore on GG code display
-
 -	sta	GameGenie.Codes, y
 	iny
 	iny
@@ -244,43 +229,30 @@ GameGenieClearAll:							; clears out all GG codes at once
 
 GameGeniePrint:								; code to print already set to Y
 	phy
-
 	jsr	CLD_ClearEntryName					; clear out tempEntry
-
 	ply
-
 	stz	GameGenie.CharOffset+1
-
 	ldx	#$0000
-
 -	lda	GameGenie.Codes, y
 	sta	GameGenie.CharOffset
 	iny								; advance code character offset
-
 	phx
-
 	ldx	GameGenie.CharOffset
 	lda.l	GameGenieCharDB, x					; look up ASCII equivalent for code char
-
 	plx
-
 	sta	tempEntry, x
 	inx
-
 	lda	#' '							; put 3 spaces after each char
-
 	sta	tempEntry, x
 	inx
 	sta	tempEntry, x
 	inx
 	sta	tempEntry, x
 	inx
-
 	cpx	#$0020							; (1 char + 3 spaces) × 8 = 32 chars to print
 	bne	-
 
 	stz	tempEntry, x						; NUL-terminator
-
 	ldy	#PTR_tempEntry
 
 	PrintString "%s"
@@ -291,35 +263,24 @@ GameGeniePrint:								; code to print already set to Y
 
 GameGenieDecode:							; code to decode set to Y
 	phy
-
 	stz	GameGenie.CharOffset+1
-
 	ldx	#$0000
-
 -	lda	GameGenie.Codes, y
 	sta	GameGenie.CharOffset
 	iny								; advance code character offset
-
 	phx
-
 	ldx	GameGenie.CharOffset
 	lda.l	GGCharConvertedToHexDB, x				; look up real hex equivalent for GG hex character
-
 	plx
-
 	sta	GameGenie.RealHex, x
 	inx
-
 	cpx	#$0008							; 8 characters per code
 	bne	-
 
 	ply
-
 	phy
-
 	ldx	#$0000
 	ldy	#$0000
-
 -	lda	GameGenie.RealHex, x
 	asl	a
 	asl	a
@@ -334,7 +295,6 @@ GameGenieDecode:							; code to decode set to Y
 	bne	-
 
 	ply
-
 	lda	GameGenie.Scratchpad
 	sta	GameGenie.Decoded, y					; DATA done
 
@@ -345,13 +305,10 @@ GameGenieDecode:							; code to decode set to Y
 
 	lda	GameGenie.Scratchpad+2					; wxefghmn opabcduv
 	pha
-
 	asl	a							; xefghmno pabcduv0, w = carry bit
 	rol	GameGenie.Scratchpad+2					; xefghmno pabcduvw
-
 	asl	a							; efghmnop abcduv00, x = carry bit
 	rol	GameGenie.Scratchpad+2					; efghmnop abcduvwx
-
 	pla								; wxefghmn opabcduv
 
 	Accu8
@@ -361,7 +318,6 @@ GameGenieDecode:							; code to decode set to Y
 	lsr	a							; 00wxefgh
 	and	#$0F							; 0000efgh
 	sta	temp
-
 	lda	GameGenie.Scratchpad+1					; ijklqrst
 	and	#$F0							; ijkl0000
 	sta	temp+1
@@ -381,7 +337,6 @@ GameGenieDecode:							; code to decode set to Y
 	asl	a
 	asl	a
 	sta	temp							; qrst0000
-
 	lda	GameGenie.Scratchpad+2					; abcduvwx
 	and	#$0F							; 0000uvwx
 	ora	temp							; qrstuvwx
@@ -391,20 +346,23 @@ GameGenieDecode:							; code to decode set to Y
 
 	lda	GameGenie.Decoded+1, y
 	sta	temp
+
 	PrintHexNum temp
 
 	lda	GameGenie.Decoded+2, y
 	sta	temp
+
 	PrintHexNum temp
 
 	lda	GameGenie.Decoded+3, y
 	sta	temp
-	PrintHexNum temp
 
+	PrintHexNum temp
 	PrintString " = $"
 
 	lda	GameGenie.Decoded, y
 	sta	temp
+
 	PrintHexNum temp
 
 	rts
@@ -413,15 +371,12 @@ GameGenieDecode:							; code to decode set to Y
 
 GameGenieNextChar:
 	ldx	GameGenie.CharOffset
-
 	lda	GameGenie.Codes, x
 	inc	a
 	sta	GameGenie.Codes, x
 	cmp	#$11
 	bne	+
-
 	stz	GameGenie.Codes, x
-
 +	jsr	GameGeniePrint
 	rts
 
@@ -429,16 +384,13 @@ GameGenieNextChar:
 
 GameGeniePrevChar:
 	ldx	GameGenie.CharOffset
-
 	lda	GameGenie.Codes, x
 	dec	a
 	sta	GameGenie.Codes, x
 	cmp	#$FF
 	bne	+
-
 	lda	#$10
 	sta	GameGenie.Codes, x
-
 +	jsr	GameGeniePrint
 	rts
 
@@ -448,39 +400,30 @@ GameGenieWriteCode:
 	PrintString "GG-> "
 
 	jsr	GameGenieDecode
-
 	lda	GameGenie.Codes, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+1, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+2, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+3, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+4, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+5, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+6, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	lda	GameGenie.Codes+7, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
-
 	bra	GameGenieWriteCodeGood
 
 GameGenieWriteCodeSkip:
@@ -491,19 +434,14 @@ GameGenieWriteCodeSkip:
 GameGenieWriteCodeGood:
 	lda	GameGenie.Decoded, y					; data
 	sta	ggcode
-
 	lda	GameGenie.Decoded+1, y					; bank
 	sta	ggcode+1
-
 	lda	GameGenie.Decoded+2, y					; high
 	sta	ggcode+2
-
 	lda	GameGenie.Decoded+3, y					; low
 	sta	ggcode+3
-
 	lda	#$00
 	sta	CONFIGWRITESRAMSIZE
-
 	lda	ggcode+1						; GG addr = bbhhll
 	and	#$F0
 	lsr	a
@@ -515,32 +453,24 @@ GameGenieWriteCodeGood:
 	PrintHexNum sourceLo
 
 	stz	sourceHi
-
 	ldx	sourceLo
 	lda	gameBanks, x
 	sta	errorCode
-
 	inx								; THIS IS WRONG?  SHOULD BE +$10?
-
 	lda	gameBanks, x
 	sta	errorCode+1
-
 	lda	errorCode
-
 	sta	CONFIGWRITEBANK+$1E0					; put indexed bank into F0low reg
 
 	PrintString " blo="
 	PrintHexNum errorCode
-
 ;	DelayFor 172							; for debugging
 
 	lda	errorCode+1
-
 	sta	CONFIGWRITEBANK+$1F0					; put indexed bank into F0hi reg
 
 	PrintString " bhi="
 	PrintHexNum errorCode+1
-
 ;	DelayFor 172							; for debugging
 
 	lda	ggcode+3
@@ -677,13 +607,10 @@ GGCheck:
 	lda	$F00000, x
 	sta	errorCode
 	stx	sourceLo
-
 	lda	sramSizeByte
 	sta	CONFIGWRITESRAMSIZE
-
 	lda	gameBanks+$1E
 	sta	CONFIGWRITEBANK+$1E0					; put bank back
-
 	lda	gameBanks+$1F
 	sta	CONFIGWRITEBANK+$1F0					; put bank back
 

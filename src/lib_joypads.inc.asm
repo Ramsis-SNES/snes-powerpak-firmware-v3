@@ -23,16 +23,12 @@ JoyInit:
 
 	lda	#$C0							; have the automatic read of the SNES read the first pair of JoyPads
 	sta	REG_WRIO
-
 	ldx	#$0000
 	stx	Joy1Press
 	stx	Joy2Press
-
 	lda	#$81
 	sta	REG_NMITIMEN						; enable JoyPad Read and NMI
-
 	wai								; wait for NMI to fill the variables with real JoyPad data
-
 	plp
 	rts
 
@@ -54,7 +50,6 @@ _W1:	bit	REG_HVBJOY
 
 	lda	Joy1
 	sta	Joy1Old
-
 	lda	REG_JOY0						; get JoyPad1
 	tax
 	eor	Joy1							; A = A xor JoyState = (changes in joy state)
@@ -62,7 +57,6 @@ _W1:	bit	REG_HVBJOY
 	ora	Joy1Press						; A = (joy changes) or (buttons pressed)
 	and	Joy1							; A = ((joy changes) or (buttons pressed)) and (current joy state)
 	sta	Joy1Press						; store A = (buttons pressed since last clearing reg) and (button is still down)
-
 	lda	REG_JOY1						; get JoyPad2
 	tax
 	eor	Joy2							; A = A xor JoyState = (changes in joy state)
@@ -70,7 +64,6 @@ _W1:	bit	REG_HVBJOY
 	ora	Joy2Press						; A = (joy changes) or (buttons pressed)
 	and	Joy2							; A = ((joy changes) or (buttons pressed)) and (current joy state)
 	sta	Joy2Press						; store A = (buttons pressed since last clearing reg) and (button is still down)
-
 	lda	Joy1Old
 	eor	#$FFFF
 	and	Joy1
@@ -85,7 +78,6 @@ _W1:	bit	REG_HVBJOY
 	and	#$01							; A = -bit0 of JoySer0
 	ora	Joy1
 	sta	Joy1							; joy state = (joy state) or A.... so bit0 of Joy1State = 0 only if it is a valid joypad
-
 	lda	REG_JOYSER1
 	eor	#$01
 	and	#$01							; A = -bit0 of JoySer1
@@ -98,7 +90,6 @@ _W1:	bit	REG_HVBJOY
 
 	ldx	#$0001
 	lda	#$000F
-
 	bit	Joy1							; A = joy state, if any of the bottom 4 bits are on... either nothing is plugged
 	beq	_joy2							; into the joy port, or it is not a joypad
 	stx	Joy1							; if it is not a valid joypad put $0001 into the 2 joy state variables

@@ -15,27 +15,22 @@
 GotoFlashUpdater:
 	lda	#$00
 	sta	CONFIGWRITEDSP						; turn off DSP chip
-
 	lda	#$00							; reset SDRAM address
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK
-
 	stz	sectorCounter
 	stz	bankCounter
-
 	jsr	CardReadFile						; source cluster already set in CheckForUpdate section
 	jsr	VerifyUpdateFile					; back here means file is OK
 	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "SNES PowerPak Flash Updater", 4
-
 	SetCursorPos 2, 0
 	PrintString "v3.00, (c) 2015 by www.ManuLoewe.de\n\n"
 	PrintString "Detected flash ROM chip ID: "
 
 	ldx	#$0000
-
 -	lda.l	SPIdentification, x					; copy SPIdentification subroutine to WRAM
 	sta	codeBuffer, x
 	inx
@@ -43,31 +38,29 @@ GotoFlashUpdater:
 	bne	-
 
 	jsl	codeBuffer						; jump to SPIdentification subroutine in WRAM
-
 	lda	temp							; check for detected chip ID
 	cmp	#$1F
 	bne	+
-
 	lda	temp+1
 	cmp	#$D5
 	bne	+
 
 	PrintString "AT29C010A"
+
 	jmp	FlashUpdateWarning
 
 +	lda	temp
 	cmp	#$BF
 	bne	+
-
 	lda	temp+1
 	cmp	#$B5
 	bne	+
 
 	PrintString "SST39SF010A"
+
 	jmp	FlashUpdateWarning
 
 +	PrintString "unknown"
-
 	SetCursorPos 6, 0
 	PrintString "ERROR!\n\n"
 	PrintString "The in-system flash upgrade isn't available for\n"
@@ -81,7 +74,6 @@ GotoFlashUpdater:
 
 FlashUpdateWarning:
 	SetCursorPos 6, 0
-
 	PrintString "WARNING!\n\n"
 	PrintString "This update is performed AT YOUR OWN RISK!\n\n"
 	PrintString "Don't switch off or reset the SNES while flashing.\n"
@@ -100,7 +92,6 @@ FlashUpdateWarning:
 
 ; -------------------------- wait for user to press A button
 -	wai
-
 	lda	Joy1New							; wait for user input
 	and	#%10000000						; A button
 	beq	-
@@ -109,7 +100,6 @@ FlashUpdateWarning:
 	PrintString "FLASHING IN PROGRESS, PLEASE WAIT ..."
 
 	wai								; wait for the message to appear on the screen
-
 	ldx	#$0000				; reset X
 
 
@@ -118,11 +108,9 @@ FlashUpdateWarning:
 	lda	temp							; re-check chip ID (temp variable shouldn't have changed, but you never know ...)
 	cmp	#$1F
 	bne	+
-
 	lda	temp+1
 	cmp	#$D5
 	bne	+
-
 -	lda.l	Flash_AT29C010A, x					; copy AT29C010A flashing code to WRAM
 	sta	codeBuffer, x
 	inx
@@ -137,11 +125,9 @@ FlashUpdateWarning:
 +	lda	temp
 	cmp	#$BF
 	bne	+
-
 	lda	temp+1
 	cmp	#$B5
 	bne	+
-
 -	lda.l	Flash_SST39SF010A, x					; copy SST39SF010A flashing code to WRAM
 	sta	codeBuffer, x
 	inx
@@ -154,7 +140,6 @@ FlashUpdateWarning:
 
 ; -------------------------- WRAM (at the least) has been compromised --> cancel flashing
 +	ClearLine 19
-
 	SetCursorPos 19, 0
 	PrintString "ERROR!\n\n"
 	PrintString "Unknown chip ID error."
@@ -172,7 +157,6 @@ FlashUpdateWarning:
 SPIdentification:
 	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
-
 	lda	#$AA							; software product identification entry
 	sta	$00D555							; $5555 + $8000 (SNES LoROM address)
 	lda	#$55
@@ -186,7 +170,6 @@ SPIdentification:
 	sta	temp
 	lda	$008001							; device code (AT29C010A: $D5 - SST39SF010A: $B5)
 	sta	temp+1
-
 	lda	#$AA							; software product identification exit
 	sta	$00D555
 	lda	#$55
@@ -208,12 +191,10 @@ SPIdentification_End:
 Flash_AT29C010A:
 	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
-
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK
-
 	ldx	#$0000
 
 __NextSectorBank0:
@@ -223,9 +204,7 @@ __NextSectorBank0:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	ldy	#$0000
-
 -	lda	DMAREADDATA
 	sta	$008000, x
 	inx
@@ -247,9 +226,7 @@ __NextSectorBank1:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	ldy	#$0000
-
 -	lda	DMAREADDATA
 	sta	$018000, x
 	inx
@@ -271,9 +248,7 @@ __NextSectorBank2:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	ldy	#$0000
-
 -	lda	DMAREADDATA
 	sta	$028000, x
 	inx
@@ -295,9 +270,7 @@ __NextSectorBank3:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	ldy	#$0000
-
 -	lda	DMAREADDATA
 	sta	$038000, x
 	inx
@@ -322,12 +295,10 @@ Flash_AT29C010A_End:
 Flash_SST39SF010A:
 	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
-
 	lda	#$00
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK
-
 	ldx	#$0000
 
 __Prepare4KBSectorBank0:
@@ -355,7 +326,6 @@ __Write4KBSectorBank0:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	lda	DMAREADDATA
 	sta	$008000, x
 
@@ -396,7 +366,6 @@ __Write4KBSectorBank1:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	lda	DMAREADDATA
 	sta	$018000, x
 
@@ -437,7 +406,6 @@ __Write4KBSectorBank2:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	lda	DMAREADDATA
 	sta	$028000, x
 
@@ -478,7 +446,6 @@ __Write4KBSectorBank3:
 	sta	$00AAAA
 	lda	#$A0
 	sta	$00D555
-
 	lda	DMAREADDATA
 	sta	$038000, x
 
@@ -510,35 +477,27 @@ VerifyUpdateFile:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK
-
 	lda	DMAREADDATA
 	cmp	#'P'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'o'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'w'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'e'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'r'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'P'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'a'
 	bne	__CorruptUpdateROM
-
 	lda	DMAREADDATA
 	cmp	#'k'
 	bne	__CorruptUpdateROM
@@ -548,7 +507,6 @@ __CorruptUpdateROM:
 	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "Error!", 4
-
 	SetCursorPos 3, 0
 	PrintString "UPDATE.ROM appears to be a corrupt file.\n\n"
 	PrintString "Please perform the following steps before trying\n"

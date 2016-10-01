@@ -18,7 +18,6 @@
 
 spc700_load:
 	php
-
 	phk								; set data bank = program bank (required because spc700_load was relocated to ROM bank 2 for v3.00)
 	plb
 
@@ -27,20 +26,15 @@ spc700_load:
 
 	sei								; Disable NMI & IRQ
 	stz	REG_NMITIMEN						; The SPC player code is really timing sensitive ;)
-
 	jsr	InitWRAMBuffer						; buffer parts of SPC dump to avoid timing problems
 	jsr	upload_dsp_regs						; Upload S-DSP registers
 	jsr	upload_high_ram						; Upload 63.5K of SPC700 ram
 	jsr	upload_low_ram						; Upload rest of ram
 	jsr	restore_final						; Restore SPC700 state & start execution
-
 	lda	REG_RDNMI						; clear NMI flag
-
 	lda	#$81							; VBlank NMI + Auto Joypad Read
 	sta	REG_NMITIMEN						; re-enable VBlank NMI
-
 ;	cli								; never mind, PLP restores this
-
 	plp
 	rtl
 
@@ -59,8 +53,7 @@ upload_dsp_regs:
 ; ---- Upload loader
 
 	ldx	#$0000
--
-	lda.l	loader,x
+-	lda.l	loader,x
 	jsr	spc_upload_byte
 	inx
 	cpy	#31							; size of loader
@@ -86,13 +79,11 @@ upload_dsp_regs:
 	bne	+
 	lda	#$00
 	bra	upload_skip_load
-+
-	cpx	#$6C
++	cpx	#$6C
 	bne	+
 	lda	#$E0
 	bra	upload_skip_load
-+
-	lda.l	spcRegBuffer, x
++	lda.l	spcRegBuffer, x
 upload_skip_load:
 	jsr	spc_upload_byte
 	inx
@@ -103,7 +94,6 @@ upload_skip_load:
 
 	ldy	#$00F1
 	jsr	spc_next_upload
-
 	lda	#$80							; stop timers
 	jsr	spc_upload_byte
 	lda	#$6c							; get dspaddr set for later
@@ -115,10 +105,8 @@ upload_skip_load:
 
 	ldy	#$00F8
 	jsr	spc_next_upload
-
 	ldx	#$00F8
--
-	lda.l	spcF8Buffer, x
+-	lda.l	spcF8Buffer, x
 	jsr	spc_upload_byte
 	inx
 	cpx	#$200
@@ -133,15 +121,13 @@ upload_skip_load:
 ;---------------------------------------
 
 upload_high_ram:
-
 	ldy	#$0002
 	jsr	spc_begin_upload
 
 ; ---- Upload transfer routine
 
 	ldx	#$0000
--
-	lda.l	transfer,x
+-	lda.l	transfer,x
 	jsr	spc_upload_byte
 	inx
 	cpy	#44							; size of transfer routine
@@ -159,8 +145,7 @@ upload_high_ram:
 	inc	a
 	sta	REG_APUIO0
 ; Wait for acknowledgement
--
-	cmp	REG_APUIO0
+-	cmp	REG_APUIO0
 	bne	-
 
 ; ---- Burst transfer of 63.5K using custom routine
@@ -177,8 +162,7 @@ inner_transfer_loop:
 	lda.l	$7F00C0,x						; 5 |
 	sta	REG_APUIO3						; 4 |
 	tya								; 2 >> 38 cycles
--
-	cmp	REG_APUIO3						; 4 |
+-	cmp	REG_APUIO3						; 4 |
 	bne	-							; 3 |
 	dex								; 2 |
 	dey								; 2 |
@@ -204,10 +188,8 @@ upload_low_ram:
 
 	ldy	#$0002
 	jsr	spc_begin_upload
-
 	ldx	#$0002
--
-	lda.l	spcIPLBuffer, x
+-	lda.l	spcIPLBuffer, x
 	jsr	spc_upload_byte
 	inx
 	cpx	#$00F0
@@ -230,7 +212,6 @@ restore_final:
 	jsr	exec_instr
 	ldx	#$00C4							; MOV $00,A
 	jsr	exec_instr
-
 	lda.l	spcRAM1stBytes+1
 	xba
 	lda	#$e8							; MOV A,#spcRAM1stBytes+1
@@ -356,18 +337,14 @@ restore_final:
 
 spc_begin_upload:
 	sty	REG_APUIO2						; Set address
-
 	ldy	#$BBAA							; Wait for SPC
--
-	cpy	REG_APUIO0
+-	cpy	REG_APUIO0
 	bne	-
 
 	lda	#$CC							; Send acknowledgement
 	sta	REG_APUIO1
 	sta	REG_APUIO0
-
--       								; Wait for acknowledgement
-	cmp	REG_APUIO0
+-	cmp	REG_APUIO0						; Wait for acknowledgement
 	bne	-
 
 	ldy	#0							; Initialize index
@@ -377,11 +354,9 @@ spc_begin_upload:
 
 spc_upload_byte:
 	sta	REG_APUIO1
-
 	tya								; Signal it's ready
 	sta	REG_APUIO0
--     									; Wait for acknowledgement
-	cmp	REG_APUIO0
+-	cmp	REG_APUIO0						; Wait for acknowledgement
 	bne	-
 
 	iny
@@ -399,13 +374,11 @@ spc_next_upload:
 	inc	a
 	bne	+
 	inc	a
-+
-	sta	REG_APUIO1
++	sta	REG_APUIO1
 	sta	REG_APUIO0
 
 ; Wait for acknowledgement
--
-	cmp	REG_APUIO0
+-	cmp	REG_APUIO0
 	bne	-
 
 	ldy	#0
@@ -415,17 +388,14 @@ spc_next_upload:
 
 spc_execute:
 	sty	REG_APUIO2
-
 	stz	REG_APUIO1
-
 	lda	REG_APUIO0
 	inc	a
 	inc	a
 	sta	REG_APUIO0
 
 ; Wait for acknowledgement
--
-	cmp	REG_APUIO0
+-	cmp	REG_APUIO0
 	bne	-
 
 	rts
@@ -437,7 +407,6 @@ start_exec_io:
 ; Set execution address
 	ldx	#$00F5
 	stx	REG_APUIO2
-
 	stz	REG_APUIO1      					; NOP
 	ldx	#$FE2F      						; BRA *-2
 
@@ -448,8 +417,7 @@ start_exec_io:
 	sta	REG_APUIO0
 
 ; Wait for acknowledgement
--
-	cmp	REG_APUIO0
+-	cmp	REG_APUIO0
 	bne	-
 
 ; Quickly write branch
@@ -543,16 +511,12 @@ InitWRAMBuffer:
 
 	lda	#$91
 	sta	DMAWRITEBANK
-
 	lda	#$01
 	sta	DMAWRITEHI
-
 	lda	#$00
 	sta	DMAWRITELO
-
 	ldx	#$0000
--
-	lda	DMAREADDATA						; reminder: DMAREADDATA auto-increments
+-	lda	DMAREADDATA						; reminder: DMAREADDATA auto-increments
 	sta	spcRegBuffer, x
 	inx
 	cpx	#$0080
@@ -562,16 +526,12 @@ InitWRAMBuffer:
 
 	lda	#$90
 	sta	DMAWRITEBANK
-
 	lda	#$01
 	sta	DMAWRITEHI
-
 	lda	#$F8
 	sta	DMAWRITELO
-
 	ldx	#$00F8
--
-	lda	DMAREADDATA
+-	lda	DMAREADDATA
 	sta	spcF8Buffer, x
 	inx
 	cpx	#$0200
@@ -581,16 +541,12 @@ InitWRAMBuffer:
 
 ;	lda	#$90
 ;	sta	DMAWRITEBANK
-
 	lda	#$01
 	sta	DMAWRITEHI
-
 	lda	#$02
 	sta	DMAWRITELO
-
 	ldx	#$0002
--
-	lda	DMAREADDATA
+-	lda	DMAREADDATA
 	sta	spcIPLBuffer, x
 	inx
 	cpx	#$00F0
@@ -599,16 +555,12 @@ InitWRAMBuffer:
 ; copy SPC RAM data to buffer
 
 	ldx	#$0000
-
 ;	lda	#$90
 ;	sta	DMAWRITEBANK
-
 	lda	#$01							; SPC RAM data starts at XX 01 00 (where XX = bank no.)
 	sta	DMAWRITEHI
-
 	lda	#$00
 	sta	DMAWRITELO
-
 -	lda	DMAREADDATA
 	sta	$7F0000, x
 	inx
@@ -695,11 +647,9 @@ apu_ram_init:
 
 	phk								; set data bank = program bank
 	plb
-
 	ldy	#$0002
 	jsr	spc_begin_upload
 	ldx	#$0000
-
 -	lda.w	apu_ram_init_code, x
 	jsr	spc_upload_byte
 	inx
