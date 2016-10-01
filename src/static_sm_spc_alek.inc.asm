@@ -4,7 +4,7 @@
 ;   (c) 2012-2016 by ManuLöwe (http://manuloewe.de/)
 ;
 ;	*** SPC700 MACHINE CODE ***
-;	(please see notes in loader_snesmod.inc.asm)
+;	(please see notes in lib_snesmod.inc.asm)
 ;
 ;==========================================================================================
 
@@ -192,3 +192,7 @@ SM_SPC:
 	.DB $5F,$72,$19,$FC,$5F,$7B,$19,$FC,$5F,$84,$19
 
 SM_SPC_end:
+
+
+
+; ******************************** EOF *********************************

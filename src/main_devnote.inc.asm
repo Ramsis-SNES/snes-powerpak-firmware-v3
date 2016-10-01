@@ -87,7 +87,7 @@ GotoDevNote:
 
 	SetCursorPos 15+32, 0
 	PrintString "Long live the SNES PowerPak!\n\n"
-	PrintString "(c) 2012-2015 by Ramsis\nhttp://www.manuloewe.de/"
+	PrintString "(c) 2012-2016 by Ramsis\nhttp://manuloewe.de/"
 
 	SetCursorPos 21+32, 2
 	PrintString " Back"
