@@ -53,13 +53,14 @@ Main:
 	stz	DP_ColdBootCheck1					; remove warm boot signature
 	stz	DP_ColdBootCheck2
 	stz	DP_ColdBootCheck3
-	cli								; enable interrupts
 	jsl	apu_ram_init						; initialize sound RAM
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 	jsr	SpriteInit						; reinitialize OAM
 	jsr	GFXsetup2						; reinitialize GFX registers
-	jsr	JoyInit							; reinitialize joypads, enable NMI
+
+	JoyInit								; reinitialize joypads, enable NMI
+
 	lda	DP_cursorX_BAK						; restore cursor position
 	sta	cursorX
 	lda	DP_cursorY_BAK
@@ -228,13 +229,13 @@ __ColdBoot:
 
 	lda	#%00000001						; WRAM address in $2181-$2183 has reached $10000 now,
 	sta	$420B							; so re-initiate DMA transfer for the upper 64K of WRAM
-	cli								; enable interrupts
 	jsl	apu_ram_init						; initialize sound RAM
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 	jsr	SpriteInit						; set up sprite buffer
 	jsr	GFXsetup						; set up VRAM, video mode, background and character pointers
-	jsr	JoyInit							; initialize joypads and enable NMI
+
+	JoyInit								; initialize joypads and enable NMI
 
 	Accu8
 	Index16
@@ -782,6 +783,103 @@ PrintRomVersion:
 	ldy	#PTR_Firmware_Build
 
 	PrintString "(%s)"						; --> (Build #XXXXX)
+
+	rts
+
+
+
+; *********************** Sprite initialization ************************
+
+;------------------------------------------------------------------------
+;-  Written by: Neviksti
+;-     If you use my code, please share your creations with me
+;-     as I am always curious :)
+;------------------------------------------------------------------------
+
+SpriteInit:
+	php	
+
+	AccuIndex16
+
+	ldx #$0000
+
+__Init_OAM_lo:
+	lda #$F0F0
+	sta SpriteBuf1, x						; initialize all sprites to be off the screen
+	inx
+	inx
+	lda #$0000
+	sta SpriteBuf1, x
+	inx
+	inx
+	cpx #$0200
+	bne __Init_OAM_lo
+
+	Accu8
+
+	lda #%10101010							; large sprites for everything except the sprite font
+	ldx #$0000
+
+__Init_OAM_hi1:
+	sta SpriteBuf2, x
+	inx
+	cpx #$0018							; see .STRUCT oam_high
+	bne __Init_OAM_hi1
+
+	lda #%00000000							; small sprites
+
+__Init_OAM_hi2:
+	sta SpriteBuf2, x
+	inx
+	cpx #$0020
+	bne __Init_OAM_hi2
+
+	lda #$80							; tile num for cursor, next is palette
+	sta SpriteBuf1.Cursor+2
+	lda #$03							; vhoopppc Vert Horiz priOrity Palette Charmsb
+	sta SpriteBuf1.Cursor+3
+
+	HideCursorSprite
+
+	plp
+	rts
+
+
+
+; *********************** Misc. sprite functions ***********************
+
+; Added for v3.00 by ManuLöwe.
+
+.ACCU 8
+.INDEX 16
+
+HideButtonSprites:							; this moves SNES joypad button sprites off the screen
+	lda #$F0
+	ldx #$0000
+
+__Write2SpriteBufButtons:
+	sta SpriteBuf1.Buttons, x					; X
+	inx
+	sta SpriteBuf1.Buttons, x					; Y
+	inx
+	inx								; skip tile num & tile properties
+	inx
+	cpx #$0030							; 48 bytes
+	bne __Write2SpriteBufButtons
+
+	rts
+
+
+
+HideLogoSprites:							; this moves main graphics sprites off the screen
+	lda #%01010101
+	ldx #$0000
+
+__Write2SpriteBufMainGFX:
+	sta SpriteBuf2.MainGFX, x
+	inx
+	cpx #$0010
+	bne __Write2SpriteBufMainGFX
 
 	rts
 

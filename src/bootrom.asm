@@ -159,15 +159,6 @@ CONST_Zeroes:
 
 
 
-.SECTION "libs" SEMIFREE
-
-.INCLUDE "lib_joypads.inc.asm"						; SNES joypad routines
-.INCLUDE "lib_sprites.inc.asm"						; SNES sprite setup routines
-
-.ENDS
-
-
-
 ; -------------------------- main loader code
 .SECTION "MainCode" SEMIFREE
 
