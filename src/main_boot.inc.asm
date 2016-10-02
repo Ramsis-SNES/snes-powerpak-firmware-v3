@@ -250,26 +250,25 @@ __ColdBoot:
 
 ; -------------------------- load configuration
 	jsr	CardLoadDir						; root dir
-	lda	#'P'
-	sta	findEntry
-	sta	findEntry+5
-	lda	#'O'
-	sta	findEntry+1
-	lda	#'W'
-	sta	findEntry+2
-	lda	#'E'
-	sta	findEntry+3
-	lda	#'R'
-	sta	findEntry+4
-	lda	#'A'
-	sta	findEntry+6
-	lda	#'K'
-	sta	findEntry+7
-	jsr	DirFindEntry						; "POWERPAK" dir into tempEntry
 
 	Accu16
 
-	lda	tempEntry.tempCluster					; "POWERPAK" dir found, save cluster
+	lda	#'O'<<8+'P'						; look for "POWERPAK" dir entry
+	sta	findEntry
+	lda	#'E'<<8+'W'
+	sta	findEntry+2
+	lda	#'P'<<8+'R'
+	sta	findEntry+4
+	lda	#'K'<<8+'A'
+	sta	findEntry+6
+
+	Accu8
+
+	jsr	DirFindEntry						; load entry into tempEntry
+
+	Accu16								; back here means "POWERPAK" dir found
+
+	lda	tempEntry.tempCluster					; save dir cluster
 	sta	baseDirCluster
 	lda	tempEntry.tempCluster+2
 	sta	baseDirCluster+2
@@ -329,16 +328,18 @@ __NoThemeFileSaved:
 	sta	extMatch2
 	lda	#'M'
 	sta	extMatch3
+
+	Accu16
+
+	lda	#'U'<<8+'M'						; look for "MUFASA.THM"
 	sta	findEntry
-	lda	#'U'
-	sta	findEntry+1
-	lda	#'F'
+	lda	#'A'<<8+'F'
 	sta	findEntry+2
-	lda	#'A'
-	sta	findEntry+3
-	sta	findEntry+5
-	lda	#'S'
+	lda	#'A'<<8+'S'
 	sta	findEntry+4
+
+	Accu8
+
 	stz	CLDConfigFlags						; use WRAM buffer
 	jsr	CardLoadDir						; "THEMES" directory into WRAM buffer,
 	jsr	DirFindEntry						; "MUFASA.THM" file into tempEntry
