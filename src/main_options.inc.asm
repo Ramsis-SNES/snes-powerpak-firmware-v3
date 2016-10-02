@@ -214,6 +214,7 @@ LoadGGCodeLoop:
 	and	#%10000000
 	bne	+
 	jmp	__ACheck3Done
+
 +	lda	cursorX							; check where the cursor is at
 	cmp	#cursorXstart
 	beq	+

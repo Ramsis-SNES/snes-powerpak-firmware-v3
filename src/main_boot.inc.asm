@@ -23,7 +23,7 @@ Main:
 
 	Accu8
 
-	lda	DP_ColdBootCheck1					; check for warm-boot signature
+	lda	DP_ColdBootCheck1					; check for warm-boot signature (self-remainder: Don't worry about the DBR not being set at this point, as all three vars are Direct Page = bank 0)
 	cmp	#kWarmBoot1
 	bne	__ColdBoot
 	lda	DP_ColdBootCheck2
@@ -358,11 +358,13 @@ __ThemeFileClusterSet:
 ; --------------------------- configure FPGA
 	lda	CONFIGREADSTATUS					; open bus = $20
 ;	sta	errorCode
+
 ;	SetCursorPos 14, 1
 ;	PrintString "FPGA status="
 ;	PrintHexNum errorCode
-;
+
 ;	jmp	Forever
+
 	and	#$F0
 	cmp	#$A0
 	bne	ConfigureFPGA
@@ -579,7 +581,6 @@ IntroLoop:
 	jsr	LoadLastGame
 	jmp	GotoGameOptions
 +
-
 	bra	IntroLoop
 
 
@@ -698,7 +699,6 @@ __ShowChipsetDMADone:
 CheckFrameLength:
 	sei								; disable NMI & IRQ so it won't interfere with timing
 	stz	REG_NMITIMEN
-	phy
 	ldy	#$0000
 -	bit	REG_HVBJOY						; wait for Vblank
 	bpl	-
@@ -709,7 +709,6 @@ CheckFrameLength:
 	bpl	-
 
 	lda	REG_RDNMI
-	lda	#$00							; dunno what this is for, possibly timing-related?
 	cpy	#$15A0							; rough average between 50 and 60 Hz values (see debug section below)
 	bcc	__60hz
 
@@ -727,7 +726,7 @@ __60hz:
 ; what happens during Vblank, so it's necessary to re-measure after changing anything. Also, the currently
 ; selected HDMA design has a slight influence (hence the XX). Some measured values:
 ; @50Hz: $17XX (U16, PAL/1Chip, PAL/2PPUs)
-; @60Hz: $13XX (U16, PAL/1Chip modded, US/GPM-01, PAL/2PPUs modded, 1/1/1 chipset SFC)
+; @60Hz: $13XX (U16, PAL/1Chip modded, SNES mini (US), US/GPM-01, PAL/2PPUs modded, 1/1/1 chipset SFC)
 
 	SetCursorPos 0, 22
 
@@ -748,7 +747,6 @@ __60hz:
 	PrintHexNum temp
 .ENDIF
 
-	ply
 	lda	#$81							; re-enable Vblank NMI + automatic joypad reading
 	sta	REG_NMITIMEN
 	cli

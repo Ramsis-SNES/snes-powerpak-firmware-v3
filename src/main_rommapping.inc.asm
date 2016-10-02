@@ -933,6 +933,7 @@ FatalError:
 
 	jsr	 PrintClearScreen
 	jmp	GotoIntroScreen						; return to titlescreen
+
 ;	lda	#%10000001						; alternatively:
 ;	sta	CONFIGWRITESTATUS					; Start pressed, reset PowerPak, stay in boot mode
 

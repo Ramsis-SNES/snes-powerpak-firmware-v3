@@ -286,6 +286,7 @@ __UpdateRomIsValid:
 	cmp	sectorBuffer1, y
 	bcs	+
 	jmp	GotoFlashUpdater
+
 +	inx								; advance ROM offset
 	iny								; advance sector buffer offset
 	cpx	#STR_Firmware_VerNum_End
@@ -304,6 +305,7 @@ __UpdateRomIsValid:
 	cmp	sectorBuffer1, y
 	bcs	+
 	jmp	GotoFlashUpdater
+
 +	inx
 	iny
 	cpx	#STR_Firmware_BuildNum_End

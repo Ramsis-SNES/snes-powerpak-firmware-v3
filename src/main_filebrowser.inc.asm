@@ -501,6 +501,7 @@ __FileBrowserFileSelected:
 	cmp	#'0'
 	bne	+
 	jmp	GotoSPCplayer						; SPC file detected, load player (from a user perspective, we aren't leaving the file browser anyway)
+
 +	lda	#%00000001						; file is not SPC, set "file selected" flag
 	sta	DP_SelectionFlags
 
