@@ -147,7 +147,7 @@ __DoYScrollDone:
 	ply								; restore 16 bit registers
 	plx
 	pla
-rti
+	rti
 
 
 
@@ -167,14 +167,14 @@ _W1:	bit	REG_HVBJOY
 
 	lda	Joy1
 	sta	Joy1Old
-	lda	REG_JOY0						; get JoyPad1
+	lda	REG_JOY1L						; get JoyPad1
 	tax
 	eor	Joy1							; A = A xor JoyState = (changes in joy state)
 	stx	Joy1							; update JoyState
 	ora	Joy1Press						; A = (joy changes) or (buttons pressed)
 	and	Joy1							; A = ((joy changes) or (buttons pressed)) and (current joy state)
 	sta	Joy1Press						; store A = (buttons pressed since last clearing reg) and (button is still down)
-	lda	REG_JOY1						; get JoyPad2
+	lda	REG_JOY2L						; get JoyPad2
 	tax
 	eor	Joy2							; A = A xor JoyState = (changes in joy state)
 	stx	Joy2							; update JoyState
@@ -190,14 +190,14 @@ _W1:	bit	REG_HVBJOY
 
 	AccuIndex8
 
-	lda	REG_JOYSER0
+	lda	REG_JOYA
 	eor	#$01
-	and	#$01							; A = -bit0 of JoySer0
+	and	#$01							; A = -bit0 of JOYA
 	ora	Joy1
 	sta	Joy1							; joy state = (joy state) or A.... so bit0 of Joy1State = 0 only if it is a valid joypad
-	lda	REG_JOYSER1
+	lda	REG_JOYB
 	eor	#$01
-	and	#$01							; A = -bit0 of JoySer1
+	and	#$01							; A = -bit0 of JOYB
 	ora	Joy2
 	sta	Joy2							; joy state = (joy state) or A.... so bit0 of Joy1State = 0 only if it is a valid joypad
 
@@ -222,6 +222,196 @@ _done:
 	Accu8
 
 	rts
+
+
+
+; **************************** IRQ routines ****************************
+
+ErrorHandlerBRK:
+	AccuIndex16
+
+	pha
+	phx
+	phy
+
+	Accu8
+
+	lda	#$80							; enter forced blank
+	sta	REG_INIDISP
+	sei								; disable NMI & IRQ
+	stz	REG_NMITIMEN
+	stz	REG_HDMAEN						; disable HDMA
+	stz	DP_HDMAchannels
+	stz	REG_CGADD						; reset CGRAM address
+	stz	REG_CGDATA						; set mainscreen bg color: blue
+	lda	#$70
+	sta	REG_CGDATA
+	jsr	PrintClearScreen
+	jsr	HideButtonSprites
+	jsr	HideLogoSprites
+
+	PrintSpriteText	4, 4, "An error occurred!", 3
+	SetCursorPos	4, 2
+	PrintString	"Error type: BRK"
+	SetCursorPos	5, 2
+	PrintString	"Error addr: $"
+
+	lda	10, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	9, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	8, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	7, 2
+	PrintString	"Status reg: $"
+
+	lda	7, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	9, 2
+	PrintString	"Accumulator: $"
+
+	lda	6, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	5, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	10, 2
+	PrintString	"X index reg: $"
+
+	lda	4, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	3, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	11, 2
+	PrintString	"Y index reg: $"
+
+	lda	2, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	1, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	#%00100000						; activate HDMA channel 5 (windowing)
+	sta	DP_HDMAchannels
+	lda	REG_RDNMI						; clear NMI flag
+	jmp	Forever+4						; go to trap loop instead of RTI (omitting HDMA stuff)
+
+
+
+ErrorHandlerCOP:
+	AccuIndex16
+
+	pha
+	phx
+	phy
+
+	Accu8
+
+	lda	#$80							; enter forced blank
+	sta	REG_INIDISP
+	sei								; disable NMI & IRQ
+	stz	REG_NMITIMEN
+	stz	REG_HDMAEN						; disable HDMA
+	stz	DP_HDMAchannels
+	stz	REG_CGADD						; reset CGRAM address
+	lda	#$1C							; set mainscreen bg color: red
+	sta	REG_CGDATA
+	stz	REG_CGDATA
+	jsr	PrintClearScreen
+	jsr	HideButtonSprites
+	jsr	HideLogoSprites
+
+	PrintSpriteText	4, 4, "An error occurred!", 3
+	SetCursorPos	4, 2
+	PrintString	"Error type: COP"
+	SetCursorPos	5, 2
+	PrintString	"Error addr: $"
+
+	lda	10, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	9, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	8, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	7, 2
+	PrintString	"Status reg: $"
+
+	lda	7, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	9, 2
+	PrintString	"Accumulator: $"
+
+	lda	6, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	5, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	10, 2
+	PrintString	"X index reg: $"
+
+	lda	4, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	3, s
+	sta	temp
+
+	PrintHexNum	temp
+	SetCursorPos	11, 2
+	PrintString	"Y index reg: $"
+
+	lda	2, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	1, s
+	sta	temp
+
+	PrintHexNum	temp
+
+	lda	#%00100000						; activate HDMA channel 5 (windowing)
+	sta	DP_HDMAchannels
+	lda	REG_RDNMI						; clear NMI flag
+	jmp	Forever+4						; go to trap loop instead of RTI (omitting HDMA stuff)
 
 
 

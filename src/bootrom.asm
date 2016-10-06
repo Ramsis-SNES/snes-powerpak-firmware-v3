@@ -62,8 +62,8 @@
 ; *************************** Vector tables ****************************
 
 .SNESNATIVEVECTOR
-	COP		EmptyHandler
-	BRK		EmptyHandler
+	COP		ErrorHandlerCOP
+	BRK		ErrorHandlerBRK
 	ABORT		EmptyHandler
 	NMI		VBlank
 	UNUSED		$0000
@@ -129,7 +129,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11345"
+	.DB "11347"
 
 STR_Firmware_BuildNum_End:
 	.DB 0
@@ -166,7 +166,7 @@ CONST_Zeroes:
 .INCLUDE "main_cf_interface.inc.asm"
 .INCLUDE "main_filebrowser.inc.asm"
 .INCLUDE "main_gfxsetup.inc.asm"					; SNES graphics & screen setup
-.INCLUDE "main_vblank.inc.asm"						; Vblank NMI routines
+.INCLUDE "main_irqnmi.inc.asm"						; Vblank NMI routines
 .INCLUDE "main_romspc.inc.asm"
 .INCLUDE "main_options.inc.asm"
 .INCLUDE "main_gamegenie.inc.asm"
