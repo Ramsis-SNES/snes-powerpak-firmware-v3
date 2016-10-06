@@ -100,7 +100,7 @@ FlashUpdateWarning:
 	PrintString "FLASHING IN PROGRESS, PLEASE WAIT ..."
 
 	wai								; wait for the message to appear on the screen
-	ldx	#$0000				; reset X
+	ldx	#$0000							; reset X
 
 
 

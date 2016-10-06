@@ -800,43 +800,43 @@ SpriteInit:
 
 	AccuIndex16
 
-	ldx #$0000
+	ldx	#$0000
 
 __Init_OAM_lo:
-	lda #$F0F0
-	sta SpriteBuf1, x						; initialize all sprites to be off the screen
+	lda	#$F0F0
+	sta	SpriteBuf1, x						; initialize all sprites to be off the screen
 	inx
 	inx
-	lda #$0000
-	sta SpriteBuf1, x
+	lda	#$0000
+	sta	SpriteBuf1, x
 	inx
 	inx
-	cpx #$0200
-	bne __Init_OAM_lo
+	cpx	#$0200
+	bne	__Init_OAM_lo
 
 	Accu8
 
-	lda #%10101010							; large sprites for everything except the sprite font
-	ldx #$0000
+	lda	#%10101010						; large sprites for everything except the sprite font
+	ldx	#$0000
 
 __Init_OAM_hi1:
-	sta SpriteBuf2, x
+	sta	SpriteBuf2, x
 	inx
-	cpx #$0018							; see .STRUCT oam_high
-	bne __Init_OAM_hi1
+	cpx	#$0018							; see .STRUCT oam_high
+	bne	__Init_OAM_hi1
 
-	lda #%00000000							; small sprites
+	lda	#%00000000						; small sprites
 
 __Init_OAM_hi2:
-	sta SpriteBuf2, x
+	sta	SpriteBuf2, x
 	inx
-	cpx #$0020
-	bne __Init_OAM_hi2
+	cpx	#$0020
+	bne	__Init_OAM_hi2
 
-	lda #$80							; tile num for cursor, next is palette
-	sta SpriteBuf1.Cursor+2
-	lda #$03							; vhoopppc Vert Horiz priOrity Palette Charmsb
-	sta SpriteBuf1.Cursor+3
+	lda	#$80							; tile num for cursor, next is palette
+	sta	SpriteBuf1.Cursor+2
+	lda	#$03							; vhoopppc Vert Horiz priOrity Palette Charmsb
+	sta	SpriteBuf1.Cursor+3
 
 	HideCursorSprite
 
@@ -853,32 +853,32 @@ __Init_OAM_hi2:
 .INDEX 16
 
 HideButtonSprites:							; this moves SNES joypad button sprites off the screen
-	lda #$F0
-	ldx #$0000
+	lda	#$F0
+	ldx	#$0000
 
 __Write2SpriteBufButtons:
-	sta SpriteBuf1.Buttons, x					; X
+	sta	SpriteBuf1.Buttons, x					; X
 	inx
-	sta SpriteBuf1.Buttons, x					; Y
+	sta	SpriteBuf1.Buttons, x					; Y
 	inx
 	inx								; skip tile num & tile properties
 	inx
-	cpx #$0030							; 48 bytes
-	bne __Write2SpriteBufButtons
+	cpx	#$0030							; 48 bytes
+	bne	__Write2SpriteBufButtons
 
 	rts
 
 
 
 HideLogoSprites:							; this moves main graphics sprites off the screen
-	lda #%01010101
-	ldx #$0000
+	lda	#%01010101
+	ldx	#$0000
 
 __Write2SpriteBufMainGFX:
-	sta SpriteBuf2.MainGFX, x
+	sta	SpriteBuf2.MainGFX, x
 	inx
-	cpx #$0010
-	bne __Write2SpriteBufMainGFX
+	cpx	#$0010
+	bne	__Write2SpriteBufMainGFX
 
 	rts
 

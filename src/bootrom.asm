@@ -190,9 +190,9 @@ CONST_Zeroes:
 
 .SECTION "CharacterData" FORCE
 
-.INCLUDE "static_gfxdata.inc.asm"					; sprites, fonts, palettes
-.INCLUDE "static_hdma_tables.inc.asm"
-.INCLUDE "static_font_width_table.inc.asm"
+.INCLUDE "data_gfxdata.inc.asm"						; sprites, fonts, palettes
+.INCLUDE "data_hdma_tables.inc.asm"
+.INCLUDE "data_font_width_table.inc.asm"
 
 .ENDS
 
@@ -207,7 +207,7 @@ CONST_Zeroes:
 
 .INCLUDE "lib_spcload.inc.asm"						; SPC loader
 .INCLUDE "lib_snesmod.inc.asm"						; SNESMod
-.INCLUDE "static_sm_spc_alek.inc.asm"					; SPC700 machine code for SnesMod
+.INCLUDE "data_sm_spc_alek.inc.asm"					; SPC700 machine code for SnesMod
 
 .ENDS
 
