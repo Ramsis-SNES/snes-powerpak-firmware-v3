@@ -227,8 +227,8 @@ __ColdBoot:
 	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $04, 512+32		; OAM (low+high OAM tables = 512+32 bytes)
 	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0		; WRAM (length $0000 = 65536 bytes = lower 64K of WRAM)
 
-	lda	#%00000001						; WRAM address in $2181-$2183 has reached $10000 now,
-	sta	$420B							; so re-initiate DMA transfer for the upper 64K of WRAM
+;	lda	#%00000001						; never mind, Accu still contains this value
+	sta	$420B							; WRAM address in $2181-$2183 has reached $10000 now, re-initiate DMA transfer for the upper 64K of WRAM
 	jsl	apu_ram_init						; initialize sound RAM
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
@@ -1434,9 +1434,8 @@ LoadDevMusic:
 	jsl	spcBoot							; boot SNESMOD
 	lda	#:SOUNDBANK						; give soundbank
 	sta	spc_bank
-;	ldx	#SOUNDBANK						; load module into SPC
-	ldx	#$0000
-	jsl	spcLoad
+	ldx	#(SOUNDBANK & $7FFF)					; mask off SNES LoROM address gap ($8000)
+	jsl	spcLoad							; load module into SPC
 	lda	#39							; allocate around 10K of sound ram (39 256-byte blocks)
 	jsl	spcAllocateSoundRegion
 	lda	#$81							; done, re-enable Vblank NMI + Auto Joypad Read

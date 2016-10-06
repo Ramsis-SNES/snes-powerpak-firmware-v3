@@ -47,17 +47,9 @@ InitSRMBrowser:
 	jsr	FileBrowser
 	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
-;	bne	SRAMFileSelected					; yes, process file
 	beq	__SRAMBrowserEnd					; no, jump out
 
-
-
-; -------------------------- SRAM file selected
-;SRAMFileSelected:
-;	lda	#%00000001						; SRM file selected
-;	sta	DP_SelectionFlags
-
-	Accu16
+	Accu16								; SRM file selected
 
 	ldy	#$0000
 -	lda	tempEntry, y						; copy SRM file name + cluster

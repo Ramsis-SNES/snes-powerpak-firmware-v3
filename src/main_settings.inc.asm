@@ -244,7 +244,7 @@ CheckForUpdate:
 	Accu16
 
 	lda	#STR_Firmware_Codename					; look for "MUFASA"
-	and	#$0FFF							; mask off SNES LoROM address gap ($8000)
+	and	#$7FFF							; mask off SNES LoROM address gap ($8000)
 	inc	a							; skip quotes
 	tax
 	lda	sectorBuffer1, x
@@ -277,7 +277,7 @@ CheckForUpdate:
 __UpdateRomIsValid:
 	lda	#STR_Firmware_VerNum					; compare version of UPDATE.ROM against installed boot ROM
 	tax
-	and	#$0FFF							; mask off SNES LoROM address gap
+	and	#$7FFF							; mask off SNES LoROM address gap
 	tay
 
 	Accu8
@@ -296,7 +296,7 @@ __UpdateRomIsValid:
 
 	lda	#STR_Firmware_BuildNum
 	tax
-	and	#$0FFF							; mask off SNES LoROM address gap
+	and	#$7FFF							; mask off SNES LoROM address gap
 	tay
 
 	Accu8

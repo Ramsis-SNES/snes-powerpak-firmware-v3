@@ -570,10 +570,45 @@ InitWRAMBuffer:
 
 
 
+; ********************* Init APU RAM (by ikari_01) *********************
+
+apu_ram_init:
+	php
+
+	Accu8
+	Index16
+
+	phk								; set data bank = program bank
+	plb
+	ldy	#$0002
+	jsr	spc_begin_upload
+	ldx	#$0000
+-	lda.w	apu_ram_init_code, x
+	jsr	spc_upload_byte
+	inx
+	cpx	#apu_ram_init_code_END-apu_ram_init_code
+	bne	-
+
+	ldx	#$0002
+	stx	REG_APUIO2
+	stz	REG_APUIO1
+	lda	REG_APUIO0
+	inc	a
+	inc	a
+	sta	REG_APUIO0
+-	cmp	REG_APUIO0
+	bne	-
+
+	plp
+	rtl
+
+
+
 ; **************************** SPC700 code *****************************
 
-; All SPC700 routines in SPC700 machine code
+; All SPC700 routines in SPC700 machine code below this line
 ; SPC loader & transfer routines by Shay Green <gblargg@gmail.com>
+; APU RAM init code by ikari_01
 
 loader:				; .org $0002
 	.byt $F8,$21		;	mov x,@loader_data
@@ -637,42 +672,6 @@ transfer:			; .org $0002
 
 
 
-; ********************* Init APU RAM (by ikari_01) *********************
-
-apu_ram_init:
-	php
-
-	Accu8
-	Index16
-
-	phk								; set data bank = program bank
-	plb
-	ldy	#$0002
-	jsr	spc_begin_upload
-	ldx	#$0000
--	lda.w	apu_ram_init_code, x
-	jsr	spc_upload_byte
-	inx
-	cpx	#38
-	bne	-
-
-	ldx	#$0002
-	stx	REG_APUIO2
-	stz	REG_APUIO1
-	lda	REG_APUIO0
-	inc	a
-	inc	a
-	sta	REG_APUIO0
--	cmp	REG_APUIO0
-	bne	-
-
-	plp
-	rtl
-
-
-
-; All SPC700 routines in SPC700 machine code below this line
-
 apu_ram_init_code:  ; .org $0002
 	; part1: fill $0100-$03ff with #$aa
 	.byt $e8,$aa      ; mov a, #$aa
@@ -695,10 +694,10 @@ apu_ram_init_code:  ; .org $0002
 	.byt $ab,$19      ; inc loop2+2
 	.byt $1d          ; dec x
 	.byt $d0,-11      ; bne loop2
-	; make sure IPL ROM is mapped, reset input latches 0+1
-	.byt $8f,$90,$f1  ; mov $f1, #$90
 	; Re-run IPL
 	.byt $5f,$c0,$ff ; jmp $ffc0
+
+apu_ram_init_code_END:
 
 
 

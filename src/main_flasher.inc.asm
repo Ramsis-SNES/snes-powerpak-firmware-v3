@@ -152,7 +152,7 @@ FlashUpdateWarning:
 
 ; These must be uploaded to WRAM before being executed.
 ; Reminder: Only use relative branches here (BRA/BSR macro/etc.), as
-; JMP/JSR/etc. will jump back to code in ROM!
+; JMP/JSR/etc. will jump to unwanted fixed locations!
 
 SPIdentification:
 	sei								; disable NMI & IRQ
