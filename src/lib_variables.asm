@@ -435,6 +435,8 @@
 	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
 	DP_ThemeFileClusterHi	dw
 
+	DP_WarmBootFlags	db					; srrrrrrr [r = Reserved, s = go to SPC player]
+
 	spc_ptr			dsb 3					; SNESMod variables (up to, and including, "digi_src2")
 	spc_v			db
 	spc_bank		db
@@ -444,7 +446,7 @@
 	spc_fwrite		db
 	spc_pr			dsb 4					; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE									; 255 of 256 bytes used
+.ENDE									; 256 of 256 bytes used
 
 
 

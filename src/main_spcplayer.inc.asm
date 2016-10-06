@@ -15,13 +15,9 @@
 .INDEX 16
 
 GotoSPCplayer:
-	lda	cursorX							; backup cursor position (restored upon warm boot)
-	sta	DP_cursorX_BAK
-	lda	cursorY
-	sta	DP_cursorY_BAK
-
-	HideCursorSprite
-
+	stz	DP_WarmBootFlags					; clear all warm-boot flags
+	lda	#$82							; overwrite cursor sprite with empty sprite (i.e., effectively "hide" cursor without losing its position data)
+	sta	SpriteBuf1.Cursor+2
 	lda	#%00100000						; disable HDMA windowing channel --> "empty" screen without losing text buffer content
 	trb	DP_HDMAchannels
 
@@ -230,6 +226,17 @@ CopyDate:								; date
 
 	SetCursorPos 19+32, 14
 	PrintString "Back"
+	PrintSpriteText 21, 11, "L", 3
+	SetCursorPos 19+32, 7
+	PrintString "|<<"
+	PrintSpriteText 21, 20, "R", 3
+	SetCursorPos 19+32, 20
+	PrintString ">>|"
+
+	lda	SpriteBuf1.Text+60					; move the "R" a bit more to the right
+	clc
+	adc	#$04
+	sta	SpriteBuf1.Text+60
 
 
 
@@ -302,13 +309,228 @@ __CalcTimerDone:
 
 
 
+; -------------------------- check for L shoulder button = previous SPC file (via warm boot)
+	lda	Joy1Press
+	and	#%00100000
+	bne	+
+	jmp	__SPCLoopLButtonDone
+
++	lda	#%10000000						; set "go to SPC player" flag
+	sta	DP_WarmBootFlags
+	lda	#%00101000						; disable HDMA windowing & color math channels
+	trb	DP_HDMAchannels
+	jsr	ClearSpriteText
+	jsr	HideButtonSprites
+	jsr	SpriteMessageSearching
+
+__SPCLoopCheckPrevFile:
+	lda	cursorYCounter
+	bne	+
+	lda	scrollYCounter
+	bne	+
+	lda	#$08
+	sta	speedScroll
+	lda	#$01
+	sta	speedCounter
+	jsr	ScrollUp
+
++	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
+	sta	CLDConfigFlags
+	jsr	DirGetEntry						; get selected entry
+	lda	tempEntry.tempFlags					; check for "dir" flag
+	and	#$01
+	bne	__SPCLoopCheckPrevFile
+
+	Accu16
+
+	lda	tempEntry.tempCluster					; copy file cluster to source cluster
+	sta	sourceCluster
+	lda	tempEntry.tempCluster+2
+	sta	sourceCluster+2
+
+	Accu8
+
+	lda	#<sectorBuffer1
+	sta	destLo
+	lda	#>sectorBuffer1
+	sta	destHi							; put first sector into sector RAM
+	stz	destBank
+	stz	sectorCounter
+	stz	bankCounter
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
+	lda	#kDestWRAM
+	sta	destType
+	jsr	CardReadSector						; sector -> WRAM
+	ldy	#$0000
+	lda	sectorBuffer1, y					; check for ASCII string "SNES-SPC700"
+	cmp	#'S'
+	bne	__SPCLoopCheckPrevFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'N'
+	bne	__SPCLoopCheckPrevFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'E'
+	bne	__SPCLoopCheckPrevFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'S'
+	bne	__SPCLoopCheckPrevFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'-'
+	bne	__SPCLoopCheckPrevFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'S'
+	bne	__SPCLoopCheckPrevFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'P'
+	beq	+
+	jmp	__SPCLoopCheckPrevFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'C'
+	beq	+
+	jmp	__SPCLoopCheckPrevFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'7'
+	beq	+
+	jmp	__SPCLoopCheckPrevFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'0'
+	beq	+
+	jmp	__SPCLoopCheckPrevFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'0'
+	bne	+
+	jmp	__InitWarmBoot
++	jmp	__SPCLoopCheckPrevFile
+
+__SPCLoopLButtonDone:
+
+
+
+; -------------------------- check for R shoulder button = next SPC file (via warm boot)
+	lda	Joy1Press
+	and	#%00010000
+	bne	+
+	jmp	__SPCLoopRButtonDone
+
++	lda	#%10000000						; set "go to SPC player" flag
+	sta	DP_WarmBootFlags
+	lda	#%00101000						; disable HDMA windowing & color math channels
+	trb	DP_HDMAchannels
+	jsr	ClearSpriteText
+	jsr	HideButtonSprites
+	jsr	SpriteMessageSearching
+
+__SPCLoopCheckNextFile:
+	lda	cursorYCounter
+	bne	+
+	lda	scrollYCounter
+	bne	+
+	lda	#$08
+	sta	speedScroll
+	lda	#$01
+	sta	speedCounter
+	jsr	ScrollDown
+
++	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
+	sta	CLDConfigFlags
+	jsr	DirGetEntry						; get selected entry
+	lda	tempEntry.tempFlags					; check for "dir" flag
+	and	#$01
+	bne	__SPCLoopCheckNextFile
+
+	Accu16
+
+	lda	tempEntry.tempCluster					; copy file cluster to source cluster
+	sta	sourceCluster
+	lda	tempEntry.tempCluster+2
+	sta	sourceCluster+2
+
+	Accu8
+
+	lda	#<sectorBuffer1
+	sta	destLo
+	lda	#>sectorBuffer1
+	sta	destHi							; put first sector into sector RAM
+	stz	destBank
+	stz	sectorCounter
+	stz	bankCounter
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
+	lda	#kDestWRAM
+	sta	destType
+	jsr	CardReadSector						; sector -> WRAM
+	ldy	#$0000
+	lda	sectorBuffer1, y					; check for ASCII string "SNES-SPC700"
+	cmp	#'S'
+	bne	__SPCLoopCheckNextFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'N'
+	bne	__SPCLoopCheckNextFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'E'
+	bne	__SPCLoopCheckNextFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'S'
+	bne	__SPCLoopCheckNextFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'-'
+	bne	__SPCLoopCheckNextFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'S'
+	bne	__SPCLoopCheckNextFile
+	iny
+	lda	sectorBuffer1, y
+	cmp	#'P'
+	beq	+
+	jmp	__SPCLoopCheckNextFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'C'
+	beq	+
+	jmp	__SPCLoopCheckNextFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'7'
+	beq	+
+	jmp	__SPCLoopCheckNextFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'0'
+	beq	+
+	jmp	__SPCLoopCheckNextFile
++	iny
+	lda	sectorBuffer1, y
+	cmp	#'0'
+	beq	__InitWarmBoot
+	jmp	__SPCLoopCheckNextFile
+
+__SPCLoopRButtonDone:
+
+
+
 ; -------------------------- check for B button = reset PowerPak (warm boot)
 	lda	Joy1Press+1
 	and	#%10000000
-	beq	SPCPlayerLoop
+	bne	__InitWarmBoot
+	jmp	SPCPlayerLoop
 
-	stz	$2100							; B pressed, make screen black (see below)
-	lda	#kWarmBoot1						; save warm boot constants
+__InitWarmBoot:
+	stz	$2100							; warm boot requested, make screen black (see below)
+	lda	#kWarmBoot1						; write warm boot signature
 	sta	DP_ColdBootCheck1
 	lda	#kWarmBoot2
 	sta	DP_ColdBootCheck2
@@ -320,6 +542,14 @@ __CalcTimerDone:
 	stx	DP_StackPointer_BAK					; back up stack pointer
 	lda	#%10000001
 	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
+
+
+
+SpriteMessageSearching:
+	PrintSpriteText 12, 6, "Searching for SPC file ...", 7
+
+	wai
+	rts
 
 
 

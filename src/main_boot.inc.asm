@@ -25,11 +25,15 @@ Main:
 
 	lda	DP_ColdBootCheck1					; check for warm-boot signature (self-remainder: Don't worry about the DBR not being set at this point, as all three vars are Direct Page = bank 0)
 	cmp	#kWarmBoot1
-	bne	__ColdBoot
-	lda	DP_ColdBootCheck2
+	beq	+
+	jmp	__ColdBoot
+
++	lda	DP_ColdBootCheck2
 	cmp	#kWarmBoot2
-	bne	__ColdBoot
-	lda	DP_ColdBootCheck3
+	beq	+
+	jmp	__ColdBoot
+
++	lda	DP_ColdBootCheck3
 	cmp	#kWarmBoot3
 	bne	__ColdBoot
 
@@ -56,20 +60,28 @@ Main:
 	jsl	apu_ram_init						; initialize sound RAM
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
-	jsr	SpriteInit						; reinitialize OAM
+	jsr	ClearSpriteText						; remove all sprites used by SPC player
+	jsr	HideButtonSprites
 	jsr	GFXsetup2						; reinitialize GFX registers
 
 	JoyInit								; reinitialize joypads, enable NMI
 
-	lda	DP_cursorX_BAK						; restore cursor position
-	sta	cursorX
-	lda	DP_cursorY_BAK
-	sta	cursorY
-	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
+	bit	DP_WarmBootFlags					; check for "go to SPC player" flag (bit 7)
+	bpl	+
+	lda	#%00010000						; activate HDMA channel 4 only (BG color gradient)
 	sta	DP_HDMAchannels
 	wai
 	lda	#$0F							; turn on the screen, full brightness
 	sta	$2100
+	jmp	GotoSPCplayer
+
++	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
+	sta	DP_HDMAchannels
+	wai
+	lda	#$0F							; turn on the screen, full brightness
+	sta	$2100
+	lda	#$80							; make cursor "visible" again
+	sta	SpriteBuf1.Cursor+2
 	jmp	__FileBrowserLoop					; return to file browser
 
 
