@@ -573,11 +573,6 @@ InitWRAMBuffer:
 ; ********************* Init APU RAM (by ikari_01) *********************
 
 apu_ram_init:
-	php
-
-	Accu8
-	Index16
-
 	phk								; set data bank = program bank
 	plb
 	ldy	#$0002
@@ -599,7 +594,6 @@ apu_ram_init:
 -	cmp	REG_APUIO0
 	bne	-
 
-	plp
 	rtl
 
 

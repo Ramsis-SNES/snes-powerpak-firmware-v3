@@ -85,10 +85,10 @@
 ; *************************** SNES registers ***************************
 
 ; -------------------------- processor status bits
-	.DEFINE DEC_MODE		$08
-	.DEFINE XY_8BIT			$10
-	.DEFINE A_8BIT			$20
-	.DEFINE AXY_8BIT		$30
+.DEFINE DEC_MODE		$08
+.DEFINE XY_8BIT			$10
+.DEFINE A_8BIT			$20
+.DEFINE AXY_8BIT		$30
 
 
 
@@ -120,39 +120,39 @@
 
 ; CF CARD READ REGISTERS
 
-	.DEFINE CARDDATAREAD		$A08000
-	.DEFINE CARDDATAREADbank	$A0
-	.DEFINE CARDDATAREADhigh	$80
-	.DEFINE CARDDATAREADlow		$00
-	.DEFINE CARDSTATUS		$A0800E	; 7   ;0111
-	.DEFINE CARDALTSTATUS		$A08007	; E   ;1110
-	.DEFINE CARDDRIVEADDRESS	$A0800F	; F   ;1111
-	.DEFINE CARDERROR		$A08008	; 1   ;0001
-	.DEFINE CARDSECTORCOUNTREAD	$A08004	; 2   ;0010
-	.DEFINE CARDLBA0READ		$A0800C	; 3   ;0011
-	.DEFINE CARDLBA1READ		$A08002	; 4   ;0100
-	.DEFINE CARDLBA2READ		$A0800A	; 5   ;0101
-	.DEFINE CARDLBA3READ		$A08006	; 6   ;0110
+.DEFINE CARDDATAREAD		$A08000
+.DEFINE CARDDATAREADbank	$A0
+.DEFINE CARDDATAREADhigh	$80
+.DEFINE CARDDATAREADlow		$00
+.DEFINE CARDSTATUS		$A0800E	; 7   ;0111
+.DEFINE CARDALTSTATUS		$A08007	; E   ;1110
+.DEFINE CARDDRIVEADDRESS	$A0800F	; F   ;1111
+.DEFINE CARDERROR		$A08008	; 1   ;0001
+.DEFINE CARDSECTORCOUNTREAD	$A08004	; 2   ;0010
+.DEFINE CARDLBA0READ		$A0800C	; 3   ;0011
+.DEFINE CARDLBA1READ		$A08002	; 4   ;0100
+.DEFINE CARDLBA2READ		$A0800A	; 5   ;0101
+.DEFINE CARDLBA3READ		$A08006	; 6   ;0110
 
 ; CF CARD WRITE REGISTERS
 
-	.DEFINE CARDDATAWRITE		$808000	; 0  ;0000
-	.DEFINE CARDDATAWRITEbank	$80
-	.DEFINE CARDDATAWRITEhigh	$80
-	.DEFINE CARDDATAWRITElow	$00
-	.DEFINE CARDSECTORCOUNT		$808004	; 2  ;0010
-	.DEFINE CARDLBA0		$80800C	; 3  ;0011
-	.DEFINE CARDLBA1		$808002	; 4  ;0100
-	.DEFINE CARDLBA2		$80800A	; 5  ;0101
-	.DEFINE CARDLBA3		$808006	; 6  ;0110
-	.DEFINE CARDCOMMAND		$80800E	; 7  ;0111
-	.DEFINE CARDDEVICE		$808007	; E  ;1110
+.DEFINE CARDDATAWRITE		$808000	; 0  ;0000
+.DEFINE CARDDATAWRITEbank	$80
+.DEFINE CARDDATAWRITEhigh	$80
+.DEFINE CARDDATAWRITElow	$00
+.DEFINE CARDSECTORCOUNT		$808004	; 2  ;0010
+.DEFINE CARDLBA0		$80800C	; 3  ;0011
+.DEFINE CARDLBA1		$808002	; 4  ;0100
+.DEFINE CARDLBA2		$80800A	; 5  ;0101
+.DEFINE CARDLBA3		$808006	; 6  ;0110
+.DEFINE CARDCOMMAND		$80800E	; 7  ;0111
+.DEFINE CARDDEVICE		$808007	; E  ;1110
 
 
 ; FPGA CONFIG WRITE REGISTERS
 
-	.DEFINE FPGADATAWRITE		$608000
-	.DEFINE FPGAPROGRAMWRITE	$408000
+.DEFINE FPGADATAWRITE		$608000
+.DEFINE FPGAPROGRAMWRITE	$408000
 
 
 
@@ -160,7 +160,7 @@
 
 ; MEM MAPPER CONFIG REGS
 
-	.DEFINE CONFIGWRITEBANK		$208000
+.DEFINE CONFIGWRITEBANK		$208000
 
 ;00h 10h 20h 30h 40h 50h 60h 70h  80h 90h A0h B0h C0h D0h E0h F0h   bit5=rom bit6=sram
 ;010 030 050 070 090 0B0 0D0 0F0  110 130 150 170 190 1B0 1D0 1F0    xSRxxxxx
@@ -170,119 +170,119 @@
 ;                080 0A0 0C0 0E0                  180 1A0 1C0 1E0
 ;                                                 380 3A0 3C0 3E0   ;;F0 active during boot
 
-	.DEFINE CONFIGWRITESRAMLO	$208001
-	.DEFINE CONFIGWRITESRAMHI	$208002
-	.DEFINE CONFIGWRITESRAMSIZE	$208003	; 0 = use bit, 1 = dont use bit
-	.DEFINE CONFIGWRITESTATUS	$208004
-	.DEFINE CONFIGREADSTATUS	$208005
-	.DEFINE CONFIGWRITEDSP		$208005	; 0=none, 1=8MbLoROM, 2=16MbLoROM, 4=HIROM
+.DEFINE CONFIGWRITESRAMLO	$208001
+.DEFINE CONFIGWRITESRAMHI	$208002
+.DEFINE CONFIGWRITESRAMSIZE	$208003	; 0 = use bit, 1 = dont use bit
+.DEFINE CONFIGWRITESTATUS	$208004
+.DEFINE CONFIGREADSTATUS	$208005
+.DEFINE CONFIGWRITEDSP		$208005	; 0=none, 1=8MbLoROM, 2=16MbLoROM, 4=HIROM
 
 ;  7     6      5      4      3       2       1       0
 ; programmed signature A   clklock sdramidle batt
 ; rst                      rstclk  rstsdram  batt
 
-	.DEFINE DMAWRITELO		$308000
-	.DEFINE DMAWRITEHI		$308001
-	.DEFINE DMAWRITEBANK		$308002
-	.DEFINE DMAREADDATA		$21FF
-	.DEFINE DMAPORT			$FF
+.DEFINE DMAWRITELO		$308000
+.DEFINE DMAWRITEHI		$308001
+.DEFINE DMAWRITEBANK		$308002
+.DEFINE DMAREADDATA		$21FF
+.DEFINE DMAPORT			$FF
 
 
 
 ; ***************************** Constants ******************************
 
 ; -------------------------- Memory map
-	.DEFINE ADDR_CGRAM_MAIN_GFX	$80
-	.DEFINE ADDR_CGRAM_FONT_SPR	$B0
+.DEFINE ADDR_CGRAM_MAIN_GFX	$80
+.DEFINE ADDR_CGRAM_FONT_SPR	$B0
 
-	.DEFINE ADDR_VRAM_BG1_TILEMAP	$0000				; reminder: each tilemap is 64×32 (2048) tiles = 4096 bytes in size
-	.DEFINE ADDR_VRAM_BG2_TILEMAP	$0800
-	.DEFINE ADDR_VRAM_BG1_TILES	$2000
-	.DEFINE ADDR_VRAM_BG2_TILES	$4000
-	.DEFINE ADDR_VRAM_SPR_TILES	$6000
+.DEFINE ADDR_VRAM_BG1_TILEMAP	$0000					; reminder: each tilemap is 64×32 (2048) tiles = 4096 bytes in size
+.DEFINE ADDR_VRAM_BG2_TILEMAP	$0800
+.DEFINE ADDR_VRAM_BG1_TILES	$2000
+.DEFINE ADDR_VRAM_BG2_TILES	$4000
+.DEFINE ADDR_VRAM_SPR_TILES	$6000
 
 
 
 ; -------------------------- Navigation, filebrowser layout
 ; Constants needed for directory printing and scrolling routines.
 
-	.DEFINE maxFiles		24				; max. no. of files to display in the filebrowser, acknowledged by scrolling and directory printing/navigation routines
-	.DEFINE minPrintX		2				; no. of "columns" by which to indent from the left, acknowledged by scrolling and print handler routines, and SetCursorPos macro
-	.DEFINE minPrintY		2				; no. of "lines" by which to indent from the top, acknowledged by ClearLine/SetCursorPos macros
+.DEFINE maxFiles		24					; max. no. of files to display in the filebrowser, acknowledged by scrolling and directory printing/navigation routines
+.DEFINE minPrintX		2					; no. of "columns" by which to indent from the left, acknowledged by scrolling and print handler routines, and SetCursorPos macro
+.DEFINE minPrintY		2					; no. of "lines" by which to indent from the top, acknowledged by ClearLine/SetCursorPos macros
 
-	.DEFINE cursorXfilebrowser	$0D
-	.DEFINE cursorYmin		minPrintY * 8 + 8		; for the cursor sprite, $08 = line 0, $10 = line 1, $18 = line 2, etc.
-	.DEFINE cursorYmax		(maxFiles + minPrintY) * 8	; 24 "lines" (max. no. of files), so $D0/208 in this case
-	.DEFINE insertStandardTop	(minPrintY - 1) & $1F		; tilemaps have 32 = $20 "lines", so $1F is the first possible "negative" value
-	.DEFINE insertStandardBottom	maxFiles + minPrintY		; "line" no. in the tilemap where to put the next (positive) "off-screen" entry
+.DEFINE cursorXfilebrowser	$0D
+.DEFINE cursorYmin		minPrintY * 8 + 8			; for the cursor sprite, $08 = line 0, $10 = line 1, $18 = line 2, etc.
+.DEFINE cursorYmax		(maxFiles + minPrintY) * 8		; 24 "lines" (max. no. of files), so $D0/208 in this case
+.DEFINE insertStandardTop	(minPrintY - 1) & $1F			; tilemaps have 32 = $20 "lines", so $1F is the first possible "negative" value
+.DEFINE insertStandardBottom	maxFiles + minPrintY			; "line" no. in the tilemap where to put the next (positive) "off-screen" entry
 
 
 
 ; -------------------------- Option screen layout
-	.DEFINE GGcodesX		4
+.DEFINE GGcodesX		4
 
-	.DEFINE GGcode1Y		10
-	.DEFINE GGcode2Y		12
-	.DEFINE GGcode3Y		14
-	.DEFINE GGcode4Y		16
-	.DEFINE GGcode5Y		18
+.DEFINE GGcode1Y		10
+.DEFINE GGcode2Y		12
+.DEFINE GGcode3Y		14
+.DEFINE GGcode4Y		16
+.DEFINE GGcode5Y		18
 
-	.DEFINE mainSelX		2
+.DEFINE mainSelX		2
 
-	.DEFINE cursorXstart		$18
-	.DEFINE cursorXcodes		$28
+.DEFINE cursorXstart		$18
+.DEFINE cursorXcodes		$28
 
-	.DEFINE cursorYPlayLoop		$20
-	.DEFINE cursorYSRAMLoop		$38
-	.DEFINE cursorYLoadGGLoop	$58
+.DEFINE cursorYPlayLoop		$20
+.DEFINE cursorYSRAMLoop		$38
+.DEFINE cursorYLoadGGLoop	$58
 
-	.DEFINE cursorYGGcode1		$68
-	.DEFINE cursorYGGcode2		$78
-	.DEFINE cursorYGGcode3		$88
-	.DEFINE cursorYGGcode4		$98
-	.DEFINE cursorYGGcode5		$A8
+.DEFINE cursorYGGcode1		$68
+.DEFINE cursorYGGcode2		$78
+.DEFINE cursorYGGcode3		$88
+.DEFINE cursorYGGcode4		$98
+.DEFINE cursorYGGcode5		$A8
 
 
 
 ; -------------------------- Settings menu layout
-	.DEFINE cursorXsettings		$40
+.DEFINE cursorXsettings		$40
 
-	.DEFINE cursorYsetmenu1		$60
-	.DEFINE cursorYsetmenu2		$68
-	.DEFINE cursorYsetmenu3		$70
-	.DEFINE cursorYsetmenu4		$78
-	.DEFINE cursorYsetmenu5		$80
+.DEFINE cursorYsetmenu1		$60
+.DEFINE cursorYsetmenu2		$68
+.DEFINE cursorYsetmenu3		$70
+.DEFINE cursorYsetmenu4		$78
+.DEFINE cursorYsetmenu5		$80
 
-	.DEFINE SetMenLineHeight	$08
+.DEFINE SetMenLineHeight	$08
 
 
 
 ; -------------------------- warm-boot signature
 ; Added for v3.00 by ManuLöwe. Basically, any three 8-bit-values will do.
 
-	.DEFINE kWarmBoot1		$2A
-	.DEFINE kWarmBoot2		$97
-	.DEFINE kWarmBoot3		$BD
+.DEFINE kWarmBoot1		$2A
+.DEFINE kWarmBoot2		$97
+.DEFINE kWarmBoot3		$BD
 
 
 
 ; -------------------------- CF interface stuff
 .ENUM $00
-	kDestNoDMA			db
-	kDestWRAM			db
-	kDestFPGA			db
-	kDestSDRAM			db
-	kDestSDRAMNoDMA			db
+	kDestNoDMA		db
+	kDestWRAM		db
+	kDestFPGA		db
+	kDestSDRAM		db
+	kDestSDRAMNoDMA		db
 .ENDE
 
 
 
 .ENUM $00
-	kSourceNoDMA			db
-	kSourceWRAM			db
-	kSourceFPGA			db
-	kSourceSDRAM			db
-	kSourceSDRAMNoDMA		db
+	kSourceNoDMA		db
+	kSourceWRAM		db
+	kSourceFPGA		db
+	kSourceSDRAM		db
+	kSourceSDRAMNoDMA	db
 .ENDE
 
 
@@ -538,12 +538,12 @@
 	codeBuffer		dsb 1024				; 1 KiB for WRAM flashing routines
 	sectorBuffer1		dsb 512
 
-	tempEntry	INSTANCEOF temp_entry				; 128 bytes
-	gameName	INSTANCEOF game_name				; ditto
-	saveName	INSTANCEOF save_name				; ditto
-	SpriteBuf1	INSTANCEOF oam_low				; 512 bytes
-	SpriteBuf2	INSTANCEOF oam_high				; 32 bytes
-	GameGenie	INSTANCEOF game_genie				; 94 bytes
+	tempEntry		INSTANCEOF temp_entry			; 128 bytes
+	gameName		INSTANCEOF game_name			; ditto
+	saveName		INSTANCEOF save_name			; ditto
+	SpriteBuf1		INSTANCEOF oam_low			; 512 bytes
+	SpriteBuf2		INSTANCEOF oam_high			; 32 bytes
+	GameGenie		INSTANCEOF game_genie			; 94 bytes
 .ENDE
 ; -------------------------- total: 3071 ($BFF) bytes
 
@@ -586,21 +586,21 @@
 ; ********************** Variables in upper WRAM ***********************
 
 .ENUM $7E2000
-	TextBuffer	INSTANCEOF text_buffer				; 4096 bytes
+	TextBuffer		INSTANCEOF text_buffer			; 4096 bytes
 .ENDE
 
 
 
 .ENUM $7E3000
 	LogBuffer		dsb 2048				; for writing error messages to ERROR.LOG
-	HDMAtable	INSTANCEOF hdma_tables				; 1186 bytes
+	HDMAtable		INSTANCEOF hdma_tables			; 1186 bytes
 	SpriteFWT		dsb 128					; font width table for sprite-based font
 .ENDE
 
 
 
 .ENUM $7F0000
-	dirBuffer	dsb 65536					; 64 KiB (512*128 bytes) for directory buffering, also used as a buffer for high RAM of SPC files
+	dirBuffer		dsb 65536				; 64 KiB (512*128 bytes) for directory buffering, also used as a buffer for high RAM of SPC files
 .ENDE
 
 

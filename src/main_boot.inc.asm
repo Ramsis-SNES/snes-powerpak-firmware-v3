@@ -23,7 +23,7 @@ Main:
 
 	Accu8
 
-	lda	DP_ColdBootCheck1					; check for warm-boot signature (self-remainder: Don't worry about the DBR not being set at this point, as all three vars are Direct Page = bank 0)
+	lda	DP_ColdBootCheck1					; check for warm-boot signature (self-reminder: Don't worry about the DBR not being set at this point, as all three vars are Direct Page = bank 0)
 	cmp	#kWarmBoot1
 	beq	+
 	jmp	__ColdBoot
@@ -42,14 +42,6 @@ Main:
 ; -------------------------- warm boot
 	ldx	DP_StackPointer_BAK					; restore stack pointer
 	txs
-
-	Accu16
-
-	lda	#$0000							; set Direct Page = $0000
-	tcd
-
-	Accu8
-
 	lda	#$80							; enter forced blank
 	sta	$2100
 	stz	$420B							; disable DMA
@@ -1367,7 +1359,7 @@ LogScreen:
 
 ShowConsoleVersion:
 	lda	REG_RDNMI						; CPU revision
-	and	#$0F							; mask off Vblank NMI flag and open bus (bits 4-6)
+	and	#$0F							; mask off Vblank NMI flag and open bus (bits 4-7)
 	sta	temp
 
 	Accu16
