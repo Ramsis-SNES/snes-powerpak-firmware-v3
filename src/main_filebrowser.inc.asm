@@ -434,8 +434,63 @@ __FileBrowserStartCheckDone:
 
 
 
-; -------------------------- file selected, check for SPC file
+; -------------------------- file selected, check for SPC file / end file browser
 __FileBrowserFileSelected:
+	ldx	#0
+	jmp	FileBrowserCheckSPCFile
+
+__FileBrowserFileIsNotSPC:
+	lda	#%00000001						; back here means file is not SPC, set "file selected" flag
+	sta	DP_SelectionFlags
+
+__FileBrowserDone:
+	Accu16
+
+	lda	DP_SubDirCounter
+	beq	+							; don't pull anything if in root dir
+	tax
+-	pla								; clean up the stack
+	pla
+	pla
+	pla
+	dex								; bytes to pull = DP_SubDirCounter * 8
+	bne	-
+
++	Accu8
+
+	rts
+
+
+
+; ********************** File browser subroutines **********************
+
+FileBrowserCheckDirEmpty:
+	Accu16
+
+	lda	filesInDir						; check if dir contains relevant files
+	beq	+
+	rts								; yes, return
+
++	pla								; no, clean up the stack (no rts from jsr FileBrowserCheckDirEmpty)
+
+	Accu8
+
+	jsr	ClearSpriteText						; edge case: no files/folders in root dir, and /POWERPAK is hidden
+	jsr	SpriteMessageError
+
+	SetCursorPos 21, 1
+	PrintString "No files/folders to display!\n"
+	PrintString "  Press any button to return."
+
+	WaitForUserInput
+
+	bra	__FileBrowserDone
+
+
+
+FileBrowserCheckSPCFile:
+	phx								; preserve jump table value in X
+
 	Accu16
 
 	lda	tempEntry.tempCluster					; copy file cluster to source cluster
@@ -453,9 +508,12 @@ __FileBrowserFileSelected:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
+
 	lda	#kDestWRAM
 	sta	destType
 	jsr	CardReadSector						; sector -> WRAM
+
+	plx								; restore jump table value
 	ldy	#$0000
 	lda	sectorBuffer1, y					; check for ASCII string "SNES-SPC700"
 	cmp	#'S'
@@ -500,52 +558,23 @@ __FileBrowserFileSelected:
 	lda	sectorBuffer1, y
 	cmp	#'0'
 	bne	+
-	jmp	GotoSPCplayer						; SPC file detected, load player (from a user perspective, we aren't leaving the file browser anyway)
+	jmp	(FileBrowserFileIsSPCTable, x)
 
-+	lda	#%00000001						; file is not SPC, set "file selected" flag
-	sta	DP_SelectionFlags
-
-__FileBrowserDone:
-	Accu16
-
-	lda	DP_SubDirCounter
-	beq	+							; don't pull anything if in root dir
-	tax
--	pla								; clean up the stack
-	pla
-	pla
-	pla
-	dex								; bytes to pull = DP_SubDirCounter * 8
-	bne	-
-
-+	Accu8
-
-	rts
++	jmp	(FileBrowserFileIsNotSPCTable, x)
 
 
 
-; ********************** File browser subroutines **********************
+FileBrowserFileIsSPCTable:
+	.DW	GotoSPCplayer						; order of entries in both tables: 1. normal file browser,
+	.DW	__InitWarmBoot						; 2. next SPC file,
+	.DW	__InitWarmBoot						; 3. previous SPC file
 
-FileBrowserCheckDirEmpty:
-	Accu16
 
-	lda	filesInDir						; check if dir contains relevant files
-	beq	+
-	rts
-+	pla								; clean up the stack (no rts from jsr FileBrowserCheckDirEmpty)
 
-	Accu8
-
-	jsr	ClearSpriteText						; edge case: no files/folders in root dir, and /POWERPAK is hidden
-	jsr	SpriteMessageError
-
-	SetCursorPos 21, 1
-	PrintString "No files/folders to display!\n"
-	PrintString "  Press any button to return."
-
-	WaitForUserInput
-
-	bra	__FileBrowserDone
+FileBrowserFileIsNotSPCTable:
+	.DW	__FileBrowserFileIsNotSPC
+	.DW	__SPCLoopCheckNextFile
+	.DW	__SPCLoopCheckPrevFile
 
 
 

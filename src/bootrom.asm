@@ -129,7 +129,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11347"
+	.DB "11348"
 
 STR_Firmware_BuildNum_End:
 	.DB 0
