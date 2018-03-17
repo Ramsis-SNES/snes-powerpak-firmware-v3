@@ -470,7 +470,7 @@ GotoIntroScreen:
 	jsr	GameGenieClearAll					; clear out Game Genie codes
 
 	SetCursorPos 18, 19
-	PrintString "Choose file ..."
+	PrintString "File browser"
 	SetCursorPos 20, 19
 	PrintString "Settings"
 	SetCursorPos 22, 19
