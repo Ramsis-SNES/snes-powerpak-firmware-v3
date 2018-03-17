@@ -305,7 +305,7 @@ transfer_sources:
 	dex
 	bne	transfer_sources
 
-@no_more_sources:
+__no_more_sources:
 	stz	REG_APUIO0	; end transfers
 	lda	spc_v		;
 	eor	#$80		;
@@ -456,7 +456,7 @@ spcFlush:
 spcFlush1:
 	lda	spc_fread		; call spcProcess until
 	cmp	spc_fwrite		; fifo becomes empty
-	beq	@exit			;
+	beq	__exit			;
 	jsr	spcProcessMessages	;
 	bra	spcFlush1		;
 
@@ -465,24 +465,24 @@ xspcFlush:
 ;----------------------------------------------------------------------
 	lda	spc_fread		; call spcProcess until
 	cmp	spc_fwrite		; fifo becomes empty
-	beq	@exit			;
+	beq	__exit			;
 	jsr	xspcProcessMessages	;
 	bra	xspcFlush		;
-@exit:
+__exit:
 	rts
 	
 xspcProcessMessages:
 	sep	#XY_8BIT		; 8-bit index during this function
 	lda	spc_fwrite		; exit if fifo is empty
 	cmp	spc_fread		;
-	beq	@xexit2			;------------------------------
+	beq	__xexit2			;------------------------------
 	ldy	#PROCESS_TIME		; y = process time
 ;----------------------------------------------------------------------
-@xprocess_again:
+__xprocess_again:
 ;----------------------------------------------------------------------
 	lda	spc_v			; test if spc is ready
 	cmp	REG_APUIO1		;
-	bne	@xnext			; no: decrement time
+	bne	__xnext			; no: decrement time
 					;------------------------------
 	ldx	spc_fread		; copy message arguments
 	lda	spc_fifo, x		; and update fifo read pos
@@ -505,19 +505,19 @@ xspcProcessMessages:
 	sta	spc_pr+1
 	lda	spc_fread		; exit if fifo has become empty
 	cmp	spc_fwrite		;
-	beq	@xexit2			;
+	beq	__xexit2			;
 ;----------------------------------------------------------------------
-@xnext:
+__xnext:
 ;----------------------------------------------------------------------
 	lda	REG_SLHV		; latch H/V and test for change
 	lda	REG_OPVCT		;------------------------------
 	cmp	spc1			; we will loop until the VCOUNT
-	beq	@xprocess_again		; changes Y times
+	beq	__xprocess_again		; changes Y times
 	sta	spc1			;
 	dey				;
-	bne	@xprocess_again		;
+	bne	__xprocess_again		;
 ;----------------------------------------------------------------------
-@xexit2:
+__xexit2:
 ;----------------------------------------------------------------------
 	rep	#XY_8BIT		; restore 16-bit index
 	rts
@@ -538,14 +538,14 @@ spcProcessMessages:
 	sep	#XY_8BIT		; 8-bit index during this function
 	lda	spc_fwrite		; exit if fifo is empty
 	cmp	spc_fread		;
-	beq	@exit2			;------------------------------
+	beq	__exit2			;------------------------------
 	ldy	#PROCESS_TIME		; y = process time
 ;----------------------------------------------------------------------
-@process_again:
+__process_again:
 ;----------------------------------------------------------------------
 	lda	spc_v			; test if spc is ready
 	cmp	REG_APUIO1		;
-	bne	@next			; no: decrement time
+	bne	__next			; no: decrement time
 					;------------------------------
 	ldx	spc_fread		; copy message arguments
 	lda	spc_fifo, x		; and update fifo read pos
@@ -568,19 +568,19 @@ spcProcessMessages:
 	sta	spc_pr+1
 	lda	spc_fread		; exit if fifo has become empty
 	cmp	spc_fwrite		;
-	beq	@exit2			;
+	beq	__exit2			;
 ;----------------------------------------------------------------------
-@next:
+__next:
 ;----------------------------------------------------------------------
 	lda	REG_SLHV		; latch H/V and test for change
 	lda	REG_OPVCT		;------------------------------
 	cmp	spc1			; we will loop until the VCOUNT
-	beq	@process_again		; changes Y times
+	beq	__process_again		; changes Y times
 	sta	spc1			;
 	dey				;
-	bne	@process_again		;
+	bne	__process_again		;
 ;----------------------------------------------------------------------
-@exit2:
+__exit2:
 ;----------------------------------------------------------------------
 	plp				; restore processor status
 	rtl
@@ -629,11 +629,11 @@ spcTest:			;#
 spcReadStatus:
 	ldx	#5			; read PORT2 with stability checks
 	lda	REG_APUIO2		; 
-@loop:					;
+__loop:					;
 	cmp	REG_APUIO2		;
 	bne	spcReadStatus		;
 	dex				;
-	bne	@loop			;
+	bne	__loop			;
 	rts
 	
 ;**********************************************************************
@@ -642,11 +642,11 @@ spcReadStatus:
 spcReadPosition:
 	ldx	#5			; read PORT3 with stability checks
 	lda	REG_APUIO2		;
-@loop2:					;
+__loop2:					;
 	cmp	REG_APUIO2		;
 	bne	spcReadPosition		;
 	dex				;
-	bne	@loop2			;
+	bne	__loop2			;
 	rts
 
 ;**********************************************************************
@@ -756,7 +756,7 @@ spcProcessStream:
 ;-----------------------------------------------------------------------
 	stz	REG_APUIO1		; if digi_init then:
 	lda	digi_init		;   clear digi_init
-	beq	@no_init		;   set newnote flag
+	beq	__no_init		;   set newnote flag
 	stz	digi_init		;   copy vp
 	lda	digi_vp			;   copy pan
 	sta	REG_APUIO2		;   copy pitch
@@ -767,19 +767,19 @@ spcProcessStream:
 	lda	digi_copyrate		; copy additional data
 	clc				;
 	adc	#INIT_DATACOPY		;
-	bra	@newnote		;
-@no_init:				;
+	bra	__newnote		;
+__no_init:				;
 ;-----------------------------------------------------------------------
 	lda	digi_copyrate		; get copy rate
-@newnote:
+__newnote:
 	rep	#A_8BIT			; saturate against remaining length
 	and	#$FF			; 
 	cmp	digi_remain		;
-	bcc	@nsatcopy		;
+	bcc	__nsatcopy		;
 	lda	digi_remain		;
 	stz	digi_remain		;
-	bra	@copysat		;
-@nsatcopy:				;
+	bra	__copysat		;
+__nsatcopy:				;
 ;-----------------------------------------------------------------------
 	pha				; subtract amount from remaining
 	sec				;
@@ -788,7 +788,7 @@ spcProcessStream:
 	inc	a			;
 	sta	digi_remain		;
 	pla				;
-@copysat:				;
+__copysat:				;
 ;-----------------------------------------------------------------------
 	sep	#A_8BIT			; send copy amount
 	sta	REG_APUIO0		;
@@ -804,7 +804,7 @@ spcProcessStream:
 ;-----------------------------------------------------------------------
 
 
-@next_block:
+__next_block:
 	lda	[digi_src2], y
 	sta	spc2
 	rep	#A_8BIT			; read 2 bytes
@@ -821,7 +821,7 @@ spcProcessStream:
 	iny				;
 	iny				;
 	dec	spc1			; decrement block counter
-	bne	@next_block		;
+	bne	__next_block		;
 ;-----------------------------------------------------------------------
 -	cpx	REG_APUIO0		; wait for spc
 	bne	-			;
