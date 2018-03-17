@@ -121,9 +121,9 @@ LoadSave:
 
 	Accu16
 
-	lda	saveName.sCluster
+	lda	saveName.Cluster
 	bne	LoadSaveStart
-	lda	saveName.sCluster+2
+	lda	saveName.Cluster+2
 	bne	LoadSaveStart
 
 	Accu8
@@ -136,9 +136,9 @@ LoadSaveStart:
 
 .ACCU 16
 
-	lda	saveName.sCluster
+	lda	saveName.Cluster
 	sta	sourceCluster
-	lda	saveName.sCluster+2
+	lda	saveName.Cluster+2
 	sta	sourceCluster+2
 
 	Accu8

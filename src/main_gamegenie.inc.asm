@@ -61,9 +61,9 @@ GGCodeListSelected:
 
 	Accu16
 
-	lda	tempEntry.tempCluster					; copy TXT file cluster to source cluster
+	lda	tempEntry.Cluster					; copy TXT file cluster to source cluster
 	sta	sourceCluster
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	sourceCluster+2
 
 	Accu8

@@ -84,13 +84,13 @@ BattUsedInitSaveSRAM:
 	SetCursorPos 14, 1
 
 	jsr	LoadLastGame						; load last game info
-	lda	saveName.sCluster					; if cluster=0, no file loaded previously
+	lda	saveName.Cluster					; if cluster=0, no file loaded previously
 	bne	__AutoSaveEntry
-	lda	saveName.sCluster+1
+	lda	saveName.Cluster+1
 	bne	__AutoSaveEntry
-	lda	saveName.sCluster+2
+	lda	saveName.Cluster+2
 	bne	__AutoSaveEntry
-	lda	saveName.sCluster+3
+	lda	saveName.Cluster+3
 	bne	__AutoSaveEntry
 
 	PrintString "(No SRAM file loaded previously, auto-saving disabled)"
@@ -183,13 +183,13 @@ __SelectSRAMFile:
 	jmp	BattUsedInitSaveSRAM					; no SRM file picked --> go back to questions
 
 __AutoSaveSRAM:
-	lda	saveName.sCluster					; if cluster=0, no file loaded previously ...
+	lda	saveName.Cluster					; if cluster=0, no file loaded previously ...
 	bne	__SRAMFilePicked
-	lda	saveName.sCluster+1
+	lda	saveName.Cluster+1
 	bne	__SRAMFilePicked
-	lda	saveName.sCluster+2
+	lda	saveName.Cluster+2
 	bne	__SRAMFilePicked
-	lda	saveName.sCluster+3
+	lda	saveName.Cluster+3
 	bne	__SRAMFilePicked
 	jmp	SRAMQuestionsLoop					; ... so go back to questions loop
 
@@ -288,9 +288,9 @@ SaveSRAMFile:
 
 	Accu16
 
-	lda	saveName.sCluster					; copy save cluster to source cluster
+	lda	saveName.Cluster					; copy save cluster to source cluster
 	sta	sourceCluster
-	lda	saveName.sCluster+2
+	lda	saveName.Cluster+2
 	sta	sourceCluster+2
 
 	Accu8

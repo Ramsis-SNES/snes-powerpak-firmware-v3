@@ -272,9 +272,9 @@ __ColdBoot:
 
 	Accu16								; back here means "POWERPAK" dir found
 
-	lda	tempEntry.tempCluster					; save dir cluster
+	lda	tempEntry.Cluster					; save dir cluster
 	sta	baseDirCluster
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	baseDirCluster+2
 
 	Accu8
@@ -350,9 +350,9 @@ __NoThemeFileSaved:
 
 	Accu16
 
-	lda	tempEntry.tempCluster					; "MUFASA.THM" file found, save cluster
+	lda	tempEntry.Cluster					; "MUFASA.THM" file found, save cluster
 	sta	DP_ThemeFileClusterLo
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	DP_ThemeFileClusterHi
 
 __ThemeFileClusterSet:
@@ -451,17 +451,17 @@ GotoIntroScreen:
 
 	ldy	#$0000							; clear out game name, save name, and clusters
 	lda	#$2020							; ASCII = 2 spaces (caveat: WLA DX assembles "lda #'  '" into "LDA #$0020"!)
--	sta	gameName.gName, y
-	sta	saveName.sName, y
+-	sta	gameName.Name, y
+	sta	saveName.Name, y
 	iny
 	iny
 	cpy	#$007C
 	bne	-
 
-	stz	gameName.gCluster
-	stz	gameName.gCluster+2
-	stz	saveName.sCluster
-	stz	saveName.sCluster+2
+	stz	gameName.Cluster
+	stz	gameName.Cluster+2
+	stz	saveName.Cluster
+	stz	saveName.Cluster+2
 	stz	Joy1New							; reset input buttons
 	stz	Joy1Press
 

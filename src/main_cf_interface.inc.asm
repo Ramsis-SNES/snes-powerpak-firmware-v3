@@ -18,10 +18,10 @@
 AccessCFcard:
 	Accu16
 
-	stz	gameName.gCluster					; clear out cluster info
-	stz	gameName.gCluster+2
-	stz	saveName.sCluster
-	stz	saveName.sCluster+2
+	stz	gameName.Cluster					; clear out cluster info
+	stz	gameName.Cluster+2
+	stz	saveName.Cluster
+	stz	saveName.Cluster+2
 
 	Accu8
 
@@ -666,9 +666,9 @@ CardReadGameFill:
 	stz	gameSize
 
 __CRGF_Reiterate:
-	lda	gameName.gCluster					; set source cluster
+	lda	gameName.Cluster					; set source cluster
 	sta	sourceCluster
-	lda	gameName.gCluster+2
+	lda	gameName.Cluster+2
 	sta	sourceCluster+2
 
 	Accu8
@@ -1036,7 +1036,7 @@ __CLD_EntryNotVolumeID:
 	lda	[sourceEntryLo], y
 	and	#$02							; if flag = 0x02, hidden, mark as such
 	beq	__CLD_EntryHiddenCheckDone
-	tsb	tempEntry.tempFlags					; save "hidden" flag
+	tsb	tempEntry.Flags						; save "hidden" flag
 
 __CLD_EntryHiddenCheckDone:
 
@@ -1049,7 +1049,7 @@ __CLD_EntryHiddenCheckDone:
 	cmp	#$10
 	bne	__CLD_EntryNotDirectory
 	lda	#$01
-	tsb	tempEntry.tempFlags					; save "dir" flag
+	tsb	tempEntry.Flags						; save "dir" flag
 	bra	__CLD_ProcessMatchingEntry
 
 __CLD_EntryNotDirectory:
@@ -1122,7 +1122,7 @@ __CLD_ProcessMatchingEntry:
 	cpy	#$0008
 	bne	-
 
-	lda	tempEntry.tempFlags
+	lda	tempEntry.Flags
 	and	#%00000001						; check for "dir" flag
 	bne	__CLD_PrepareSaveEntry
 	lda	#'.'							; if not directory, copy short file name extension
@@ -1142,10 +1142,10 @@ __CLD_PrepareSaveEntry:
 
 	ldy	#$001A
 	lda	[sourceEntryLo], y					; copy cluster (32 bit) to last 4 bytes of entry
-	sta	tempEntry.tempCluster
+	sta	tempEntry.Cluster
 	ldy	#$0014
 	lda	[sourceEntryLo], y
-	sta	tempEntry.tempCluster+2
+	sta	tempEntry.Cluster+2
 
 	Accu8
 
@@ -1175,7 +1175,7 @@ __CLD_UseSDRAMbuffer:
 	lda	CLDConfigFlags						; check if hidden files/folders are to be skipped
 	and	#%00000010
 	beq	__CLD_SaveEntryToSDRAM
-	lda	tempEntry.tempFlags
+	lda	tempEntry.Flags
 	and	#%00000010						; yes, check for "hidden" flag
 	beq	__CLD_SaveEntryToSDRAM
 

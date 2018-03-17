@@ -377,9 +377,9 @@ __FileNameComplete\@:
 
 	Accu16
 
-	lda	tempEntry.tempCluster
+	lda	tempEntry.Cluster
 	sta	sourceCluster
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	sourceCluster+2
 
 	Accu8

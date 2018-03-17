@@ -213,10 +213,10 @@ __CopySaveName:
 
 	Accu16
 
-	lda	tempEntry.tempCluster					; copy save cluster
-	sta	saveName.sCluster
-	lda	tempEntry.tempCluster+2
-	sta	saveName.sCluster+2
+	lda	tempEntry.Cluster					; copy save cluster
+	sta	saveName.Cluster
+	lda	tempEntry.Cluster+2
+	sta	saveName.Cluster+2
 
 	Accu8
 

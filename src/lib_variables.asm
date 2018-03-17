@@ -588,23 +588,24 @@
 
 
 .STRUCT temp_entry
-	tempName		dsb 123
-	tempFlags		db					; '$7B' / rrrrrrhd [r = Reserved, h = Hidden, d = Directory]
-	tempCluster		dsb 4					; '$7C'-'$7F'
+	Name			dsb 123
+	Flags			db					; '$7B' / c0rrrrhd [c = copier header present, r = Reserved, h = Hidden, d = Directory]
+	Cluster			dsb 4					; '$7C'-'$7F'
 .ENDST
 
 
 
 .STRUCT game_name
-	gName			dsb 124
-	gCluster		dsb 4					; '$7C'-'$7F'
+	Name			dsb 123
+	Flags			db					; '$7B' / cfrrrr00 [c = copier header present, f = guess ROM mapping, r = Reserved]
+	Cluster			dsb 4					; '$7C'-'$7F'
 .ENDST
 
 
 
 .STRUCT save_name
-	sName			dsb 124
-	sCluster		dsb 4					; '$7C'-'$7F'
+	Name			dsb 124
+	Cluster			dsb 4					; '$7C'-'$7F'
 .ENDST
 
 

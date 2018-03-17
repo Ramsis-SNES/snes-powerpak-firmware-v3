@@ -290,7 +290,7 @@ __FileBrowserAorStartPressed:
 	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
 	sta	CLDConfigFlags
 	jsr	DirGetEntry						; get selected entry
-	lda	tempEntry.tempFlags					; check for "dir" flag
+	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
 	bne	+
 	jmp	__FileBrowserFileSelected
@@ -312,10 +312,10 @@ __FileBrowserSkipEntryHandler:
 	pei	(DP_sourceCluster_BAK+2)				; push source cluster of current directory
 	pei	(DP_sourceCluster_BAK)
 	inc	DP_SubDirCounter					; increment subdirectory counter
-+	lda	tempEntry.tempCluster					; copy cluster of new directory, and save backup copy
++	lda	tempEntry.Cluster					; copy cluster of new directory, and save backup copy
 	sta	sourceCluster
 	sta	DP_sourceCluster_BAK
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	sourceCluster+2
 	sta	DP_sourceCluster_BAK+2
 
@@ -493,9 +493,9 @@ FileBrowserCheckSPCFile:
 
 	Accu16
 
-	lda	tempEntry.tempCluster					; copy file cluster to source cluster
+	lda	tempEntry.Cluster					; copy file cluster to source cluster
 	sta	sourceCluster
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	sourceCluster+2
 
 	Accu8
@@ -635,7 +635,7 @@ DirPrintEntry:
 	jsr	DirGetEntry
 	stz	tempEntry+56						; NUL-terminate entry string after 56 characters
 	ldy	#PTR_tempEntry
-	lda	tempEntry.tempFlags					; if "dir" flag is set, then print a slash in front of entry name
+	lda	tempEntry.Flags						; if "dir" flag is set, then print a slash in front of entry name
 	and	#%00000001
 	beq	__PrintFileOnly
 

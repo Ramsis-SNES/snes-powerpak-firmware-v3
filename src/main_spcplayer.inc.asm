@@ -335,7 +335,7 @@ __SPCLoopCheckPrevFile:
 +	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
 	sta	CLDConfigFlags
 	jsr	DirGetEntry						; get selected entry
-	lda	tempEntry.tempFlags					; check for "dir" flag
+	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
 	bne	__SPCLoopCheckPrevFile
 
@@ -372,7 +372,7 @@ __SPCLoopCheckNextFile:
 +	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
 	sta	CLDConfigFlags
 	jsr	DirGetEntry						; get selected entry
-	lda	tempEntry.tempFlags					; check for "dir" flag
+	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
 	bne	__SPCLoopCheckNextFile
 

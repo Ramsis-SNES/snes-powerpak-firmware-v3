@@ -74,9 +74,9 @@ ThemeFileSelected:							; THM file selected --> load new theme, and return to i
 
 	Accu16
 
-	lda	tempEntry.tempCluster					; copy file cluster
+	lda	tempEntry.Cluster					; copy file cluster
 	sta	DP_ThemeFileClusterLo
-	lda	tempEntry.tempCluster+2
+	lda	tempEntry.Cluster+2
 	sta	DP_ThemeFileClusterHi
 
 	Accu8
