@@ -29,11 +29,8 @@
 
 
 
-.ROMBANKMAP
-	BANKSTOTAL	4
-	BANKSIZE	$8000						; ROM banks are 32 KBytes in size
-	BANKS		4						; 4 ROM banks = 1Mbit
-.ENDRO
+.ROMBANKSIZE		$8000						; ROM banks are 32 KiB in size
+.ROMBANKS		4						; 4 ROM banks = 1 Mbit
 
 
 
