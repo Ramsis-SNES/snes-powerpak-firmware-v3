@@ -33,8 +33,6 @@ HDMA_ColMath:
 	.DB $E0, $E0							; don't affect display
 	.DB 0
 
-HDMA_ColMath_End:
-
 
 
 ; *************************** Scroll offsets ***************************
@@ -59,8 +57,6 @@ HDMA_Scroll:
 	.DB $00, $00							; no horizontal scroll offset
 	.DB $00, $00	; +18 patchme scrollY
 	.DB 0
-
-HDMA_Scroll_End:
 
 
 

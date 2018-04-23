@@ -37,28 +37,22 @@ GFXsetup:
 -	lda.l	HDMA_Window, x						; copy HDMA windowing table to buffer
 	sta	HDMAtable.Window, x
 	inx
-	cpx	#HDMA_Window_End-HDMA_Window				; 13 bytes
+	cpx	#_sizeof_HDMA_Window					; 13 bytes
 	bne	-
 
 	ldx	#0
 -	lda.l	HDMA_Scroll, x						; copy HDMA horizontal scroll offset table to buffer
 	sta	HDMAtable.ScrollBG1, x
-	inx
-	cpx	#HDMA_Scroll_End-HDMA_Scroll				; 21 bytes
-	bne	-
-
-	ldx	#0
--	lda.l	HDMA_Scroll, x						; copy HDMA horizontal scroll offset table to buffer
 	sta	HDMAtable.ScrollBG2, x
 	inx
-	cpx	#HDMA_Scroll_End-HDMA_Scroll				; 21 bytes
+	cpx	#_sizeof_HDMA_Scroll					; 21 bytes
 	bne	-
 
 	ldx	#0
 -	lda.l	HDMA_ColMath, x						; copy HDMA color math table to buffer
 	sta	HDMAtable.ColorMath, x
 	inx
-	cpx	#HDMA_ColMath_End-HDMA_ColMath				; 10 bytes
+	cpx	#_sizeof_HDMA_ColMath					; 10 bytes
 	bne	-
 
 
@@ -148,7 +142,7 @@ __BuildFontBG2:
 	stx	$2181
 	stz	$2183
 
-	DMA_CH0 $00, :Sprite_FWT, Sprite_FWT, $80, Sprite_FWT_End-Sprite_FWT
+	DMA_CH0 $00, :Sprite_FWT, Sprite_FWT, <REG_WMDATA, _sizeof_Sprite_FWT
 
 
 
