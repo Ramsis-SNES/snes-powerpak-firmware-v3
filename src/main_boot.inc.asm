@@ -586,6 +586,15 @@ IntroLoop:
 	jsr	LoadLastGame
 	jmp	GotoGameOptions
 +
+
+
+
+; -------------------------- check for Select button = call test routine
+;	lda	Joy1New+1
+;	and	#%00100000
+;	beq	+
+;	jsr	CardTESTCheckError
+;+
 	bra	IntroLoop
 
 

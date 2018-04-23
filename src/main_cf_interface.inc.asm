@@ -441,11 +441,39 @@ CardWaitDataReqDone:
 
 
 
+/*
+CardTESTCheckError:
+	SetCursorPos 22, 0
+	PrintString "  "
+
+	wai
+	sei								; disable NMI & IRQ
+	stz	REG_NMITIMEN
+	jsr	CardWaitNotBusy
+	jsr	CardWaitReady
+	lda	CARDSTATUS						; get card status, check for general error
+	sta	errorCode
+	and	#%00000001
+	bne	CardError
+	lda	REG_RDNMI						; clear NMI flag
+	lda	#$81
+	sta	REG_NMITIMEN						; re-enable VBlank NMI
+	cli
+
+	SetCursorPos 22, 0
+	PrintString "OK"
+
+	rts
+*/
+
+
+
 CardCheckError:
 	lda	CARDSTATUS						; get card status, check for general error
 	sta	errorCode
 	and	#%00000001
-	cmp	#%00000001
+;	bne	CardError
+	cmp	#%00000001	; patch: 008F89 D0 (bne) : 008F8A 03 (CardError) : 008F8B 60 (rts)
 	beq	CardError
 	rts
 
