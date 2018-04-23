@@ -19,20 +19,20 @@ GFXsetup:
 
 ; -------------------------- HDMA tables --> WRAM
 	ldx	#(HDMAtable.BG & $FFFF)					; set WRAM address = HDMA backdrop color gradient buffer, get lower word
-	stx	$2181
-	stz	$2183
+	stx	REG_WMADDL
+	stz	REG_WMADDH
 	ldx	#0
 	lda	#1							; build placeholder table with an all-black background
--	sta	$2180							; scanline no.
-	stz	$2180							; 1st word: CGRAM address ($00)
-	stz	$2180
-	stz	$2180							; 2nd word: color (black)
-	stz	$2180
+-	sta	REG_WMDATA						; scanline no.
+	stz	REG_WMDATA						; 1st word: CGRAM address ($00)
+	stz	REG_WMDATA
+	stz	REG_WMDATA						; 2nd word: color (black)
+	stz	REG_WMDATA
 	inx
 	cpx	#224							; 224 HDMA table entries done?
 	bne	-
 
-	stz	$2180							; end of HDMA table
+	stz	REG_WMDATA						; end of HDMA table
 	ldx	#0
 -	lda.l	HDMA_Window, x						; copy HDMA windowing table to buffer
 	sta	HDMAtable.Window, x
@@ -58,26 +58,26 @@ GFXsetup:
 
 
 ; -------------------------- palettes --> CGRAM
-	stz	$2121							; reset CGRAM address
+	stz	REG_CGADD						; reset CGRAM address
 	ldx	#0
 -	lda.l	BG_Palette, x
-	sta	$2122
+	sta	REG_CGDATA
 	inx
 	cpx	#8							; 4 colors = 8 bytes done?
 	bne	-
 
 	lda	#ADDR_CGRAM_MAIN_GFX					; set CGRAM address for sprite palettes (main GFX palette = $80)
-	sta	$2121
+	sta	REG_CGADD
 
-	DMA_CH0 $02, :Sprite_Palettes, Sprite_Palettes, $22, 256
+	DMA_CH0 $02, :Sprite_Palettes, Sprite_Palettes, <REG_CGDATA, 256
 
 
 
 ; -------------------------- "expand" font for hi-res use into VRAM
 	lda	#$80							; VRAM address increment mode: increment address by one word
-	sta	$2115							; after accessing the high byte ($2119)
+	sta	REG_VMAIN						; after accessing the high byte ($2119)
 	ldx	#ADDR_VRAM_BG1_TILES					; set VRAM address for BG1 font tiles
-	stx	$2116
+	stx	REG_VMADDL
 
 	Accu16
 
@@ -86,7 +86,7 @@ GFXsetup:
 __BuildFontBG1:
 	ldy	#$0000
 -	lda.l	Font, x							; first, copy font tile (font tiles sit on the "left")
-	sta	$2118
+	sta	REG_VMDATAL
 	inx
 	inx
 	iny
@@ -94,7 +94,7 @@ __BuildFontBG1:
 	bne	-
 
 	ldy	#$0000
--	stz	$2118							; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16×8 tiles
+-	stz	REG_VMDATAL						; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16×8 tiles
 	iny								; and 2 blank tiles because BG1 is 4bpp)
 	cpy	#$0018							; 16 bytes (8 double bytes) per tile
 	bne	-
@@ -103,19 +103,19 @@ __BuildFontBG1:
 	bne	__BuildFontBG1
 
 	ldx	#ADDR_VRAM_BG2_TILES					; set VRAM address for BG2 font tiles
-	stx	$2116
+	stx	REG_VMADDL
 	ldx	#$0000
 
 __BuildFontBG2:
 	ldy	#$0000
--	stz	$2118							; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
+-	stz	REG_VMDATAL						; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
 	iny								; no more blank tiles because BG2 is 2bpp)
 	cpy	#$0008							; 16 bytes (8 double bytes) per tile
 	bne	-
 
 	ldy	#$0000
 -	lda.l	Font, x							; next, copy 8×8 font tile (font tiles sit on the "right")
-	sta	$2118
+	sta	REG_VMDATAL
 	inx
 	inx
 	iny
@@ -131,16 +131,16 @@ __BuildFontBG2:
 
 ; -------------------------- sprites --> VRAM
 	ldx	#ADDR_VRAM_SPR_TILES					; set VRAM address for sprite tiles
-	stx	$2116
+	stx	REG_VMADDL
 
-	DMA_CH0 $01, :SpriteTiles, SpriteTiles, $18, $4000
+	DMA_CH0 $01, :SpriteTiles, SpriteTiles, <REG_VMDATAL, $4000
 
 
 
 ; -------------------------- font width table --> WRAM
 	ldx	#(SpriteFWT & $FFFF)					; set WRAM address = sprite font width table buffer
-	stx	$2181
-	stz	$2183
+	stx	REG_WMADDL
+	stz	REG_WMADDH
 
 	DMA_CH0 $00, :Sprite_FWT, Sprite_FWT, <REG_WMDATA, _sizeof_Sprite_FWT
 
@@ -148,17 +148,17 @@ __BuildFontBG2:
 
 ; -------------------------- prepare tilemaps
 	ldx	#ADDR_VRAM_BG1_TILEMAP					; set VRAM address to BG1 tilemap
-	stx	$2116
+	stx	REG_VMADDL
 	lda	#%00100000						; set the priority bit of all tilemap entries
 	ldx	#$0800							; set BG1's tilemap size (64×32 = 2048 tiles)
--	sta	$2119							; set priority bit
+-	sta	REG_VMDATAH						; set priority bit
 	dex
 	bne	-
 
 	ldx	#ADDR_VRAM_BG2_TILEMAP					; set VRAM address to BG2 tilemap
-	stx	$2116
+	stx	REG_VMADDL
 	ldx	#$0800							; set BG2's tilemap size (64×32 = 2048 tiles)
--	sta	$2119							; set priority bit
+-	sta	REG_VMDATAH						; set priority bit
 	dex
 	bne	-
 
@@ -167,31 +167,31 @@ __BuildFontBG2:
 ; -------------------------- set up the screen
 GFXsetup2:
 	lda	#%00000011						; 8×8 (small) / 16×16 (large) sprites, character data at $6000
-	sta	$2101
+	sta	REG_OBSEL
 	lda	#$05							; set BG mode 5 for horizontal high resolution :-)
-	sta	$2105
+	sta	REG_BGMODE
 ;	lda	#$08							; never mind (unless a BGMODE change would occur mid-frame)
-;	sta	$2133
+;	sta	REG_SETINI
 	lda	#%00000001						; BG1 tilemap VRAM address ($0000) & tilemap size (64×32 tiles)
-	sta	$2107
+	sta	REG_BG1SC
 	lda	#%00001001						; BG2 tilemap VRAM address ($0800) & tilemap size (64×32 tiles)
-	sta	$2108
+	sta	REG_BG2SC
 	lda	#%01000010						; set BG1's Character VRAM offset to $2000
-	sta	$210B							; and BG2's Character VRAM offset to $4000
+	sta	REG_BG12NBA						; and BG2's Character VRAM offset to $4000
 	lda	#%00010011						; turn on BG1 + BG2 + sprites
-	sta	$212C							; on mainscreen
-	sta	$212D							; and subscreen
+	sta	REG_TM							; on mainscreen
+	sta	REG_TS							; and subscreen
 	lda	#%00100010						; enable window 1 on BG1 & BG2
-	sta	$2123							; (necessary to cut off scrolling "artifact" lines in the filebrowser)
-	stz	$2126							; set window 1 left position (0)
+	sta	REG_W12SEL						; (necessary to cut off scrolling "artifact" lines in the filebrowser)
+	stz	REG_WH0							; set window 1 left position (0)
 	lda	#$FF							; set window 1 right position (255), window fills the whole screen
-	sta	$2127
+	sta	REG_WH1
 	lda	#%00000011						; enable window masking (i.e., disable the content) on BG1 & BG2
-	sta	$212E							; on mainscreen
-	sta	$212F							; and subscreen (all window content is re-enabled via HDMA)
-	stz	$2130							; enable color math
+	sta	REG_TMW							; on mainscreen
+	sta	REG_TSW							; and subscreen (all window content is re-enabled via HDMA)
+	stz	REG_CGWSEL						; enable color math
 	lda	#%00100000						; color math (mainscreen backdrop) for questions/SPC player "window"
-	sta	$2131
+	sta	REG_CGADSUB
 
 
 

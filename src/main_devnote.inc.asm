@@ -90,14 +90,14 @@ GotoDevNote:
 
 ; -------------------------- show mosaic effect
 	lda	#$93							; enable mosaic on BG1 & BG2, start with block size 9
--	sta	$2106
+-	sta	REG_MOSAIC
 	wai								; show mosaic for one frame
 	sec
 	sbc	#$10							; reduce block size by 1
 	cmp	#$F3							; smallest block size ($03) processed on last iteration?
 	bne	-
 
-	stz	$2106							; turn off mosaic effect
+	stz	REG_MOSAIC						; turn off mosaic effect
 
 
 
@@ -187,7 +187,7 @@ DevNoteLoop:
 
 ; -------------------------- Start pressed, reset
 	lda	#$0E							; reduce screen brightness by 1
-	sta	$2100
+	sta	REG_INIDISP
 	lda	#224
 -	wai
 	sec								; fade out music within 224/8 = 28 frames (~ 0.5 seconds)
@@ -201,7 +201,7 @@ DevNoteLoop:
 	lsr	a
 	lsr	a
 	lsr	a
-	sta	$2100
+	sta	REG_INIDISP
 	pla
 	bne	-
 
@@ -240,18 +240,18 @@ GotoDevNotePage1:
 	lda	#$00
 -	sec
 	sbc	#$10
-	sta	$210D
-	stz	$210D
-	sta	$210F
-	stz	$210F
+	sta	REG_BG1HOFS
+	stz	REG_BG1HOFS
+	sta	REG_BG2HOFS
+	stz	REG_BG2HOFS
 	wai
 	cmp	#$00
 	bne	-
 
-	stz	$210D
-	stz	$210D
-	stz	$210F
-	stz	$210F
+	stz	REG_BG1HOFS
+	stz	REG_BG1HOFS
+	stz	REG_BG2HOFS
+	stz	REG_BG2HOFS
 	rts
 
 
@@ -264,19 +264,19 @@ GotoDevNotePage2:
 	lda	#$00
 -	clc
 	adc	#$10
-	sta	$210D
-	stz	$210D
-	sta	$210F
-	stz	$210F
+	sta	REG_BG1HOFS
+	stz	REG_BG1HOFS
+	sta	REG_BG2HOFS
+	stz	REG_BG2HOFS
 	wai
 	cmp	#$F0
 	bne	-
 
 	lda	#$01
-	stz	$210D
-	sta	$210D
-	stz	$210F
-	sta	$210F
+	stz	REG_BG1HOFS
+	sta	REG_BG1HOFS
+	stz	REG_BG2HOFS
+	sta	REG_BG2HOFS
 
 
 

@@ -1023,14 +1023,14 @@ __CLD_EntryNotUnused:
 	jmp	__CLD_NextEntry
 
 __CLD_EntryPrepareLoadLFN:
-	sta	$211B							; PPU multiplication
-	stz	$211B
+	sta	REG_M7A							; PPU multiplication
+	stz	REG_M7A
 	lda	#$0D							; LFNs consist of 13 unicode characters
-	sta	$211C
+	sta	REG_M7B
 
 	Accu16
 
-	lda	$2134							; read result
+	lda	REG_MPYL						; read result
 	sec
 	sbc	#$000D							; subtract 13 to start at tempEntry's beginning
 	tax								; transfer to X register

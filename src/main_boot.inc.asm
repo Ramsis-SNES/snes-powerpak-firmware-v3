@@ -43,9 +43,9 @@ Main:
 	ldx	DP_StackPointer_BAK					; restore stack pointer
 	txs
 	lda	#$80							; enter forced blank
-	sta	$2100
-	stz	$420B							; disable DMA
-	stz	$420C							; disable HDMA
+	sta	REG_INIDISP
+	stz	REG_MDMAEN						; disable DMA
+	stz	REG_HDMAEN						; disable HDMA
 	stz	DP_ColdBootCheck1					; remove warm boot signature
 	stz	DP_ColdBootCheck2
 	stz	DP_ColdBootCheck3
@@ -64,14 +64,14 @@ Main:
 	sta	DP_HDMAchannels
 	wai
 	lda	#$0F							; turn on the screen, full brightness
-	sta	$2100
+	sta	REG_INIDISP
 	jmp	GotoSPCplayer
 
 +	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
 	sta	DP_HDMAchannels
 	wai
 	lda	#$0F							; turn on the screen, full brightness
-	sta	$2100
+	sta	REG_INIDISP
 	lda	#$80							; make cursor "visible" again
 	sta	SpriteBuf1.Cursor+2
 	jmp	__FileBrowserLoop					; return to file browser
@@ -232,7 +232,7 @@ __ColdBoot:
 	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0		; WRAM (length $0000 = 65536 bytes = lower 64K of WRAM)
 
 ;	lda	#%00000001						; never mind, Accu still contains this value
-	sta	$420B							; WRAM address in $2181-$2183 has reached $10000 now, re-initiate DMA transfer for the upper 64K of WRAM
+	sta	REG_MDMAEN						; WRAM address in $2181-$2183 has reached $10000 now, re-initiate DMA transfer for the upper 64K of WRAM
 	jsl	apu_ram_init						; initialize sound RAM
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
@@ -528,7 +528,7 @@ GotoIntroScreen:
 	inc	a							; 15 / 3 = 5 frames
 	inc	a
 	inc	a
-	sta	$2100
+	sta	REG_INIDISP
 	cmp	#$0F
 	bne	-
 
@@ -772,7 +772,7 @@ Forever:
 	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
 	sta	DP_HDMAchannels
 	lda	#$0F							; turn on the screen in case we're still in forced blank
-	sta	$2100
+	sta	REG_INIDISP
 	lda	#$81							; enable Vblank NMI + automatic joypad reading
 	sta	REG_NMITIMEN
 	cli
@@ -1007,19 +1007,19 @@ __GetEntryFromSDRAMLoop:
 
 __GetEntryFromWRAM:
 	lda	#$01							; set bank = $7F
-	sta	$2183
+	sta	REG_WMADDH
 	lda	selectedEntry+1
 	lsr	a							; selectedEntry+1 into carry bit
 	lda	selectedEntry
 	ror	a
-	sta	$2182
+	sta	REG_WMADDM
 	lda	#$00
 	ror	a
-	sta	$2181
+	sta	REG_WMADDL
 	ldy	#$0000
 
 __GetEntryFromWRAMLoop:
-	lda	$2180
+	lda	REG_WMDATA
 	sta	tempEntry, y
 	iny
 	cpy	#$0080
@@ -1264,7 +1264,7 @@ CardLoadFPGA:
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 	wai
 	lda	#$80
-	sta	$2100							; turn screen off
+	sta	REG_INIDISP						; turn screen off
 
 CardLoadFPGALoop:
 	lda	#kDestFPGA
@@ -1310,7 +1310,7 @@ __FPGANextSector:
 
 __LoadFPGADone:
 ;	lda	#$0F
-;	sta	$2100							; turn screen on // never mind, done on intro screen
+;	sta	REG_INIDISP						; turn screen on // never mind, done on intro screen
 	rts
 
 
@@ -1335,16 +1335,16 @@ ClearFindEntry:
 ; ************************** Log error output **************************
 
 LogScreen:
-	stz	$2183							; set WRAM address to log buffer for writing (expected in bank $7E)
+	stz	REG_WMADDH						; set WRAM address to log buffer for writing (expected in bank $7E)
 	ldx	#(LogBuffer & $FFFF)					; get low word
-	stx	$2181
+	stx	REG_WMADDL
 	ldx	#$0000							; next, "deinterleave" hi-res text buffer
 -	lda	TextBuffer.BG1, x
 	lsr	a							; reconvert hi-res tile to plain ASCII
-	sta	$2180							; copy it to log buffer
+	sta	REG_WMDATA						; copy it to log buffer
 	lda	TextBuffer.BG2, x					; same thing for BG2
 	lsr	a
-	sta	$2180
+	sta	REG_WMDATA
 	inx
 	cpx	#$0400							; 1024 bytes per BG (lower 32×32 tilemaps only)
 	bne	-
@@ -1373,7 +1373,7 @@ ShowConsoleVersion:
 
 	Accu16
 
-	lda	$213E							; PPU1/2 revisions
+	lda	REG_STAT77						; PPU1/2 revisions
 	and	#$0F0F							; mask off other/open bus flags
 	sta	temp+1
 
@@ -1451,7 +1451,9 @@ LoadDevMusic:
 	jsl	spcLoad							; load module into SPC
 	lda	#39							; allocate around 10K of sound ram (39 256-byte blocks)
 	jsl	spcAllocateSoundRegion
-	lda	#$81							; done, re-enable Vblank NMI + Auto Joypad Read
+
+	lda	REG_RDNMI						; done, acknowledge NMI flag
+	lda	#$81							; re-enable Vblank NMI + Auto Joypad Read
 	sta	REG_NMITIMEN
 	cli
 	rts
