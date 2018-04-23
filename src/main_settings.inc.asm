@@ -229,10 +229,8 @@ CheckForUpdate:
 	bne	+
 	jmp	GotoFlashUpdater					; ... force launching of flash updater (for manual downgrade etc.)
 
-+	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi							; load first sector to check if UPDATE.ROM is a "MUFASA" firmware, and newer than installed ROM
++	ldx	#sectorBuffer1						; load first sector to check if UPDATE.ROM is a "MUFASA" firmware, and newer than installed ROM
+	stx	destLo
 	stz	destBank
 	stz	sectorCounter
 	stz	bankCounter
@@ -425,10 +423,8 @@ SaveConfig:
 	cpy	#$0200							; 512 bytes total
 	bne	-
 
-	lda	#<sectorBuffer1
-	sta	sourceLo
-	lda	#>sectorBuffer1
-	sta	sourceHi
+	ldx	#sectorBuffer1
+	stx	sourceLo
 	stz	sourceBank
 	lda	#kSourceWRAM
 	sta	sourceType

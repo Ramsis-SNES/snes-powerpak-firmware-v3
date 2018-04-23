@@ -500,10 +500,8 @@ FileBrowserCheckSPCFile:
 
 	Accu8
 
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi							; put first sector into sector RAM
+	ldx	#sectorBuffer1						; load first sector into sector RAM
+	stx	destLo
 	stz	destBank
 	stz	sectorCounter
 	stz	bankCounter

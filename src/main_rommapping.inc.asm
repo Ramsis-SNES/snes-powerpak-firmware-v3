@@ -595,14 +595,17 @@ HiROMBanking:
 	lsr	a
 	lsr	a
 	sta	sourceHi
-	lda	#<HiRom4Mbit
+
+	Accu16
+
+	lda	#HiRom4Mbit
 	clc
 	adc	sourceLo
 	sta	destLo
-	lda	#>HiRom4Mbit
-	adc	sourceHi
-	sta	destHi
-	jsr	 CopyBanks
+
+	Accu8
+
+	jsr	CopyBanks
 	lda	saveSize
 	beq	HiROMNoSRAM
 
@@ -657,10 +660,8 @@ ExHiROMBanking48Mbit:
 
 	PrintString "48Mbit"
 
-	lda	#<ExHiRom48Mbit
-	sta	destLo
-	lda	#>ExHiRom48Mbit
-	sta	destHi
+	ldx	#ExHiRom48Mbit
+	stx	destLo
 
 ;	PrintString "\nSRAM in $80-BF:$6000-7FFF"
 ;	lda	#$00
@@ -685,10 +686,8 @@ ExHiROMBanking64Mbit:
 
 	PrintString "64Mbit"
 
-	lda	#<ExHiRom64Mbit
-	sta	destLo
-	lda	#>ExHiRom64Mbit
-	sta	destHi
+	ldx	#ExHiRom64Mbit
+	stx	destLo
 	bra	ExHiROMSRAM
 
 ExHiROMBankingNot64Mbit:
@@ -701,10 +700,8 @@ ExHiROMBanking96Mbit:
 
 	PrintString "96Mbit"
 
-	lda	#<ExHiRom96Mbit
-	sta	destLo
-	lda	#>ExHiRom96Mbit
-	sta	destHi
+	ldx	#ExHiRom96Mbit
+	stx	destLo
 	bra	ExHiROMSRAM
 
 ExHiROMBankingNot96Mbit:

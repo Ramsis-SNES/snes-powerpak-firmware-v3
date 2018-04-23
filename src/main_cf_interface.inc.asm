@@ -98,10 +98,8 @@ StateCardReadyDone:
 	stz	sourceSector+1
 	stz	sourceSector+2
 	stz	sourceSector+3
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi
+	ldx	#sectorBuffer1
+	stx	destLo
 	stz	destBank
 	lda	#kDestWRAM						; try with DMA on
 	sta	destType
@@ -169,10 +167,8 @@ CardCopyPartitionLBABegin:						; copy partitionLBABegin from offset 455
 	cpy	#$0004
 	bne	CardCopyPartitionLBABegin
 
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi
+	ldx	#sectorBuffer1
+	stx	destLo
 	stz	destBank
 	lda	#kDestWRAM
 	sta	destType
@@ -916,12 +912,9 @@ __ClusterToLBALoop:
 ; cluster).
 
 CardLoadDir:
-	lda	#>sectorBuffer1
-	sta	destHi							; sourceSector1 = where to put sector, where to read entry
-	sta	sourceEntryHi
-	lda	#<sectorBuffer1
-	sta	destLo
-	sta	sourceEntryLo
+	ldx	#sectorBuffer1
+	stx	destLo							; sourceSector1 = where to put sector, where to read entry
+	stx	sourceEntryLo
 	stz	destBank						; bank $00 = lower 8K of WRAM
 	stz	sourceEntryBank						; ditto
 	lda	#$7F							; start at WRAM offset $7F0000
@@ -1329,12 +1322,9 @@ __CLD_NextSectorNum:
 	stz	sectorCounter						; reset sector counter
 
 __CLD_LoadNextSector:
-	lda	#<sectorBuffer1
-	sta	destLo							; reset sector dest
-	sta	sourceEntryLo						; reset entry source
-	lda	#>sectorBuffer1
-	sta	destHi
-	sta	sourceEntryHi
+	ldx	#sectorBuffer1
+	stx	destLo							; reset sector dest
+	stx	sourceEntryLo						; reset entry source
 	stz	destBank
 	stz	sourceEntryBank
 	lda	#kDestWRAM
@@ -1477,10 +1467,8 @@ NextClusterSectorNum:							; FAT sector num = fatBeginLBA + (offset / 512) || c
 
 	Accu8
 
-	lda	#>sectorBuffer1						; load FAT sector
-	sta	destHi
-	lda	#<sectorBuffer1
-	sta	destLo
+	ldx	#sectorBuffer1						; load FAT sector
+	stx	destLo
 	stz	destBank
 	lda	#kDestWRAM
 	sta	destType
@@ -1625,10 +1613,8 @@ FindFreeSector:
 
 	lda	#kDestWRAM						; set WRAM as destination
 	sta	destType
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi
+	ldx	#sectorBuffer1
+	stx	destLo
 	stz	destBank
 	jsr	CardReadSector						; read FAT sector to WRAM
 

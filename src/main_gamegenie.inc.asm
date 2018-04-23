@@ -68,10 +68,8 @@ GGCodeListSelected:
 
 	Accu8
 
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi							; put into sector RAM
+	ldx	#sectorBuffer1						; put into sector RAM
+	stx	destLo
 	stz	destBank
 	stz	sectorCounter
 	stz	bankCounter
