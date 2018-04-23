@@ -16,14 +16,7 @@
 ; ************************ Begin CF interaction ************************
 
 AccessCFcard:
-	Accu16
 
-	stz	gameName.Cluster					; clear out cluster info
-	stz	gameName.Cluster+2
-	stz	saveName.Cluster
-	stz	saveName.Cluster+2
-
-	Accu8
 
 	jsr	CardReset
 	wai
@@ -35,9 +28,6 @@ StateCardNotInserted:							; wait until card inserted, show no card message
 	and	#%11110000						; open bus = A0
 	cmp	#$A0
 	bne	__StateCardInserted
-;	wai
-;	wai
-;	wai
 
 	SetCursorPos 21, 1
 	PrintString "CF card not found.\n  Error code: $"
@@ -173,6 +163,7 @@ CardCopyPartitionLBABegin:						; copy partitionLBABegin from offset 455
 	lda	#kDestWRAM
 	sta	destType
 	jsr	CardReadSector						; read FAT16/FAT32 Volume ID sector (partition boot record)
+
 	lda	sectorBuffer1+$0D					; copy FAT16/FAT32 sectorsPerCluster from offset 13
 	sta	sectorsPerCluster
 	lda	sectorBuffer1+$0E					; copy FAT16/FAT32 reservedSectors from offset 14
@@ -217,7 +208,6 @@ CardCopyRootDirCluster16:
 	sta	sectorsPerFat+1
 	stz	sectorsPerFat+2
 	stz	sectorsPerFat+3						; FAT16 sectors per fat = 16 bits, in different place than FAT32
-
 
 CardCopyRootDirEntries16:						; copy max root directory entries from offset 17
 	lda	sectorBuffer1+$11

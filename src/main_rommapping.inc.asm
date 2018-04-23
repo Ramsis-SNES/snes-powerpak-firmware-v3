@@ -152,7 +152,7 @@ LoadSaveStart:
 	stz	bankCounter
 	lda	#kDestSDRAM
 	sta	destType
-	jsr	 CardReadFile
+	jsr	CardReadFile
 	ldy	#gameSize						; print SRAM sectors in decimal
 
 	PrintString "present, loaded %d sectors = "
@@ -174,7 +174,7 @@ CheckInternalHeaderExHi:
 	sta	DMAWRITEHI
 	lda	#$40
 	sta	DMAWRITEBANK						; check for internal header  40FFC0
-	jsr	 CopyROMInfo
+	jsr	CopyROMInfo
 
 ;	PrintString "/nmapper="
 ;	PrintHexNum gameROMMapper
@@ -229,9 +229,9 @@ CheckInternalHeaderHi:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK						; check for internal header $FFC0
-	jsr	 CopyROMInfo
 	lda	fixheader
 	beq	CheckInternalHeaderHiMapper				; don't fix the header
+	jsr	CopyROMInfo
 	lda	#$21
 	sta	gameROMMapper						; assume HiROM
 
@@ -274,9 +274,9 @@ CheckInternalHeaderLo:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK						; check for internal header $7FC0
-	jsr	 CopyROMInfo
 	lda	fixheader
 	beq	CheckInternalHeaderLoMapper				; don't fix the header
+	jsr	CopyROMInfo
 	lda	#$20
 	sta	gameROMMapper						; assume LoROM
 
@@ -547,7 +547,7 @@ ExLoROMBankingNot64Mbit:
 
 
 ExLoROMTryHeaderFix:
-	jsr	 PrintClearScreen
+	jsr	PrintClearScreen
 
 	SetCursorPos 1, 0
 
@@ -566,7 +566,7 @@ ExLoROMTryHeaderFix:
 
 
 ExLoROMBankingLoop:
-	jsr	 CopyBanks
+	jsr	CopyBanks
 	jmp	LoROMSRAM
 
 
@@ -616,7 +616,6 @@ HiROMBanking:
 	sta	CONFIGWRITESRAMHI
 
 ;;;;;;FIXME lda something here?
-
 	cmp	#$30
 	bne	HiROMBankingDone
 
@@ -719,7 +718,7 @@ ExHiROMSRAM:
 	sta	CONFIGWRITESRAMHI
 
 ExHiROMBankingLoop:
-	jsr	 CopyBanks
+	jsr	CopyBanks
 
 ExHiROMBankingDone:
 ;	bra	SetROMBankingDone
@@ -810,7 +809,7 @@ LoROM16DSP:
 
 
 ROMDSPCheckDone:
-	jsr	 PrintBanks						; skip to avoid user confusion due to possible screen overflow
+	jsr	PrintBanks						; skip to avoid user confusion due to possible screen overflow
 
 
 
@@ -835,27 +834,27 @@ LoadGameGenie:
 	PrintString "\n"
 
 	ldy	#$0000
-	jsr	 GameGenieWriteCode
+	jsr	GameGenieWriteCode
 
 	PrintString "\n"
 
 	ldy	#$0008
-	jsr	 GameGenieWriteCode
+	jsr	GameGenieWriteCode
 
 	PrintString "\n"
 
 	ldy	#$0010
-	jsr	 GameGenieWriteCode
+	jsr	GameGenieWriteCode
 
 	PrintString "\n"
 
 	ldy	#$0018
-	jsr	 GameGenieWriteCode
+	jsr	GameGenieWriteCode
 
 	PrintString "\n"
 
 	ldy	#$0020
-	jsr	 GameGenieWriteCode
+	jsr	GameGenieWriteCode
 
 
 
@@ -866,7 +865,7 @@ LoadGameGenie:
 	lda	Joy1Press+1
 	and	#%00100000						; if user holds Select, log screen and wait
 	beq	__ResetSystemNow
-	jsr	 LogScreenMessage
+	jsr	LogScreenMessage
 
 ;	SetCursorPos 27, 1
 ;	PrintString "FPGA STATUS = "
@@ -911,7 +910,7 @@ __ResetSystemNow:
 ; *********************** Screen logging message ***********************
 
 LogScreenMessage:
-	jsr	 LogScreen
+	jsr	LogScreen
 
 	PrintString "\nScreen saved to POWERPAK/ERROR.LOG"
 
@@ -922,13 +921,13 @@ LogScreenMessage:
 ; *************************** Error handling ***************************
 
 FatalError:
-	jsr	 LogScreenMessage
+	jsr	LogScreenMessage
 
 	PrintString "\n\nPress any button to return to the titlescreen."
 
 	WaitForUserInput
 
-	jsr	 PrintClearScreen
+	jsr	PrintClearScreen
 	jmp	GotoIntroScreen						; return to titlescreen
 
 ;	lda	#%10000001						; alternatively:
@@ -1159,7 +1158,9 @@ PrintBanks:
 __PrintBanks1:
 	lda	gameBanks, x
 	sta	errorCode
+
 	PrintHexNum errorCode
+
 	inx
 	inx
 	dey

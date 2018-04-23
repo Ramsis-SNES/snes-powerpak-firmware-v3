@@ -16,6 +16,7 @@ GotoSettings:
 	jsr	HideButtonSprites
 	jsr	HideLogoSprites
 	jsr	PrintClearScreen
+
 	lda	#cursorXsettings					; put cursor on first menu line
 	sta	cursorX
 	lda	#cursorYsetmenu1
@@ -362,6 +363,7 @@ ResetSystem:
 
 	wai								; just to be sure
 	jsr	SaveConfig
+
 	lda	#$0F
 -	wai								; screen fade-out loop
 	dec	a							; 15 / 3 = 5 frames
@@ -429,6 +431,7 @@ SaveConfig:
 	lda	#kSourceWRAM
 	sta	sourceType
 	jsr	CardWriteFile
+
 	rts
 
 

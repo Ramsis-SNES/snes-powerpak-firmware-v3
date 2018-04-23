@@ -86,7 +86,6 @@ GotoGameOptions:
 	jsr	PrintTempEntry
 
 	DrawFrame 2, 9, 27, 12
-
 	SetCursorPos 8, mainSelX
 	PrintString "Load GameGenie code list ..."
 

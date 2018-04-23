@@ -298,9 +298,11 @@ __ColdBoot:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
+
 	lda	#kDestWRAM
 	sta	destType
 	jsr	CardReadSector						; sector -> WRAM
+
 	ldy	#$0000
 	lda	sectorBuffer1, y					; transfer first byte to DMA "blocker" variable (standard = $00 = DMA on)
 	sta	dontUseDMA						; (reminder: DMA was off until now)
@@ -324,6 +326,7 @@ __NoThemeFileSaved:
 	FindFile "THEMES.   "						; this makes A = 8 bit
 
 	jsr	ClearFindEntry
+
 	ldx	#$0001							; number of file types to look for (1)
 	stx	extNum
 	lda	#'T'
@@ -383,9 +386,11 @@ __ThemeFileClusterSet:
 	jmp	__ConfigureFPGADone					; battery not used, continue with intro
 
 +	jsr	LoadTheme						; battery used, load theme file before activating the screen
+
 	lda	#%00110000						; activate HDMA channels 4 and 5
 	sta	DP_HDMAchannels
 	jsr	PrintRomVersion						; show ROM version string (with sprite FWT from theme file)
+
 	wai
 	lda	#$0F							; turn on the screen, full brightness
 	sta	$2100
@@ -1445,10 +1450,12 @@ LoadDevMusic:
 	sei								; disable NMI & IRQ before loading music
 	stz	REG_NMITIMEN
 	jsl	spcBoot							; boot SNESMOD
+
 	lda	#:SOUNDBANK						; give soundbank
 	sta	spc_bank
 	ldx	#(SOUNDBANK & $7FFF)					; mask off SNES LoROM address gap ($8000)
 	jsl	spcLoad							; load module into SPC
+
 	lda	#39							; allocate around 10K of sound ram (39 256-byte blocks)
 	jsl	spcAllocateSoundRegion
 
