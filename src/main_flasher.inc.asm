@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
-;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2016 by ManuLöwe (http://manuloewe.de/)
+;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.01 (CODENAME: "MUFASA")
+;   (c) 2018 by ManuLöwe (https://manuloewe.de/)
 ;
 ;	*** MAIN CODE SECTION: FLASH UPDATER ***
 ;
@@ -27,7 +27,7 @@ GotoFlashUpdater:
 
 	PrintSpriteText 3, 2, "SNES PowerPak Flash Updater", 4
 	SetCursorPos 2, 0
-	PrintString "v3.00, (c) 2015 by www.ManuLoewe.de\n\n"
+	PrintString "v3.01, (c) 2018 by https://manuloewe.de\n\n"
 	PrintString "Detected flash ROM chip ID: "
 
 	ldx	#$0000

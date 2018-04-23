@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
-;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2016 by ManuLöwe (http://manuloewe.de/)
+;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.01 (CODENAME: "MUFASA")
+;   (c) 2018 by ManuLöwe (https://manuloewe.de/)
 ;
 ;	*** VIDEO SETUP ***
 ;

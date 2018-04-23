@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
-;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-;   (c) 2012-2016 by ManuLöwe (http://manuloewe.de/)
+;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.01 (CODENAME: "MUFASA")
+;   (c) 2018 by ManuLöwe (https://manuloewe.de/)
 ;
 ;	*** DEVELOPER'S NOTE ***
 ;
@@ -78,7 +78,7 @@ GotoDevNote:
 	PrintString "Thanks for reading. Now, pick a game and play! :-)"
 	SetCursorPos 15+32, 0
 	PrintString "Long live the SNES PowerPak!\n\n"
-	PrintString "(c) 2012-2016 by Ramsis\nhttp://manuloewe.de/"
+	PrintString "(c) 2018 by Ramsis\nhttps://manuloewe.de/"
 	SetCursorPos 21+32, 2
 	PrintString " Back"
 	SetCursorPos 21+32, 10
