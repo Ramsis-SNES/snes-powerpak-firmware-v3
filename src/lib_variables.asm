@@ -378,8 +378,6 @@
 
 .ENUM $00
 	DP_ColdBootCheck1	db
-
-	loaderState		db
 	errorCode		dw
 	fat32Enabled		db
 
