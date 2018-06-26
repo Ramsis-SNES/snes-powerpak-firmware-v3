@@ -35,7 +35,7 @@ __ReturnFromMenuSection:
 	SetCursorPos 11,  7
 	PrintString "Select a theme ..."
 	SetCursorPos 12,  7
-	PrintString "View v3.00 developer's note"
+	PrintString "View developer's note"
 	SetCursorPos 13,  7
 	PrintString "Check for firmware update"
 
