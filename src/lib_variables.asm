@@ -364,11 +364,11 @@
 
 
 .ENUM $00
-	kSourceNoDMA		db
+;	kSourceWRAMNoDMA	db
 	kSourceWRAM		db
-	kSourceFPGA		db
+;	kSourceFPGA		db
 	kSourceSDRAM		db
-	kSourceSDRAMNoDMA	db
+;	kSourceSDRAMNoDMA	db
 .ENDE
 
 

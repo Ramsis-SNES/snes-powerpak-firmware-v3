@@ -84,10 +84,10 @@ StateCardReadyDone:
 
 	lda	#$01							; not using DMA
 	sta	dontUseDMA
-	stz	sourceSector
-	stz	sourceSector+1
-	stz	sourceSector+2
-	stz	sourceSector+3
+;	stz	sourceSector						; it's not necessary to clear sourceSector as WRAM was zero-filled upon boot
+;	stz	sourceSector+1
+;	stz	sourceSector+2
+;	stz	sourceSector+3
 	ldx	#sectorBuffer1
 	stx	destLo
 	stz	destBank
@@ -389,7 +389,7 @@ CardWaitReady:
 
 CardWaitReadyLoop:							; wait until card ready
 	lda	CARDSTATUS
-	sta	errorCode
+;	sta	errorCode
 	and	#%01010000
 	cmp	#%01010000
 	beq	CardWaitReadyDone
@@ -410,7 +410,7 @@ CardWaitDataReq:							; wait for not busy, ready, datareq, no error
 
 CardWaitDataReqLoop:
 	lda	CARDSTATUS
-	sta	errorCode
+;	sta	errorCode
 	and	#%01011000
 	cmp	#%01011000
 	beq	CardWaitDataReqDone

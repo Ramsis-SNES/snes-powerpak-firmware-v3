@@ -644,8 +644,8 @@ SDRAMCheck:
 	sta	errorCode+1
 	lda	errorCode
 	sta	$F00000
-	lda	errorCode+1
-	cmp	#$55							; useless ?? (subsequent branch instruction missing ever since v1.0X)
+;	lda	errorCode+1
+;	cmp	#$55							; useless ?? (subsequent branch instruction missing ever since v1.0X)
 	lda	#$AA
 	sta	$F00000
 	lda	$F00000
