@@ -491,8 +491,7 @@
 	bankOffset		dw
 	partitionIndex		dw
 
-	headerType		db					; holds ROM header type ($01 = SWC, $02 = GD3, $FF = unknown)
-	fixheader		db
+	fixheader		db					; cfrrrrrr [c = assume copier header, f = try to guess ROM mapping, r = reserved]
 
 	audioPC			dsb 2					; audio variables for blargg's SPC player
 	audioA			db

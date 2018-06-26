@@ -695,9 +695,12 @@ __CRGF_Reiterate:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
-	lda	headerType						; check if header is present
-	and	#$FF
-	bne	__CRGF_NextSector					; sector=0 and header present --> skip that sector
+
+	bit	fixheader						; check for "assume copier header" flag
+	bpl	__CRGF_ReadSector
+	lda	#%10000000						; clear flag for next iteration
+	trb	fixheader
+	bra	__CRGF_NextSector					; sector=0 and header present --> skip that sector
 
 __CRGF_ReadSector:
 	lda	#kDestSDRAM
@@ -1075,6 +1078,9 @@ __CLD_EntryHiddenCheckDone:
 	bne	__CLD_EntryNotDirectory
 	lda	#$01
 	tsb	tempEntry.Flags						; save "dir" flag
+
+	Accu16
+
 	bra	__CLD_ProcessMatchingEntry
 
 __CLD_EntryNotDirectory:
@@ -1123,16 +1129,21 @@ __CLD_EntryExtensionMatch:
 	jsr	CLD_ClearEntryName					; file size = 0, skip entry
 	jmp	__CLD_NextEntry
 
-__CLD_FileSizeNotZero:
+.ACCU 16
 
-	Accu8
+__CLD_FileSizeNotZero:
+	ldy	#$001C							; check lower 16 bit of file size for copier header
+	lda	[sourceEntryLo], y
+	and	#$03FF							; from FullSNES: "IF (filesize AND 3FFh)=200h THEN HeaderPresent=True"
+	cmp	#$0200
+	bne	__CLD_ProcessMatchingEntry
+	lda	#$0080							; copier header (apparently) present, set "copier header present" flag
+	tsb	tempEntry.Flags						; upper 8 bits (1st byte of tempEntry.Cluster) not affected
 
 
 
 ; -------------------------- load long/short dir or entry with matching ext. and size not zero
 __CLD_ProcessMatchingEntry:
-	Accu16
-
 	inc	filesInDir						; increment file counter
 
 	Accu8

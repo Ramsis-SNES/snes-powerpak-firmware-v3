@@ -15,10 +15,8 @@
 .INDEX 16
 
 StartGame:
-	jsr	 SpriteInit						; purge OAM
-	jsr	 PrintClearScreen
-
- 	SetCursorPos 1, 0
+	jsr	SpriteInit						; purge OAM
+	jsr	PrintClearScreen
 
 ;	SetCursorPos 27, 1
 ;	PrintString "FPGA STATUS = "
@@ -36,60 +34,26 @@ ClearBanks:
 	cpx	#$0020
 	bne	ClearBanks
 
-	stz	headerType
-	stz	fixheader
-
-	Accu16
-
-	lda	gameName.gCluster
-	sta	sourceCluster
-	lda	gameName.gCluster+2
-	sta	sourceCluster+2
-
-	Accu8
-
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi							; put into sector RAM
-	stz	destBank
-	stz	sectorCounter
-	stz	bankCounter
-	jsr	 ClusterToLBA						; sourceCluster -> first sourceSector
-	lda	#kDestWRAM
-	sta	destType
-	jsr	 CardReadSector						; sector -> WRAM
-	jsr	 CopierHeaderCheck					; check for copier header
+	SetCursorPos 1, 0
 
 
 
 ; -------------------------- ROM loading
-	PrintString "Loading game ..."
+	bit	gameName.Flags						; check for "copier header present" flag
+	bpl	+
+
+	PrintString "Copier header detected\n"
++ 	PrintString "Loading game ..."
 
 	wai
-	lda	#$00
+	lda	gameName.Flags						; load copier header/ROM mapping guesswork flags
+	and	#%11000000						; mask off unused bits just in case
+	sta	fixheader
+	lda	#$00							; read file to beginning of SDRAM
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
-	sta	DMAWRITEBANK						; read file to beginning of SDRAM
-	jsr	 CardReadGameFill
-	lda	headerType
-	bne	__CopyROM2SDRAMDone					; if already found header, don't check game size
-	lda	gameSize
-	beq	__CopyROM2SDRAMDone
-
-	PrintString "\nUnknown header or file size, but I'll try again ..."
-
-	wai
-	lda	#$00
-	sta	DMAWRITELO
-	sta	DMAWRITEHI
-	sta	DMAWRITEBANK						; read file to beginning of SDRAM
-	lda	#$FF							; force header skipping even when no known header found
-	sta	headerType
-	jsr	 CardReadGameFill					; copy again, forcing header skip
-
-__CopyROM2SDRAMDone:
-	wai
+	sta	DMAWRITEBANK
+	jsr	CardReadGameFill
 	ldy	#gameSize						; print ROM sectors in decimal ### FIXME add FAT32 excess cluster mask
 
 	PrintString "\nLoaded %d sectors = "
@@ -229,9 +193,9 @@ CheckInternalHeaderHi:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK						; check for internal header $FFC0
-	lda	fixheader
-	beq	CheckInternalHeaderHiMapper				; don't fix the header
 	jsr	CopyROMInfo
+	bit	fixheader
+	bvc	CheckInternalHeaderHiMapper				; don't fix the header
 	lda	#$21
 	sta	gameROMMapper						; assume HiROM
 
@@ -274,9 +238,9 @@ CheckInternalHeaderLo:
 	sta	DMAWRITEHI
 	lda	#$00
 	sta	DMAWRITEBANK						; check for internal header $7FC0
-	lda	fixheader
-	beq	CheckInternalHeaderLoMapper				; don't fix the header
 	jsr	CopyROMInfo
+	bit	fixheader
+	bvc	CheckInternalHeaderLoMapper				; don't fix the header
 	lda	#$20
 	sta	gameROMMapper						; assume LoROM
 
@@ -548,9 +512,8 @@ ExLoROMBanking64Mbit:
 
 ExLoROMBankingNot64Mbit:
 
-	lda	fixheader						; ExLoROM of wrong size found
-	cmp	#$01
-	bne	ExLoROMTryHeaderFix					; header fix already attempted
+	bit	fixheader						; ExLoROM of wrong size found
+	bvc	ExLoROMTryHeaderFix
 	jmp	FatalError
 
 
@@ -566,10 +529,8 @@ ExLoROMTryHeaderFix:
 ;	PrintString "\nRetrying with fixed header ..."
 	PrintString "Unsupported ExLoROM size, but I'll try to fix it ..."
 
-	lda	#$01
-	sta	fixheader
-	lda	#$FF
-	sta	headerType
+	lda	#%11000000						; set "assume copier header" and "try to guess ROM mapping" flags
+	tsb	fixheader
 	jmp	CheckInternalHeaderHi
 
 
@@ -887,7 +848,10 @@ LoadGameGenie:
 	WaitForUserInput
 
 __ResetSystemNow:
-	jsr	 SaveLastGame
+	lda	fixheader						; if ROM mapping was successfully guessed, save flag along with game name etc. so the PowerPak "remembers" the correct mapping
+	and	#%01000000
+	tsb	gameName.Flags
+	jsr	SaveLastGame
 	lda	#$80							; enter forced blank, this should help suppress annoying effects
 	sta	$2100
 	sei								; disable NMI & IRQ so we can reset DMA registers before the game starts
@@ -945,17 +909,15 @@ FatalError:
 
 
 NoInternalHeader:
-	lda	fixheader
-	cmp	#$01
-	beq	NoInteralHeaderFixed					; header fix already attempted
-	jsr	 PrintClearScreen
+	bit	fixheader
+	bvs	NoInteralHeaderFixed					; header fix already attempted
+	jsr	PrintClearScreen
 
 	SetCursorPos 1, 0
-
 	PrintString "No internal header found, I'll make an educated guess ..."
 
-	lda	#$01
-	sta	fixheader
+	lda	#%01000000						; set "try to guess ROM mapping" flag
+	tsb	fixheader
 	jmp	CheckInternalHeaderHi
 
 
@@ -1206,56 +1168,6 @@ __PrintBanks3:
 	inx
 	dey
 	bne	__PrintBanks3
-	rts
-
-
-
-; ************************ Copier header check *************************
-
-CopierHeaderCheck:
-
-
-
-; -------------------------- check for SWC header
-	lda	sectorBuffer1+$08					; Super WildCard headers contain $AABB04 at offset $08-$0A
-	cmp	#$AA
-	bne	__SWCHeaderCheckDone
-	lda	sectorBuffer1+$09
-	cmp	#$BB
-	bne	__SWCHeaderCheckDone
-	lda	sectorBuffer1+$0A
-	cmp	#$04
-	bne	__SWCHeaderCheckDone
-	lda	#$01							; SWC copier header found
-	sta	headerType
-
-	PrintString "SWC Header\n"
-
-	bra	__CopierHeaderCheckDone
-
-__SWCHeaderCheckDone:
-
-
-
-; -------------------------- check for GD3 header
-	lda	sectorBuffer1+$00					; Game Doctor headered ROMs start with a "GAME" string
-	cmp	#'G'
-	bne	__CopierHeaderCheckDone
-	lda	sectorBuffer1+$01
-	cmp	#'A'
-	bne	__CopierHeaderCheckDone
-	lda	sectorBuffer1+$02
-	cmp	#'M'
-	bne	__CopierHeaderCheckDone
-	lda	sectorBuffer1+$03
-	cmp	#'E'
-	bne	__CopierHeaderCheckDone
-	lda	#$02
-	sta	headerType
-
-	PrintString "GD3 Header\n"
-
-__CopierHeaderCheckDone:
 	rts
 
 
