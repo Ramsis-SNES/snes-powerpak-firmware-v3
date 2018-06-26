@@ -564,8 +564,8 @@ FileBrowserCheckSPCFile:
 
 FileBrowserFileIsSPCTable:
 	.DW	GotoSPCplayer						; order of entries in both tables: 1. normal file browser,
-	.DW	__InitWarmBoot						; 2. next SPC file,
-	.DW	__InitWarmBoot						; 3. previous SPC file
+	.DW	InitWarmBoot						; 2. next SPC file,
+	.DW	InitWarmBoot						; 3. previous SPC file
 
 
 

@@ -314,7 +314,17 @@ __ColdBoot:
 	iny
 	lda	sectorBuffer1, y
 	sta	DP_ThemeFileClusterHi
-	lda	DP_ThemeFileClusterLo
+	iny
+	iny
+
+	Accu8
+
+	lda	sectorBuffer1, y					; read SPC player flags
+	sta	DP_SPCPlayerFlags
+
+	Accu16
+
+	lda	DP_ThemeFileClusterLo					; check for empty theme file cluster
 	bne	+
 	lda	DP_ThemeFileClusterHi
 	beq	__NoThemeFileSaved

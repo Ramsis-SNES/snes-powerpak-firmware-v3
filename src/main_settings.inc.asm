@@ -419,6 +419,9 @@ SaveConfig:
 
 	Accu8
 
+	lda	DP_SPCPlayerFlags					; save SPC player flags
+	sta	sectorBuffer1, y
+	iny
 	lda	#$00							; zero out the rest of POWERPAK.CFG
 -	sta	sectorBuffer1, y
 	iny
