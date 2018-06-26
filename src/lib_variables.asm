@@ -390,7 +390,7 @@
 	sourceType		db
 	sourceEntryLo		db
 	sourceEntryHi		db
-	sourceEntryBank		db					; 16 bytes and counting
+	sourceEntryBank		db					; 15 bytes and counting
 
 	destEntryLo		db
 	destEntryHi		db
@@ -404,7 +404,7 @@
 	filesInDir		dw
 	temp			dsb 8
 	selectedEntry		dw
-	lfnFound		db					; 36 bytes and counting
+	lfnFound		db					; 35 bytes and counting
 
 	sourceSector		dsb 4
 	sourceCluster		dsb 4
@@ -422,7 +422,7 @@
 	baseDirCluster		dsb 4					; "baseDir" = "POWERPAK" directory
 	sectorCounter		db
 
-	Cursor			dw					; 76 bytes and counting
+	Cursor			dw					; 75 bytes and counting
 
 	Joy1			dw					; Current button state of joypad1, bit0=0 if it is a valid joypad
 	Joy2			dw					; same thing for all pads...
@@ -435,7 +435,7 @@
 	Joy2New			dw
 
 	Joy1Old			dw
-	Joy2Old			dw					; 92 bytes and counting
+	Joy2Old			dw					; 91 bytes and counting
 
 	findEntry		dsb 9					; 8 bytes at most for short file names + NUL-terminator
 
@@ -447,7 +447,7 @@
 	scrollY			db
 	scrollYCounter		db
 	scrollYUp		db
-	scrollYDown		db					; 140 bytes and counting
+	scrollYDown		db					; 139 bytes and counting
 
 	cursorX			db					; cursorX/cursorY should be kept in consecutive order due to occasional 16-bit writes
 	cursorY			db
@@ -464,7 +464,7 @@
 	saveSize		db
 	useBattery		db
 
-	DP_ColdBootCheck3	db					; 152 bytes and counting
+	DP_ColdBootCheck3	db					; 151 bytes and counting
 
 	gameSize		dw
 	gameResetVector		dw
@@ -475,7 +475,7 @@
 	gameROMMbits		db
 	sramSizeByte		db
 
-	ggcode			dsb 4					; 197 bytes and counting
+	ggcode			dsb 4					; 196 bytes and counting
 
 	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set,
 									; b = use SDRAM buffer if set, WRAM buffer if clear]
@@ -499,7 +499,7 @@
 	audioY			db
 	audioPSW		db
 	audioSP			db
-	spcTimer		dsb 4					; 217 bytes and counting
+	spcTimer		dsb 4					; 215 bytes and counting
 
 	BGPrintMon		db					; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
 	DP_SelectionFlags	db					; rrrrrrrf [r = Reserved, f = file was chosen if set]
@@ -512,7 +512,7 @@
 	DP_cursorX_BAK		db					; backup variables for warm boot and/or file browser
 	DP_cursorY_BAK		db
 	DP_sourceCluster_BAK	dsb 4
-	DP_StackPointer_BAK	dw					; 231 bytes and counting
+	DP_StackPointer_BAK	dw					; 229 bytes and counting
 	DP_SubDirCounter	dw					; used in the file browser
 
 	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
@@ -530,11 +530,11 @@
 	spc_fwrite		db
 	spc_pr			dsb 4					; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE									; 256 of 256 bytes used
+.ENDE									; 255 of 256 bytes used
 
 
 
-.ENUM $1B								; "temp" variable area
+.ENUM 24								; "temp" variable area
 	digi_src		dsb 3
 	digi_src2		dsb 3
 .ENDE
