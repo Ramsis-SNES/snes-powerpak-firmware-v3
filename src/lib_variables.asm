@@ -583,6 +583,8 @@
 
 
 
+; Flag bits in temp_entry and game_name have to match. Unused flags in either array are 0.
+
 .STRUCT temp_entry
 	Name			dsb 123
 	Flags			db					; '$7B' / c0rrrrhd [c = copier header present, r = Reserved, h = Hidden, d = Directory]
