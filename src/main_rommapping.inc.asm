@@ -121,10 +121,11 @@ LoadSaveStart:
 
 	PrintString "present, loaded %d sectors = "
 
-	lsr	gameSize
+	lsr	gameSize+1						; KiB = sectors / 2
+	ror	gameSize
+	ldy	#gameSize
 
-	PrintNum gameSize
-	PrintString " KB"
+	PrintString "%b KB"
 
 LoadSaveDone:
 
