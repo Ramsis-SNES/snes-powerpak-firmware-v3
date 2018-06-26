@@ -15,8 +15,7 @@
 GotoFlashUpdater:
 	lda	#$00
 	sta	CONFIGWRITEDSP						; turn off DSP chip
-	lda	#$00							; reset SDRAM address
-	sta	DMAWRITELO
+	sta	DMAWRITELO						; reset SDRAM address
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK
 	stz	sectorCounter
@@ -92,9 +91,8 @@ FlashUpdateWarning:
 
 ; -------------------------- wait for user to press A button
 -	wai
-	lda	Joy1New							; wait for user input
-	and	#%10000000						; A button
-	beq	-
+	bit	Joy1New							; wait for A button (MSB)
+	bpl	-
 
 	SetCursorPos 17, 0						; overwrite "Press the (A) button ..." message
 	PrintString "FLASHING IN PROGRESS, PLEASE WAIT ..."

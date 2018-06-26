@@ -60,9 +60,9 @@ ClearBanks:
 
 	lda	gameSize+1
 	sta	gameROMMbits
+	ldy	#gameROMMbits
 
-	PrintNum gameROMMbits
-	PrintString " Mbit"
+	PrintString "%b Mbit"
 
 FixMbits:
 	lda	gameROMMbits
@@ -309,24 +309,24 @@ InternalHeaderDone:
 
 ; -------------------------- SRAM mapping
 ROMBattCheck:
-	lda	gameROMType
-	cmp	#$02
-	beq	ROMHasBatt
-	cmp	#$05
-	beq	ROMHasBatt
-
-	PrintString "\nSavegame not"
-
-	stz	useBattery						; no battery when no SRAM
-	bra	ROMBattCheckDone
-
-ROMHasBatt:
-	lda	#$01
-	sta	useBattery
-
 	PrintString "\nSavegame"
 
-ROMBattCheckDone:
+	lda	gameROMType
+	cmp	#$02
+	beq	__ROMHasBatt
+	cmp	#$05
+	beq	__ROMHasBatt
+
+	PrintString " not"
+
+	lda	#$00
+	bra	__ROMBattCheckDone
+
+__ROMHasBatt:
+	lda	#$01
+
+__ROMBattCheckDone:
+	sta	useBattery
 
 SetSRAMSize:
 	Accu16
@@ -380,8 +380,7 @@ Check96BankingDone:
 CheckLoROMBanking:
 	lda	gameROMMapper
 	cmp	#$20
-	bne	CheckLoROMBankingDone
-	bra	LoROMBanking
+	beq	LoROMBanking
 
 CheckLoROMBankingDone:
 
@@ -935,9 +934,8 @@ NoInteralHeaderFixed:
 CopyROMInfo:
 	ldx	#$0000
 -	lda	DMAREADDATA						; start at C0 (game title)
-	cmp	#$80							; check if character exceeds standard ASCII
-	bcc	+
-	lda	#'?'							; if so, replace character with question mark
+	bpl	+							; if character exceeds standard ASCII (>= $80),
+	lda	#'?'							; replace character with question mark
 +	sta	tempEntry, x
 	inx
 	cpx	#$0015							; 21 bytes

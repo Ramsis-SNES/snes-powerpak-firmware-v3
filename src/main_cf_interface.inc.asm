@@ -20,12 +20,12 @@ AccessCFcard:
 
 	jsr	CardReset
 	wai
-	jsr	SpriteMessageError					; show preliminary error message (removed upon success)
+	jsr	SpriteMessageError					; show preliminary error message (removed upon successful card access)
 
 StateCardNotInserted:							; wait until card inserted, show no card message
 	lda	CARDSTATUS
 	sta	errorCode
-	and	#%11110000						; open bus = A0
+	and	#%11110000						; open bus = $A0
 	cmp	#$A0
 	bne	__StateCardInserted
 
@@ -45,9 +45,7 @@ __StateCardInserted:
 StateCardBusy:								; wait until card not busy, show card busy message
 	lda	CARDSTATUS
 	sta	errorCode
-	and	#%10000000
-	cmp	#%10000000						; busy = $80
-	bne	StateCardBusyDone
+	bpl	StateCardBusyDone					; MSB clear --> card not busy
 	wai
 
 	SetCursorPos 21, 1
@@ -91,22 +89,28 @@ StateCardReadyDone:
 	ldx	#sectorBuffer1
 	stx	destLo
 	stz	destBank
-	lda	#kDestWRAM						; try with DMA on
+	lda	#kDestWRAM
 	sta	destType
-	jsr	CardReadSector						; read sector 0 to internal RAM
-	lda	sectorBuffer1+$1FE					; last word check, should be $55AA
-	cmp	#$55
-	bne	CardFormatErrorJump					; code fixed for v3.00
-	lda	sectorBuffer1+$1FF
-	cmp	#$AA
-	bne	CardFormatErrorJump
-	ldy	#$0000							; y = partition number  0-3
-	ldx	#$0000							; x = partition index   0, 16, 32, 48
+	jsr	CardReadSector						; read sector 0
+
+	Accu16
+
+	lda	sectorBuffer1+$1FE					; last word (FAT signature) check, should be $AA55
+	cmp	#$AA55
+	beq	+
+
+	Accu8
+
+	jmp	CardFormatError
+
++	ldx	#$0000							; x = partition index 0, 16, 32, 48
 
 CardFormatCheckLoop:
+	Accu8
+
 	lda	#$01							; assume FAT32 for now
 	sta	fat32Enabled
-	lda	sectorBuffer1+$1C2, x					; read partiton type
+	lda	sectorBuffer1+$1C2, x					; read partition type code
 	cmp	#$0B							; 0Bh = FAT32
 	beq	CardGoodFormat
 	cmp	#$0C							; 0Ch = FAT32 with LBA1 13h Extensions
@@ -125,15 +129,12 @@ CardFormatCheckLoop:
 	clc
 	adc	#16
 	tax
+	cmp	#64							; all 4 partition entries checked?
+	bne	CardFormatCheckLoop
 
 	Accu8
 
-	iny
-	cpy	#4							; all 4 partition entries checked?
-	bne	CardFormatCheckLoop
-
-CardFormatErrorJump:							; no valid/supported partition type found
-	jmp	CardFormatError
+	jmp	CardFormatError						; no usable partition type code found --> error
 
 
 
@@ -148,7 +149,7 @@ CardGoodFormat:								; FAT16/FAT32 partition found
 	ldx	partitionIndex
 	ldy	#$0000
 
-CardCopyPartitionLBABegin:						; copy partitionLBABegin from offset 455
+CardCopyPartitionLBABegin:						; copy partitionLBABegin from offset 454
 	lda	sectorBuffer1+$1C6, x
 	sta	sourceSector, y
 	sta	partitionLBABegin, y
@@ -326,24 +327,11 @@ CardFormatError:
 	ClearLine 22
 	SetCursorPos 21, 1
 	PrintString "Card format error: FAT16/FAT32 expected!"
-
-	lda	sectorBuffer1+$1C2					; card last word read
-	sta	errorCode
-	ldy	#errorCode
-
-	PrintString "\n  $1C2(fm)=$%x"
-
-	lda	sectorBuffer1+$1FE					; card last word read
-	sta	errorCode
-	ldy	#errorCode
-
-	PrintString " | $1FE($55)=$%x"
-
-	lda	sectorBuffer1+$1FF					; card last word read
-	sta	errorCode
-	ldy	#errorCode
-
-	PrintString " | $1FF($AA)=$%x"
+	PrintString "\n  Type code: $"
+	PrintHexNum sectorBuffer1+$1C2					; partition type code
+	PrintString " | Last word ($AA55): $"
+	PrintHexNum sectorBuffer1+$1FF					; high byte of signature word
+	PrintHexNum sectorBuffer1+$1FE					; low byte of signature word
 
 	jmp	Forever
 
@@ -368,10 +356,8 @@ CardWaitNotBusy:
 
 CardWaitNotBusyLoop:							; wait for not busy
 	lda	CARDSTATUS						; card status read
-	sta	errorCode
-	and	#%10000000
-	cmp	#%10000000						; check busy bit
-	bne	CardWaitNotBusyDone
+;	sta	errorCode
+	bpl	CardWaitNotBusyDone					; MSB = card busy flag
 
 ;	SetCursorPos 12, 0
 ;	PrintString "    Error $"
@@ -513,6 +499,8 @@ CardError:
 
 
 
+; ************************* Read from CF card **************************
+
 CardLoadLBA:
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
@@ -548,8 +536,6 @@ CardLoadLBA:
 	rts
 
 
-
-; ************************* Read from CF card **************************
 
 CardReadSector:
 	sei								; disable NMI & IRQ
@@ -645,10 +631,10 @@ __CRS_Done:
 	jsr	CardCheckError
 ;	lda	CARDSECTORCOUNTREAD
 ;	sta	errorCode
-;	bne	CardReadSectorFailed						; LAST make sure sectors = 0
+;	bne	CardReadSectorFailed					; LAST make sure sectors = 0
 
 ;CardReadSectorPassed:
-;	jsr	CardWaitNotBusy							; LAST check for busy before error
+;	jsr	CardWaitNotBusy						; LAST check for busy before error
 ;	jsr	CardWaitReady
 ;	jsr	CardCheckError
 	lda	REG_RDNMI						; clear NMI flag, this is necessary to prevent occasional graphics glitches (see Fullsnes, 4210h/RDNMI)
@@ -1032,7 +1018,7 @@ __CLD_EntryPrepareLoadLFN:
 
 	lda	REG_MPYL						; read result
 	sec
-	sbc	#$000D							; subtract 13 to start at tempEntry's beginning
+	sbc	#$000D							; subtract 13 to make up for missing index 0
 	tax								; transfer to X register
 
 	Accu8
@@ -1074,8 +1060,7 @@ __CLD_EntryHiddenCheckDone:
 	ldy	#$000B
 	lda	[sourceEntryLo], y					; if flag = directory, load entry
 	and	#$10
-	cmp	#$10
-	bne	__CLD_EntryNotDirectory
+	beq	__CLD_EntryNotDirectory
 	lda	#$01
 	tsb	tempEntry.Flags						; save "dir" flag
 

@@ -627,9 +627,10 @@ FPGACheck:
 __FPGACheckFail:
 	jsr	SpriteMessageError
 
+	ldy	#errorCode
+
 	SetCursorPos 21, 1
-	PrintString "FPGA check failed.\n  Error code: $"
-	PrintHexNum errorCode
+	PrintString "FPGA check failed.\n  Error code: $%x"
 
 	jmp	Forever
 

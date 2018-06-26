@@ -352,9 +352,9 @@
 
 
 
-; -------------------------- CF interface stuff
+; -------------------------- CF interface constants
 .ENUM $00
-	kDestNoDMA		db
+	kDestWRAMNoDMA		db
 	kDestWRAM		db
 	kDestFPGA		db
 	kDestSDRAM		db
@@ -449,7 +449,7 @@
 	scrollYUp		db
 	scrollYDown		db					; 139 bytes and counting
 
-	cursorX			db					; cursorX/cursorY should be kept in consecutive order due to occasional 16-bit writes
+	cursorX			db					; cursorX/cursorY must be kept in consecutive order due to occasional 16-bit writes
 	cursorY			db
 	cursorYCounter		db
 	cursorYUp		db
@@ -477,8 +477,7 @@
 
 	ggcode			dsb 4					; 196 bytes and counting
 
-	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set,
-									; b = use SDRAM buffer if set, WRAM buffer if clear]
+	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set, b = use SDRAM buffer if set, WRAM buffer if clear]
 									; The h flag is checked (& reset) in CardLoadDir only.
 									; The b flag is checked & reset in CardLoadDir,
 									; set & reset in DirPrintEntry, checked (not modified) in DirGetEntry.
