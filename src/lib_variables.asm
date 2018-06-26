@@ -519,6 +519,7 @@
 	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
 	DP_ThemeFileClusterHi	dw
 
+	DP_SPCPlayerFlags	db					; rrrrrnnn [nnn = minutes of auto-play time (000 = auto-play off), r = Reserved]
 	DP_WarmBootFlags	db					; srrrrrrr [r = Reserved, s = go to SPC player]
 
 	spc_ptr			dsb 3					; SNESMod variables (up to, and including, "digi_src2")

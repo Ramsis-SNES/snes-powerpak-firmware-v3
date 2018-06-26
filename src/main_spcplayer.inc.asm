@@ -215,28 +215,38 @@ CopyDate:								; date
 	SetCursorPos 17+32, 0
 	PrintString "Datestamp : %s"
 
+
+
+; -------------------------- show button hints
 	Accu16
 
-	lda	#$A070							; Y, X
+	lda	#$A018							; Y, X
 	sta	SpriteBuf1.Buttons
-	lda	#$03A2							; tile properties, tile num for B button
+	lda	#$03A8							; tile properties, tile num for d-pad l/r
 	sta	SpriteBuf1.Buttons+2
+	lda	#$A0C0							; Y, X
+	sta	SpriteBuf1.Buttons+4
+	lda	#$03A2							; tile properties, tile num for B button
+	sta	SpriteBuf1.Buttons+6
+
 
 	Accu8
 
-	SetCursorPos 19+32, 14
+	SetCursorPos 19+32, 3
+	PrintString "Autoplay: "
+	PrintSpriteText 21, 14, "L", 3
+	SetCursorPos 19+32, 13
+	PrintString "prev"
+	PrintSpriteText 21, 19, "R", 3
+	SetCursorPos 19+32, 18
+	PrintString "next"
+	SetCursorPos 19+32, 24
 	PrintString "Back"
-	PrintSpriteText 21, 11, "L", 3
-	SetCursorPos 19+32, 7
-	PrintString "|<<"
-	PrintSpriteText 21, 20, "R", 3
-	SetCursorPos 19+32, 20
-	PrintString ">>|"
 
-	lda	SpriteBuf1.Text+60					; move the "R" a bit more to the right
-	clc
-	adc	#$04
-	sta	SpriteBuf1.Text+60
+	dec	SpriteBuf1.Text+56					; move the "L" a bit more to the left
+	dec	SpriteBuf1.Text+56
+	dec	SpriteBuf1.Text+60					; and the "R", too
+	dec	SpriteBuf1.Text+60					; dec dec: 6 + 6 = 12 cycles, lda sec sbc sta: 4 + 2 + 2 + 4 = 12 cycles, meh :D
 
 
 
@@ -254,8 +264,6 @@ CopyDate:								; date
 
 ; -------------------------- player loop
 SPCPlayerLoop:
-	wai
-
 	SetCursorPos 7+32, 12						; timer position
 	PrintHexNum spcTimer+2
 	PrintString ":"
@@ -263,7 +271,25 @@ SPCPlayerLoop:
 	PrintString ":"
 	PrintHexNum spcTimer
 
-	lda	$213F							; check display refresh rate
+	SetCursorPos 19+32, 8						; position of auto-play setting
+
+	lda	DP_SPCPlayerFlags
+;	and	#%00000111						; mask off reserved bits (not necessary for now)
+	bne	+
+
+	PrintString "off   "						; auto-play flag clear, so auto-play is off 
+
+	bra	__PrintAutoPlayDone
+
++	sta	temp							; print auto-play time
+	ldy	#temp
+
+	PrintString "%b min."
+
+__PrintAutoPlayDone:
+	wai
+
+	lda	REG_STAT78						; check display refresh rate
 	and	#%00010000
 	bne	__IncTimerPAL						; increment seconds depending on framerate
 
@@ -309,6 +335,33 @@ __CalcTimerDone:
 
 
 
+; -------------------------- check for d-pad left (auto-play control)
+	lda	Joy1New+1
+	and	#%00000010
+	beq	__SPCLoopDpadLDone
+	lda	DP_SPCPlayerFlags
+;	and	#%00000111						; mask off reserved bits (not necessary for now)
+	beq	__SPCLoopDpadLDone					; if auto-play is off, jump out
+	dec	DP_SPCPlayerFlags					; otherwise, DP_SPCPlayerFlags -= 1
+
+__SPCLoopDpadLDone:
+
+
+
+; -------------------------- check for d-pad right (auto-play control)
+	lda	Joy1New+1
+	and	#%00000001
+	beq	__SPCLoopDpadRDone
+	lda	DP_SPCPlayerFlags
+;	and	#%00000111						; mask off reserved bits (not necessary for now)
+	cmp	#7
+	bcs	__SPCLoopDpadRDone					; if time setting was 7 minutes (highest setting), jump out
+	inc	DP_SPCPlayerFlags					; otherwise, DP_SPCPlayerFlags += 1
+
+__SPCLoopDpadRDone:
+
+
+
 ; -------------------------- check for L shoulder button = previous SPC file (via warm boot)
 	lda	Joy1Press
 	and	#%00100000
@@ -350,6 +403,8 @@ __SPCLoopLButtonDone:
 	lda	Joy1Press
 	and	#%00010000
 	beq	__SPCLoopRButtonDone
+
+__LoadNextSPC:
 	lda	#%10000000						; set "go to SPC player" flag
 	sta	DP_WarmBootFlags
 	lda	#%00101000						; disable HDMA windowing & color math channels
@@ -385,11 +440,22 @@ __SPCLoopRButtonDone:
 
 ; -------------------------- check for B button = reset PowerPak (warm boot)
 	lda	Joy1Press+1
-	and	#%10000000
-	bne	__InitWarmBoot
-	jmp	SPCPlayerLoop
+	bmi	InitWarmBoot
 
-__InitWarmBoot:
+
+
+; -------------------------- auto-play handler
+	lda	DP_SPCPlayerFlags
+;	and	#%00000111						; mask off reserved bits (not necessary for now)
+	beq	+							; MSB clear --> auto-play is off
+	cmp	spcTimer+2
+	beq	__LoadNextSPC						; if minutes match, load next SPC file
+	bcc	__LoadNextSPC						; ditto when auto-play setting < timer
++	jmp	SPCPlayerLoop
+
+
+
+InitWarmBoot:
 	stz	REG_INIDISP						; warm boot requested, make screen black (see below)
 	lda	#kWarmBoot1						; write warm boot signature
 	sta	DP_ColdBootCheck1
