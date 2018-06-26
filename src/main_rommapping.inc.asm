@@ -364,19 +364,29 @@ ROMHasBatt:
 ROMBattCheckDone:
 
 SetSRAMSize:
+	Accu16
+
 	lda	saveSize
-	sta	destLo
-	stz	destHi
-	ldy	destLo
+	and	#$00FF							; remove garbage bits in Accu B
+	tay								; use as index
+
+	Accu8
+
 	lda	SRAMSizes, y
 	sta	sramSizeByte
 	sta	CONFIGWRITESRAMSIZE
 
 PrintSRAMSize:
-	lda	SRAMTextLo, y
+	Accu16
+
+	tya
+	asl	a							; value × 2 as SRAMText contains word entries
+	tay
+	lda	SRAMText, y
 	sta	sourceLo
-	lda	SRAMTextHi, y
-	sta	sourceHi
+
+	Accu8
+
 	ldy	#sourceLo
 
 	PrintString " supported, %s KB SRAM added"
@@ -472,14 +482,17 @@ LoROMBanking:
 	lsr	a
 	lsr	a
 	sta	sourceHi
-	lda	#<LoRom4Mbit
+
+	Accu16
+
+	lda	#LoRom4Mbit
 	clc
 	adc	sourceLo
 	sta	destLo
-	lda	#>LoRom4Mbit
-	adc	sourceHi
-	sta	destHi
-	jsr	 CopyBanks
+
+	Accu8
+
+	jsr	CopyBanks
 
 
 
@@ -515,10 +528,8 @@ ExLoROMBanking48Mbit:
 
 	PrintString "48Mbit"
 
-	lda	#<ExLoRom48Mbit
-	sta	destLo
-	lda	#>ExLoRom48Mbit
-	sta	destHi
+	ldx	#ExLoRom48Mbit
+	stx	destLo
 	jmp	ExLoROMBankingLoop
 
 ExLoROMBankingNot48Mbit:
@@ -531,10 +542,8 @@ ExLoROMBanking64Mbit:
 
 	PrintString "64Mbit"
 
-	lda	#<ExLoRom64Mbit
-	sta	destLo
-	lda	#>ExLoRom64Mbit
-	sta	destHi
+	ldx	#ExLoRom64Mbit
+	stx	destLo
 	bra	ExLoROMBankingLoop
 
 ExLoROMBankingNot64Mbit:
@@ -1361,11 +1370,8 @@ SRAMSizes:
 	.DB %11111111, %11111111, %11111110, %11111100, %11111000, %11110000, %11100000, %11000000, %10000000, %00000000
 ;	       0          2          4          8        16          32           64       128        256         512
 
-SRAMTextLo:
-	.DB <SRAM0Kb, <SRAM16Kb, <SRAM32Kb, <SRAM64Kb, <SRAM128Kb, <SRAM256Kb, <SRAM512Kb, <SRAM1024Kb
-
-SRAMTextHi:
-	.DB >SRAM0Kb, >SRAM16Kb, >SRAM32Kb, >SRAM64Kb, >SRAM128Kb, >SRAM256Kb, >SRAM512Kb, >SRAM1024Kb
+SRAMText:
+	.DW SRAM0Kb, SRAM16Kb, SRAM32Kb, SRAM64Kb, SRAM128Kb, SRAM256Kb, SRAM512Kb, SRAM1024Kb
 
 SRAM0Kb:
 	.DB "0", 0

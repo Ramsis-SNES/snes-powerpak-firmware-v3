@@ -290,10 +290,8 @@ __ColdBoot:
 
 	FindFile "POWERPAK.CFG"						; attempt to load configuration file
 
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi							; put into sector RAM
+	ldx	#sectorBuffer1
+	stx	destLo
 	stz	destBank
 	stz	sectorCounter
 	stz	bankCounter
@@ -1113,10 +1111,8 @@ __DirFindEntryFailed:
 LoadLastGame:
 	FindFile "LASTGAME.LOG"
 
-	lda	#<sectorBuffer1
-	sta	destLo
-	lda	#>sectorBuffer1
-	sta	destHi							; put into sector RAM
+	ldx	#sectorBuffer1						; put into sector RAM
+	stx	destLo
 	stz	destBank
 	stz	sectorCounter
 	stz	bankCounter
@@ -1242,10 +1238,8 @@ SaveLastGameGenieLoop:							; GameGenie codes
 
 	Accu8
 
-	lda	#<sectorBuffer1
-	sta	sourceLo
-	lda	#>sectorBuffer1
-	sta	sourceHi
+	ldx	#sectorBuffer1
+	stx	sourceLo
 	lda	#kSourceWRAM
 	sta	sourceType
 	jsr	CardWriteFile
@@ -1356,10 +1350,8 @@ LogScreen:
 
 	FindFile "ERROR.LOG"						; save to file
 
-	lda	#<LogBuffer
-	sta	sourceLo
-	lda	#>LogBuffer
-	sta	sourceHi
+	ldx	#(LogBuffer & $FFFF)
+	stx	sourceLo
 	lda	#$7E
 	sta	sourceBank
 	lda	#kSourceWRAM

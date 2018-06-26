@@ -566,16 +566,21 @@ CardReadSector:
 	jsr	CardWaitReady
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
-	lda	destType						; check for data destination
-	cmp	#kDestWRAM
-	beq	__CRS_toWRAM
-	cmp	#kDestFPGA
-	beq	__CRS_toFPGA
-	cmp	#kDestSDRAM
-	beq	__CRS_toSDRAM
-	cmp	#kDestSDRAMNoDMA
-	beq	__CRS_toSDRAMnoDMA
-	jmp	__CRS_toWRAMnoDMA					; if no destination defined, read data to WRAM not using DMA
+
+	lda	destType						; read data destination
+
+	Accu16
+
+	and	#$00FF							; remove garbage in Accu B
+	asl	a							; use destType as a jump table index
+	tax
+
+	Accu8
+
+	jmp	(kDestTable, x)
+
+kDestTable:
+	.DW	__CRS_toWRAMnoDMA, __CRS_toWRAM, __CRS_toFPGA, __CRS_toSDRAM, __CRS_toSDRAMnoDMA
 
 
 
@@ -798,12 +803,21 @@ CardWriteSector:
 	nop
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
-	lda	sourceType						; check for data source
-	cmp	#kSourceSDRAM
-	beq	__CWS_fromSDRAM
-	cmp	#kSourceWRAM
-	beq	__CWS_fromWRAM
-	bra	__CWS_Done						; if no source defined, jump out (FIXME ??)
+
+	lda	sourceType						; read data source
+
+	Accu16
+
+	and	#$00FF							; remove garbage in Accu B
+	asl	a							; use sourceType as a jump table index
+	tax
+
+	Accu8
+
+	jmp	(kSourceTable, x)
+
+kSourceTable:
+	.DW	__CWS_fromWRAM, __CWS_fromSDRAM
 
 
 
