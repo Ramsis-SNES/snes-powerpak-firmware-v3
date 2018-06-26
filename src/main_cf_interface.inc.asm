@@ -17,8 +17,18 @@
 
 AccessCFcard:
 
+;CardReset:								; this used to be a subroutine
+	lda	#%00000000
+	sta	CARDLBA3						; select card 0
+	lda	#%00000110						; do card sw reset
+	sta	CARDDEVICE						; in device ctl reg
+	wai
+	wai
+	lda	#%00000010
+	sta	CARDDEVICE						; clear reset
+	wai
+	wai								; end of former subroutine
 
-	jsr	CardReset
 	wai
 	jsr	SpriteMessageError					; show preliminary error message (removed upon successful card access)
 
@@ -334,21 +344,6 @@ CardFormatError:
 	PrintHexNum sectorBuffer1+$1FE					; low byte of signature word
 
 	jmp	Forever
-
-
-
-CardReset:
-	lda	#%00000000
-	sta	CARDLBA3						; select card 0
-	lda	#%00000110						; do card sw reset
-	sta	CARDDEVICE						; in device ctl reg
-	wai
-	wai
-	lda	#%00000010
-	sta	CARDDEVICE						; clear reset
-	wai
-	wai
-	rts
 
 
 
