@@ -64,11 +64,11 @@ ThemeFileSelected:							; THM file selected --> load new theme, and return to i
 	dec	a							; 15 / 3 = 5 frames
 	dec	a
 	dec	a
-	sta	$2100
+	sta	REG_INIDISP
 	bne	-
 
 	lda	#$80							; enter forced blank
-	sta	$2100
+	sta	REG_INIDISP
 	stz	DP_HDMAchannels						; turn off HDMA to safely update tables, mess around with CGRAM, and use DMAs of any transfer length (not possible with HDMA active on rev1 CPU consoles)
 	wai
 

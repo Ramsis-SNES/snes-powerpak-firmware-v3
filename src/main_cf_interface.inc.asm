@@ -583,9 +583,9 @@ __CRS_toWRAM:
 	lda	dontUseDMA
 	bne	__CRS_toWRAMnoDMA					; if dontUseDMA != 0, then don't use DMA
 	ldx	destLo
-	stx	$2181							; set WRAM destination address
+	stx	REG_WMADDL						; set WRAM destination address
 	lda	destBank
-	sta	$2183
+	sta	REG_WMADDH
 
 	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, $80, sourceBytes16
 

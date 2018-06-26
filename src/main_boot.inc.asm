@@ -393,7 +393,7 @@ __ThemeFileClusterSet:
 
 	wai
 	lda	#$0F							; turn on the screen, full brightness
-	sta	$2100
+	sta	REG_INIDISP
 	jsr	BattUsedInitSaveSRAM					; offer to save SRAM to card
 	jmp	GotoIntroScreen
 

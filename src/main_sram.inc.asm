@@ -214,7 +214,7 @@ __SRAMSavedOrCancelled:							; if cursor was at "Cancel" (cursorY=$A8), go back
 	dec	a							; 15 / 3 = 5 frames
 	dec	a
 	dec	a
-	sta	$2100
+	sta	REG_INIDISP
 	bne	-
 
 	lda	#%00000001						; no more battery flag
