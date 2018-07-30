@@ -121,11 +121,11 @@
 .MACRO WaitForUserInput
 	Accu16
 
-__CheckJoypad\@:
+@CheckJoypad\@:
 	wai
 	lda	Joy1New
 	and	#$F0F0							; B, Y, Select, Start (no d-pad), A, X, L, R
-	beq	__CheckJoypad\@
+	beq	@CheckJoypad\@
 
 	Accu8
 .ENDM
@@ -140,10 +140,10 @@ __CheckJoypad\@:
 .MACRO DelayFor
 	ldx	#\1
 
-__FrameDelay\@:
+@FrameDelay\@:
 	wai
 	dex
-	bne	__FrameDelay\@
+	bne	@FrameDelay\@
 .ENDM
 
 
@@ -161,19 +161,19 @@ __FrameDelay\@:
 	sta	TextBuffer.BG1, x					; start on BG1
 	lda	#$22							; horizontal line
 
-__DrawUpperBorder\@:
+@DrawUpperBorder\@:
 	sta	TextBuffer.BG2, x
 	inx
 	sta	TextBuffer.BG1, x
 	cpx	#32*\2 + \1 + \3
-	bne	__DrawUpperBorder\@
+	bne	@DrawUpperBorder\@
 
 	lda	#$24							; upper right corner
 	sta	TextBuffer.BG2, x
-	bra	__GoToNextLine\@
+	bra	@GoToNextLine\@
 
 ; -------------------------- draw left & right border
-__DrawLRBorder\@:
+@DrawLRBorder\@:
 	lda	#$26							; left vertical line
 	sta	TextBuffer.BG1, x
 
@@ -189,18 +189,18 @@ __DrawLRBorder\@:
 	lda	#$40							; space
 	ldy	#$0000
 
-__ClearTextInsideFrame\@:
+@ClearTextInsideFrame\@:
 	sta	TextBuffer.BG2, x
 	inx
 	sta	TextBuffer.BG1, x
 	iny
 	cpy	#\3
-	bne	__ClearTextInsideFrame\@
+	bne	@ClearTextInsideFrame\@
 
 	lda	#$28							; right vertical line
 	sta	TextBuffer.BG2, x
 
-__GoToNextLine\@:
+@GoToNextLine\@:
 	Accu16
 
 	txa
@@ -211,19 +211,19 @@ __GoToNextLine\@:
 	Accu8
 
 	cpx	#32*(\2+\4) + \1
-	bne	__DrawLRBorder\@
+	bne	@DrawLRBorder\@
 
 ; -------------------------- draw lower border
 	lda	#$2A							; lower left corner
 	sta	TextBuffer.BG1, x
 	lda	#$22							; horizontal line
 
-__DrawLowerBorder\@:
+@DrawLowerBorder\@:
 	sta	TextBuffer.BG2, x
 	inx
 	sta	TextBuffer.BG1, x
 	cpx	#32*(\2+\4) + \1 + \3
-	bne	__DrawLowerBorder\@
+	bne	@DrawLowerBorder\@
 
 	lda	#$2C							; lower right corner
 	sta	TextBuffer.BG2, x
@@ -300,9 +300,9 @@ __DrawLowerBorder\@:
 
 .MACRO DMA_WaitHblank
 
-__WaitForHblank\@:
+@WaitForHblank\@:
 	bit	REG_HVBJOY						; wait for Hblank period flag to get set
-	bvc	__WaitForHblank\@
+	bvc	@WaitForHblank\@
 	lda	#\1							; DMA mode (8 bit)
  	sta	$4310
 	lda	#\5							; B bus register (8 bit)
@@ -342,24 +342,24 @@ __WaitForHblank\@:
 	stx	extNum
 	ldx	#$0000
 
-__LoadFileNameLoop\@:
-	lda.w	FileName\@, x						; load filename and store it in findEntry
+@LoadFileNameLoop\@:
+	lda.w	@FileName\@, x						; load filename and store it in findEntry
 	cmp	#'.'
-	beq	__FileNameComplete\@
+	beq	@FileNameComplete\@
 	sta	findEntry, x
 	inx
 	cpx	#$0008
-	bne	__LoadFileNameLoop\@
+	bne	@LoadFileNameLoop\@
 
-__FileNameComplete\@:
+@FileNameComplete\@:
 	inx								; skip '.'
-	lda.w	FileName\@, x						; load extension and store it in extMatchX
+	lda.w	@FileName\@, x						; load extension and store it in extMatchX
 	sta	extMatch1
 	inx
-	lda.w	FileName\@, x
+	lda.w	@FileName\@, x
 	sta	extMatch2
 	inx
-	lda.w	FileName\@, x
+	lda.w	@FileName\@, x
 	sta	extMatch3
 
 	Accu16
@@ -384,12 +384,12 @@ __FileNameComplete\@:
 
 	Accu8
 
-	bra	__FileName_End\@
+	bra	@FileName_End\@
 
-FileName\@:
+@FileName\@:
 	.DB \1
 
-__FileName_End\@:
+@FileName_End\@:
 
 .ENDM
 
@@ -419,29 +419,29 @@ __FileName_End\@:
 
 	lda	fat32Enabled						; check for FAT32
 	and	#$0001
-	bne	__LastClusterMaskFAT32\@
+	bne	@LastClusterMaskFAT32\@
 
 	stz	temp+2							; if FAT16, high word = $0000
-	bra	__LastClusterMaskDone\@
+	bra	@LastClusterMaskDone\@
 
-__LastClusterMaskFAT32\@:
+@LastClusterMaskFAT32\@:
 	lda	#$0FFF							; if FAT32, high word = $0FFF
 	sta	temp+2
 
-__LastClusterMaskDone\@:						; if cluster = last cluster, jump to last entry found
+@LastClusterMaskDone\@:							; if cluster = last cluster, jump to last entry found
 	lda	sourceCluster
 	cmp	#$FFFF							; low word = $FFFF (FAT16/32)
-	bne	__NextSector\@
+	bne	@NextSector\@
 
 	lda	sourceCluster+2
 	cmp	temp+2
-	bne	__NextSector\@
+	bne	@NextSector\@
 
 	Accu8
 
 	bra	_f							; last cluster (intentional forward jump, "beyond" of the macro)
 
-__NextSector\@:
+@NextSector\@:
 	Accu8
 
 .ENDM
@@ -455,21 +455,21 @@ __NextSector\@:
 
 .MACRO WaitTwoFrames
 
-__WaitForVblankStart1\@:
+@WaitForVblankStart1\@:
 	lda	REG_HVBJOY
-	bpl	__WaitForVblankStart1\@
+	bpl	@WaitForVblankStart1\@
 
-__WaitForVblankEnd1\@:
+@WaitForVblankEnd1\@:
 	lda	REG_HVBJOY
-	bmi	__WaitForVblankEnd1\@
+	bmi	@WaitForVblankEnd1\@
 
-__WaitForVblankStart2\@:
+@WaitForVblankStart2\@:
 	lda	REG_HVBJOY
-	bpl	__WaitForVblankStart2\@
+	bpl	@WaitForVblankStart2\@
 
-__WaitForVblankEnd2\@:
+@WaitForVblankEnd2\@:
 	lda	REG_HVBJOY
-	bmi	__WaitForVblankEnd2\@
+	bmi	@WaitForVblankEnd2\@
 .ENDM
 
 
@@ -481,17 +481,17 @@ __WaitForVblankEnd2\@:
 
 .MACRO CheckToggleBit
 
-__DQ6Toggling\@:
+@DQ6Toggling\@:
 	bit	$008000							; wait for DQ6 bit toggling to stop
-	bvs	__DQ6NextTest\@
+	bvs	@DQ6NextTest\@
 	bit	$008000
-	bvc	__DeviceReady\@
+	bvc	@DeviceReady\@
 
-__DQ6NextTest\@:
+@DQ6NextTest\@:
 	bit	$008000
-	bvc	__DQ6Toggling\@
+	bvc	@DQ6Toggling\@
 
-__DeviceReady\@:
+@DeviceReady\@:
 
 .ENDM
 
@@ -502,11 +502,11 @@ __DeviceReady\@:
 .MACRO incptr
 	iny
 	iny
-	bmi	__no_overflow\@
+	bmi	@no_overflow\@
 	inc	spc_ptr+2
 	ldy	#$8000
 
-__no_overflow\@:
+@no_overflow\@:
 
 .ENDM
 
@@ -516,9 +516,9 @@ __no_overflow\@:
 
 .MACRO WaitForAPUIO0
 
-__waitForAPUIO0\@:
+@waitForAPUIO0\@:
 	cmp	REG_APUIO0
-	bne	__waitForAPUIO0\@
+	bne	@waitForAPUIO0\@
 .ENDM
 
 
@@ -527,9 +527,9 @@ __waitForAPUIO0\@:
 
 .MACRO WaitForAPUIO1
 
-__waitForAPUIO1\@:
+@waitForAPUIO1\@:
 	cmp	REG_APUIO1
-	bne	__waitForAPUIO1\@
+	bne	@waitForAPUIO1\@
 .ENDM
 
 

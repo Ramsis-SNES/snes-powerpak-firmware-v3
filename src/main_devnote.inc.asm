@@ -141,40 +141,40 @@ DevNoteLoop:
 
 ; -------------------------- check for A button = toggle "page" switching
 	lda	Joy1New
-	and	#%10000000
-	beq	++
+	bpl	@AButtonDone
 	lda	temp+7							; what page are we on?
 	cmp	#$01
 	beq	+
 	lda	#$01							; set page = 1
 	sta	temp+7
 	jsr	GotoDevNotePage1
-	bra	++
+	bra	@AButtonDone
 
 +	inc	temp+7							; set page = 2
 	jsr	GotoDevNotePage2
-++
+
+@AButtonDone:
 
 
 
 ; -------------------------- check for B button = (re-)start music
 	lda	Joy1New+1
-	and	#%10000000
-	beq	+
+	bpl	@BButtonDone
 	lda	#$00
 	jsl	spcPlay
 	lda	#224
 	jsl	spcSetModuleVolume
-+
+
+@BButtonDone:
 
 
 
 ; -------------------------- check for Y button = fade out music
-	lda	Joy1New+1
-	and	#%01000000
-	beq	+
+	bit	Joy1New+1
+	bvc	@YButtonDone
 	jsr	FadeOutMusic
-+
+
+@YButtonDone:
 
 
 
@@ -183,6 +183,7 @@ DevNoteLoop:
 	and	#%00010000
 	beq	DevNoteLoop
 
+@StartButtonDone:
 
 
 ; -------------------------- Start pressed, reset

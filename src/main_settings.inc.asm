@@ -22,7 +22,7 @@ GotoSettings:
 	lda	#cursorYsetmenu1
 	sta	cursorY
 
-__ReturnFromMenuSection:
+@ReturnFromMenuSection:
 	PrintSpriteText 9, 9, "Settings:", 7
 	DrawFrame 7, 8, 17, 8
 	SetCursorPos 9,  7
@@ -109,7 +109,7 @@ SettingsLoop:
 ; -------------------------- check for d-pad up, move cursor
 	lda	Joy1New+1
 	and	#%00001000
-	beq	++
+	beq	@DpadUpDone
 	lda	cursorY
 	sec
 	sbc	#SetMenLineHeight
@@ -117,14 +117,15 @@ SettingsLoop:
 	bne	+
 	lda	#cursorYsetmenu5
 +	sta	cursorY
-++
+
+@DpadUpDone:
 
 
 
 ; -------------------------- check for d-pad down, move cursor
 	lda	Joy1New+1
 	and	#%00000100
-	beq	++
+	beq	@DpadDownDone
 	lda	cursorY
 	clc
 	adc	#SetMenLineHeight
@@ -132,35 +133,36 @@ SettingsLoop:
 	bne	+
 	lda	#cursorYsetmenu1
 +	sta	cursorY
-++
+
+@DpadDownDone:
 
 
 
 ; -------------------------- check for A button = make a selection
 	lda	Joy1New
-	and	#%10000000
-	beq	+
-	bra	CheckSelection
-+
+	bmi	CheckSelection
+
+@AButtonDone:
 
 
 
 ; -------------------------- check for B button = back to intro
 	lda	Joy1New+1
-	and	#%10000000
-	beq	+
+	bpl	@BButtonDone
 	jsr	PrintClearScreen
 	jmp	GotoIntroScreen
-+
+
+@BButtonDone:
 
 
 
 ; -------------------------- check for Start button = save settings, reset to intro
 	lda	Joy1New+1
 	and	#%00010000
-	beq	+
+	beq	@StartButtonDone
 	jmp	ResetSystem
-+
+
+@StartButtonDone:
 
 
 
@@ -172,11 +174,12 @@ SettingsLoop:
 	SetCursorPos 16, 1
 	PrintString "Please save your settings after selecting a new theme."
 
-	bra	++
+	bra	@ShowHintDone
 
 +	ClearLine 16
 
-++
+@ShowHintDone:
+
 	jmp	SettingsLoop
 
 
@@ -198,12 +201,12 @@ CheckSelection:
 	lda	dontUseDMA						; toggle DMA setting ...
 	beq	+
 	stz	dontUseDMA
-	bra	__ToggleDMADone
+	bra	@ToggleDMADone
 
 +	lda	#$01
 	sta	dontUseDMA
 
-__ToggleDMADone:
+@ToggleDMADone:
 	jsr	DisplayDMASetting
 	jmp	SettingsLoop						; ... and return
 
@@ -258,7 +261,7 @@ CheckForUpdate:
 	inx
 	lda	sectorBuffer1, x
 	cmp	#$4153							; SA
-	beq	__UpdateRomIsValid
+	beq	@UpdateRomIsValid
 
 +	Accu8
 
@@ -269,11 +272,11 @@ CheckForUpdate:
 	PrintString "UPDATE.ROM is not a valid \"MUFASA\" firmware file.\n"
 	PrintString "  Press any button ..."
 
-	jmp	__WaitBeforeReturn
+	jmp	@WaitBeforeReturn
 
 .ACCU 16
 
-__UpdateRomIsValid:
+@UpdateRomIsValid:
 	lda	#STR_Firmware_VerNum					; compare version of UPDATE.ROM against installed boot ROM
 	tax
 	and	#$7FFF							; mask off SNES LoROM address gap
@@ -316,7 +319,7 @@ __UpdateRomIsValid:
 	SetCursorPos 20, 1
 	PrintString "Press any button ..."
 
-__WaitBeforeReturn:
+@WaitBeforeReturn:
 	WaitForUserInput
 
 	jsr	ClearSpriteText						; remove "Firmware is ..."/"Error!" message
@@ -328,7 +331,7 @@ __WaitBeforeReturn:
 	sta	cursorX
 	lda	#cursorYsetmenu5					; menu line: firmware update
 	sta	cursorY
-	jmp	__ReturnFromMenuSection					; return to settings menu
+	jmp	GotoSettings@ReturnFromMenuSection			; return to settings menu
 
 
 
@@ -387,11 +390,11 @@ DisplayDMASetting:
 
 	PrintString " on) "						; don't remove the trailing space
 
-	bra	__DisplayDMASettingDone
+	bra	@DisplayDMASettingDone
 
 +	PrintString " off)"
 
-__DisplayDMASettingDone:
+@DisplayDMASettingDone:
 	rts
 
 
@@ -470,7 +473,7 @@ MemCheck:
 	SetCursorPos 18, 1
 	PrintString "Writing bank $  \n  Please hold on ..."
 
-MemCheckWriteLoop:
+@WriteLoop:
 	lda	Joy1New+1						; check for user input
 	and	#%10000000						; B button
 	beq	+
@@ -479,7 +482,7 @@ MemCheckWriteLoop:
 	SetCursorPos 17, 6
 	PrintString "k cancelled!"					; "SDRAM check cancelled!"
 
-	jmp	__MemCheckFinished
+	jmp	@MemCheckDone
 
 +	lda	errorCode
 	sta	DMAREADDATA
@@ -500,13 +503,13 @@ MemCheckWriteLoop:
 	adc	#$00
 	sta	temp+2
 	cmp	temp+3
-	beq	MemCheckWriteLoopNext
+	beq	@WriteLoopNext
 	jsr	MemCheckUpdateBank
 
-MemCheckWriteLoopNext:
+@WriteLoopNext:
 	lda	temp+2
 	cmp	#$FF
-	bne	MemCheckWriteLoop
+	bne	@WriteLoop
 
 	stz	errorCode
 	stz	temp
@@ -520,7 +523,7 @@ MemCheckWriteLoopNext:
 	SetCursorPos 18, 1
 	PrintString "Read"						; "Reading bank"
 
-MemCheckReadLoop:
+@ReadLoop:
 	lda	Joy1New+1						; check for user input
 	and	#%10000000						; B button
 	beq	+
@@ -529,7 +532,7 @@ MemCheckReadLoop:
 	SetCursorPos 17, 6
 	PrintString "k cancelled!"					; "SDRAM check cancelled!"
 
-	bra	__MemCheckFinished
+	bra	@MemCheckDone
 
 +	lda	DMAREADDATA
 	sta	temp+4
@@ -554,19 +557,19 @@ MemCheckReadLoop:
 	adc	#$00
 	sta	temp+2
 	cmp	temp+3
-	beq	MemCheckReadLoopNext
+	beq	@ReadLoopNext
 	jsr	MemCheckUpdateBank
 
-MemCheckReadLoopNext:
+@ReadLoopNext:
 	lda	temp+2
 	cmp	#$FF
-	bne	MemCheckReadLoop
+	bne	@ReadLoop
 
 	ClearLine 17							; hide "SDRAM check"
 	ClearLine 18							; hide bank no.
 	PrintSpriteText 19, 3, "SDRAM O.K.!", 5
 
-__MemCheckFinished:
+@MemCheckDone:
 	jsr	HideButtonSprites
 
 	SetCursorPos 18, 1

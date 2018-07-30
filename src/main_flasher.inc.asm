@@ -33,7 +33,7 @@ GotoFlashUpdater:
 -	lda.l	SPIdentification, x					; copy SPIdentification subroutine to WRAM
 	sta	codeBuffer, x
 	inx
-	cpx	#SPIdentification_End-SPIdentification
+	cpx	#_sizeof_SPIdentification
 	bne	-
 
 	jsl	codeBuffer						; jump to SPIdentification subroutine in WRAM
@@ -112,7 +112,7 @@ FlashUpdateWarning:
 -	lda.l	Flash_AT29C010A, x					; copy AT29C010A flashing code to WRAM
 	sta	codeBuffer, x
 	inx
-	cpx	#Flash_AT29C010A_End-Flash_AT29C010A
+	cpx	#_sizeof_Flash_AT29C010A
 	bne	-
 
 	jml	codeBuffer						; jump to AT29C010A flashing code in WRAM
@@ -129,7 +129,7 @@ FlashUpdateWarning:
 -	lda.l	Flash_SST39SF010A, x					; copy SST39SF010A flashing code to WRAM
 	sta	codeBuffer, x
 	inx
-	cpx	#Flash_SST39SF010A_End-Flash_SST39SF010A
+	cpx	#_sizeof_Flash_SST39SF010A
 	bne	-
 
 	jml	codeBuffer						; jump to SST39SF010A flashing code in WRAM
@@ -182,8 +182,6 @@ SPIdentification:
 	cli
 	rtl
 
-SPIdentification_End:
-
 
 
 Flash_AT29C010A:
@@ -195,7 +193,7 @@ Flash_AT29C010A:
 	sta	DMAWRITEBANK
 	ldx	#$0000
 
-__NextSectorBank0:
+@NextSectorBank0:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -213,11 +211,11 @@ __NextSectorBank0:
 	CheckToggleBit
 
 	cpx	#$8000
-	bne	__NextSectorBank0
+	bne	@NextSectorBank0
 
 	ldx	#$0000
 
-__NextSectorBank1:
+@NextSectorBank1:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -235,11 +233,11 @@ __NextSectorBank1:
 	CheckToggleBit
 
 	cpx	#$8000
-	bne	__NextSectorBank1
+	bne	@NextSectorBank1
 
 	ldx	#$0000
 
-__NextSectorBank2:
+@NextSectorBank2:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -257,11 +255,11 @@ __NextSectorBank2:
 	CheckToggleBit
 
 	cpx	#$8000
-	bne	__NextSectorBank2
+	bne	@NextSectorBank2
 
 	ldx	#$0000
 
-__NextSectorBank3:
+@NextSectorBank3:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -279,14 +277,12 @@ __NextSectorBank3:
 	CheckToggleBit
 
 	cpx	#$8000
-	bne	__NextSectorBank3
+	bne	@NextSectorBank3
 
 	WaitTwoFrames							; this helps prevent palette glitches after resetting
 
 	lda	#%10000001
 	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
-
-Flash_AT29C010A_End:
 
 
 
@@ -299,7 +295,7 @@ Flash_SST39SF010A:
 	sta	DMAWRITEBANK
 	ldx	#$0000
 
-__Prepare4KBSectorBank0:
+@Prepare4KBSectorBank0:
 	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
@@ -317,7 +313,7 @@ __Prepare4KBSectorBank0:
 
 	ldy	#$0000
 
-__Write4KBSectorBank0:
+@Write4KBSectorBank0:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -332,14 +328,14 @@ __Write4KBSectorBank0:
 	inx
 	iny
 	cpy	#$1000
-	bne	__Write4KBSectorBank0
+	bne	@Write4KBSectorBank0
 
 	cpx	#$8000
-	bne	__Prepare4KBSectorBank0
+	bne	@Prepare4KBSectorBank0
 
 	ldx	#$0000
 
-__Prepare4KBSectorBank1:
+@Prepare4KBSectorBank1:
 	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
@@ -357,7 +353,7 @@ __Prepare4KBSectorBank1:
 
 	ldy	#$0000
 
-__Write4KBSectorBank1:
+@Write4KBSectorBank1:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -372,14 +368,14 @@ __Write4KBSectorBank1:
 	inx
 	iny
 	cpy	#$1000
-	bne	__Write4KBSectorBank1
+	bne	@Write4KBSectorBank1
 
 	cpx	#$8000
-	bne	__Prepare4KBSectorBank1
+	bne	@Prepare4KBSectorBank1
 
 	ldx	#$0000
 
-__Prepare4KBSectorBank2:
+@Prepare4KBSectorBank2:
 	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
@@ -397,7 +393,7 @@ __Prepare4KBSectorBank2:
 
 	ldy	#$0000
 
-__Write4KBSectorBank2:
+@Write4KBSectorBank2:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -412,14 +408,14 @@ __Write4KBSectorBank2:
 	inx
 	iny
 	cpy	#$1000
-	bne	__Write4KBSectorBank2
+	bne	@Write4KBSectorBank2
 
 	cpx	#$8000
-	bne	__Prepare4KBSectorBank2
+	bne	@Prepare4KBSectorBank2
 
 	ldx	#$0000
 
-__Prepare4KBSectorBank3:
+@Prepare4KBSectorBank3:
 	lda	#$AA							; sector erase command sequence
 	sta	$00D555
 	lda	#$55
@@ -437,7 +433,7 @@ __Prepare4KBSectorBank3:
 
 	ldy	#$0000
 
-__Write4KBSectorBank3:
+@Write4KBSectorBank3:
 	lda	#$AA
 	sta	$00D555
 	lda	#$55
@@ -452,17 +448,15 @@ __Write4KBSectorBank3:
 	inx
 	iny
 	cpy	#$1000
-	bne	__Write4KBSectorBank3
+	bne	@Write4KBSectorBank3
 
 	cpx	#$8000
-	bne	__Prepare4KBSectorBank3
+	bne	@Prepare4KBSectorBank3
 
 	WaitTwoFrames							; this helps prevent palette glitches after resetting
 
 	lda	#%10000001
 	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
-
-Flash_SST39SF010A_End:
 
 
 
@@ -477,31 +471,31 @@ VerifyUpdateFile:
 	sta	DMAWRITEBANK
 	lda	DMAREADDATA
 	cmp	#'P'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'o'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'w'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'e'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'r'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'P'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'a'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	lda	DMAREADDATA
 	cmp	#'k'
-	bne	__CorruptUpdateROM
+	bne	@CorruptUpdateROM
 	rts
 
-__CorruptUpdateROM:
+@CorruptUpdateROM:
 	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "Error!", 4

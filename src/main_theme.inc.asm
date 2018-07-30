@@ -53,7 +53,7 @@ InitTHMBrowser:
 	sta	cursorX
 	lda	#cursorYsetmenu3
 	sta	cursorY
-	jmp	__ReturnFromMenuSection					; return to settings menu
+	jmp	GotoSettings@ReturnFromMenuSection			; return to settings menu
 
 
 
@@ -122,7 +122,7 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 	stx	$2116
 	ldx	#0
 
-__BuildFontFromThemeBG1:
+@BuildFontFromThemeBG1:
 	ldy	#0
 -	lda	DMAREADDATA						; first, copy font tile (font tiles sit on the "left")
 	sta	$2118
@@ -142,7 +142,7 @@ __BuildFontFromThemeBG1:
 	bne	-
 
 	cpx	#2048							; 2 KiB font done?
-	bne	__BuildFontFromThemeBG1
+	bne	@BuildFontFromThemeBG1
 
 	lda	#$00							; reset SDRAM address once again (the same font goes to both BG1 and BG2)
 	sta	DMAWRITEBANK
@@ -152,7 +152,7 @@ __BuildFontFromThemeBG1:
 	stx	$2116
 	ldx	#0
 
-__BuildFontFromThemeBG2:
+@BuildFontFromThemeBG2:
 	ldy	#0
 -	stz	$2118							; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
 	stz	$2119
@@ -172,7 +172,7 @@ __BuildFontFromThemeBG2:
 	bne	-
 
 	cpx	#2048							; 2 KiB font done?
-	bne	__BuildFontFromThemeBG2
+	bne	@BuildFontFromThemeBG2
 
 
 

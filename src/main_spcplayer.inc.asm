@@ -279,58 +279,58 @@ SPCPlayerLoop:
 
 	PrintString "off   "						; auto-play flag clear, so auto-play is off 
 
-	bra	__PrintAutoPlayDone
+	bra	@PrintAutoPlayDone
 
 +	sta	temp							; print auto-play time
 	ldy	#temp
 
 	PrintString "%b min."
 
-__PrintAutoPlayDone:
+@PrintAutoPlayDone:
 	wai
 
 	lda	REG_STAT78						; check display refresh rate
 	and	#%00010000
-	bne	__IncTimerPAL						; increment seconds depending on framerate
+	bne	@IncTimerPAL						; increment seconds depending on framerate
 
-__IncTimerNTSC:
+@IncTimerNTSC:
 	sed								; decimal mode on
 	clc
 	lda	spcTimer
 	adc	#$01
 	sta	spcTimer
 	cmp	#$60							; if NTSC, increment seconds every 60th frame
-	bcc	__CalcTimerSeconds
+	bcc	@CalcTimerSeconds
 	stz	spcTimer						; carry bit set, reset frame counter
-	bra	__CalcTimerSeconds
+	bra	@CalcTimerSeconds
 
-__IncTimerPAL:
+@IncTimerPAL:
 	sed								; decimal mode on
 	clc
 	lda	spcTimer
 	adc	#$01
 	sta	spcTimer
 	cmp	#$50							; if PAL, increment seconds every 50th frame
-	bcc	__CalcTimerSeconds
+	bcc	@CalcTimerSeconds
 	stz	spcTimer						; carry bit set, reset frame counter
 
-__CalcTimerSeconds:
+@CalcTimerSeconds:
 	lda	spcTimer+1						; increment seconds via carry bit
 	adc	#$00
 	sta	spcTimer+1
 	cmp	#$60							; check if 60 seconds have elapsed
-	bcc	__CalcTimerMinutes
+	bcc	@CalcTimerMinutes
 	stz	spcTimer+1						; carry bit set, reset seconds
 
-__CalcTimerMinutes:
+@CalcTimerMinutes:
 	lda	spcTimer+2						; increment minutes via carry bit
 	adc	#$00
 	sta	spcTimer+2
 	cmp	#$60							; check if 60 minutes have elapsed
-	bcc	__CalcTimerDone
+	bcc	@CalcTimerDone
 	stz	spcTimer+2						; if 59:59 reached, reset timer
 
-__CalcTimerDone:
+@CalcTimerDone:
 	cld								; decimal mode off
 
 
@@ -338,34 +338,34 @@ __CalcTimerDone:
 ; -------------------------- check for d-pad left (auto-play control)
 	lda	Joy1New+1
 	and	#%00000010
-	beq	__SPCLoopDpadLDone
+	beq	@DpadLeftDone
 	lda	DP_SPCPlayerFlags
 ;	and	#%00000111						; mask off reserved bits (not necessary for now)
-	beq	__SPCLoopDpadLDone					; if auto-play is off, jump out
+	beq	@DpadLeftDone						; if auto-play is off, jump out
 	dec	DP_SPCPlayerFlags					; otherwise, DP_SPCPlayerFlags -= 1
 
-__SPCLoopDpadLDone:
+@DpadLeftDone:
 
 
 
 ; -------------------------- check for d-pad right (auto-play control)
 	lda	Joy1New+1
 	and	#%00000001
-	beq	__SPCLoopDpadRDone
+	beq	@DpadRightDone
 	lda	DP_SPCPlayerFlags
 ;	and	#%00000111						; mask off reserved bits (not necessary for now)
 	cmp	#7
-	bcs	__SPCLoopDpadRDone					; if time setting was 7 minutes (highest setting), jump out
+	bcs	@DpadRightDone						; if time setting was 7 minutes (highest setting), jump out
 	inc	DP_SPCPlayerFlags					; otherwise, DP_SPCPlayerFlags += 1
 
-__SPCLoopDpadRDone:
+@DpadRightDone:
 
 
 
 ; -------------------------- check for L shoulder button = previous SPC file (via warm boot)
 	lda	Joy1Press
 	and	#%00100000
-	beq	__SPCLoopLButtonDone
+	beq	@LButtonDone
 	lda	#%10000000						; set "go to SPC player" flag
 	sta	DP_WarmBootFlags
 	lda	#%00101000						; disable HDMA windowing & color math channels
@@ -374,7 +374,7 @@ __SPCLoopDpadRDone:
 	jsr	HideButtonSprites
 	jsr	SpriteMessageSearching
 
-__SPCLoopCheckPrevFile:
+@CheckPrevFile:
 	lda	cursorYCounter
 	bne	+
 	lda	scrollYCounter
@@ -390,21 +390,21 @@ __SPCLoopCheckPrevFile:
 	jsr	DirGetEntry						; get selected entry
 	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
-	bne	__SPCLoopCheckPrevFile
+	bne	@CheckPrevFile
 
-	ldx	#4
+	ldx	#4							; jump table index 4 = go to previous file
 	jmp	FileBrowserCheckSPCFile
 
-__SPCLoopLButtonDone:
+@LButtonDone:
 
 
 
 ; -------------------------- check for R shoulder button = next SPC file (via warm boot)
 	lda	Joy1Press
 	and	#%00010000
-	beq	__SPCLoopRButtonDone
+	beq	@RButtonDone
 
-__LoadNextSPC:
+@LoadNextSPC:
 	lda	#%10000000						; set "go to SPC player" flag
 	sta	DP_WarmBootFlags
 	lda	#%00101000						; disable HDMA windowing & color math channels
@@ -413,7 +413,7 @@ __LoadNextSPC:
 	jsr	HideButtonSprites
 	jsr	SpriteMessageSearching
 
-__SPCLoopCheckNextFile:
+@CheckNextFile:
 	lda	cursorYCounter
 	bne	+
 	lda	scrollYCounter
@@ -429,18 +429,20 @@ __SPCLoopCheckNextFile:
 	jsr	DirGetEntry						; get selected entry
 	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
-	bne	__SPCLoopCheckNextFile
+	bne	@CheckNextFile
 
-	ldx	#2
+	ldx	#2							; jump table index 2 = go to next file
 	jmp	FileBrowserCheckSPCFile
 
-__SPCLoopRButtonDone:
+@RButtonDone:
 
 
 
 ; -------------------------- check for B button = reset PowerPak (warm boot)
 	lda	Joy1Press+1
 	bmi	InitWarmBoot
+
+@BButtonDone:
 
 
 
@@ -449,8 +451,8 @@ __SPCLoopRButtonDone:
 ;	and	#%00000111						; mask off reserved bits (not necessary for now)
 	beq	+							; MSB clear --> auto-play is off
 	cmp	spcTimer+2
-	beq	__LoadNextSPC						; if minutes match, load next SPC file
-	bcc	__LoadNextSPC						; ditto when auto-play setting < timer
+	beq	@LoadNextSPC						; if minutes match, load next SPC file
+	bcc	@LoadNextSPC						; ditto when auto-play setting < timer
 +	jmp	SPCPlayerLoop
 
 

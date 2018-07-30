@@ -106,24 +106,34 @@ GotoGameOptions:
 
 PlayLoop:
 	wai
-	lda	Joy1New							; check for A button = start game
-	and	#%10000000
-	bne	+
+
+
+
+; -------------------------- check for A/Start button = start game
+	lda	Joy1New
+	bmi	+
 	lda	Joy1New+1						; check for Start button = ditto
 	and	#%00010000
-	beq	__AStartCheck1Done
+	beq	@AStartButtonsDone
 +	jmp	StartGame
 
-__AStartCheck1Done:
-	lda	Joy1New+1						; check for B button = return to titlescreen
-	and	#%10000000
-	beq	__BCheck1Done
+@AStartButtonsDone:
+
+
+
+; -------------------------- check for B button = return to titlescreen
+	lda	Joy1New+1
+	bpl	@BButtonDone
 	jmp	BackToIntro
 
-__BCheck1Done:
-	lda	Joy1New+1						; check for d-pad up
+@BButtonDone:
+
+
+
+; -------------------------- check for d-pad up
+	lda	Joy1New+1
 	and	#%00001000
-	beq	__UpCheck1Done
+	beq	@DpadUpDone
 	lda	#cursorYGGcode5						; up pressed, switch to GG code editing loop
 	sta	cursorY
 	lda	#cursorXcodes
@@ -131,24 +141,33 @@ __BCheck1Done:
 	jsr	ShowHelpGGcodeEdit
 	jmp	EditGGCodeLoop
 
-__UpCheck1Done:
-	lda	Joy1New+1						; check for d-pad down
+@DpadUpDone:
+
+
+
+; -------------------------- check for d-pad down
+	lda	Joy1New+1
 	and	#%00000100
-	beq	__DownCheck1Done
+	beq	@DpadDownDone
 	lda	#cursorYSRAMLoop					; down pressed, switch to save RAM loop
 	sta	cursorY
 	bra	SaveRAMLoop
 
-__DownCheck1Done:
-	lda	Joy1Press+1						; check for Select button = show decoded GG codes
+@DpadDownDone:
+
+
+
+; -------------------------- check for Select button = show decoded GG codes
+	lda	Joy1Press+1
 	and	#%00100000
 	beq	+							; if Select is released, clear decoded GG code lines
-	jsr	SelectButton
-	bra	__SelectCheck1Done
+	jsr	SelectPressed
+	bra	@SelButtonDone
 
 +	jsr	SelectReleased
 
-__SelectCheck1Done:
+@SelButtonDone:
+
 	bra	PlayLoop
 
 
@@ -157,50 +176,72 @@ __SelectCheck1Done:
 
 SaveRAMLoop:
 	wai
-	lda	Joy1New							; check for A button = launch SRAM browser
-	and	#%10000000
-	beq	__ACheck2Done
+
+
+
+; -------------------------- check for A button = launch SRAM browser
+	lda	Joy1New
+	bpl	@AButtonDone
 	jsr	SpriteMessageLoading
 	jsr	InitSRMBrowser						; go to SRAM browser
 	jmp	GotoGameOptions						; refresh game options screen
 
-__ACheck2Done:
-	lda	Joy1New+1						; check for Start button = start game
+@AButtonDone:
+
+
+
+; -------------------------- check for Start button = start game
+	lda	Joy1New+1
 	and	#%00010000
-	beq	__StartCheck2Done
+	beq	@StartButtonDone
 	jmp	StartGame
 
-__StartCheck2Done:
-	lda	Joy1New+1						; check for B button = return to titlescreen
-	and	#%10000000
-	beq	__BCheck2Done
+@StartButtonDone:
+
+
+
+; -------------------------- check for B button = return to titlescreen
+	lda	Joy1New+1
+	bpl	@BButtonDone
 	jmp	BackToIntro
 
-__BCheck2Done:
-	lda	Joy1New+1						; check for d-pad up
+@BButtonDone:
+
+
+
+; -------------------------- check for d-pad up
+	lda	Joy1New+1
 	and	#%00001000
-	beq	__UpCheck2Done
+	beq	@DpadUpDone
 	lda	#cursorYPlayLoop					; up pressed, switch to play loop
 	sta	cursorY
 	jmp	PlayLoop
 
-__UpCheck2Done:
-	lda	Joy1New+1						; check for d-pad down
+@DpadUpDone:
+
+
+
+; -------------------------- check for d-pad down
+	lda	Joy1New+1
 	and	#%00000100
-	beq	__DownCheck2Done
+	beq	@DpadDownDone
 	lda	#cursorYLoadGGLoop					; down pressed, switch to GG TXT file loop
 	sta	cursorY
 	bra	LoadGGCodeLoop
 
-__DownCheck2Done:
-	lda	Joy1Press+1						; check for Select button = show decoded GG codes
+@DpadDownDone:
+
+
+
+; -------------------------- check for Select button = show decoded GG codes
+	lda	Joy1Press+1
 	and	#%00100000
 	beq	+							; if Select is released, clear decoded GG code lines
-	jsr	SelectButton
-	bra	__SelectCheck2Done
+	jsr	SelectPressed
+	bra	@SelButtonDone
 +	jsr	SelectReleased
 
-__SelectCheck2Done:
+@SelButtonDone:
 	jmp	SaveRAMLoop
 
 
@@ -209,48 +250,66 @@ __SelectCheck2Done:
 
 LoadGGCodeLoop:
 	wai
-	lda	Joy1New							; check for A button
-	and	#%10000000
-	bne	+
-	jmp	__ACheck3Done
+
+
+
+; -------------------------- check for A button
+	lda	Joy1New
+	bpl	@AButtonDone
 
 +	lda	cursorX							; check where the cursor is at
 	cmp	#cursorXstart
 	beq	+
 	jsr	GameGenieClearAll					; clear out all GG codes
 	jsr	PrintGGCodes						; refresh code display
-	bra	__ACheck3Done
+	bra	@AButtonDone
 
 +	jsr	SpriteMessageLoading
 	jsr	InitTXTBrowser						; go to GameGenie TXT browser
 	jmp	GotoGameOptions						; refresh game options screen
 
-__ACheck3Done:
-	lda	Joy1New+1						; check for Start button = start game
+@AButtonDone:
+
+
+
+; -------------------------- check for Start button = start game
+	lda	Joy1New+1
 	and	#%00010000
-	beq	__StartCheck3Done
+	beq	@StartButtonDone
 	jmp	StartGame
 
-__StartCheck3Done:
-	lda	Joy1New+1						; check for B button
-	and	#%10000000
-	beq	__BCheck3Done
-	jmp	BackToIntro						; return to titlescreen
+@StartButtonDone:
 
-__BCheck3Done:
-	lda	Joy1New+1						; check for d-pad up
+
+
+; -------------------------- check for B button = return to titlescreen
+	lda	Joy1New+1
+	and	#%10000000
+	beq	@BButtonDone
+	jmp	BackToIntro
+
+@BButtonDone:
+
+
+
+; -------------------------- check for d-pad up
+	lda	Joy1New+1
 	and	#%00001000
-	beq	__UpCheck3Done
+	beq	@DpadUpDone
 	lda	#cursorYSRAMLoop					; up pressed, switch to SRAM loop
 	sta	cursorY
 	lda	#cursorXstart						; reset cursorX position
 	sta	cursorX
 	jmp	SaveRAMLoop
 
-__UpCheck3Done:
-	lda	Joy1New+1						; check for d-pad down
+@DpadUpDone:
+
+
+
+; -------------------------- check for d-pad down
+	lda	Joy1New+1
 	and	#%00000100
-	beq	__DownCheck3Done
+	beq	@DpadDownDone
 	lda	#cursorYGGcode1						; down pressed, switch to GG code editing loop
 	sta	cursorY
 	lda	#cursorXcodes
@@ -258,30 +317,42 @@ __UpCheck3Done:
 	jsr	ShowHelpGGcodeEdit
 	bra	EditGGCodeLoop
 
-__DownCheck3Done:
-	lda	Joy1+1							; check for d-pad right
+@DpadDownDone:
+
+
+
+; -------------------------- check for d-pad right
+	lda	Joy1+1
 	and	#%00000001
-	beq	__Right1CheckDone
+	beq	@DpadRightDone
 	lda	#cursorXstart+$90
 	sta	cursorX
 
-__Right1CheckDone:
-	lda	Joy1+1							; check for d-pad left
+@DpadRightDone:
+
+
+
+; -------------------------- check for d-pad left
+	lda	Joy1+1
 	and	#%00000010
-	beq	__Left1CheckDone
+	beq	@DpadLeftDone
 	lda	#cursorXstart
 	sta	cursorX
 
-__Left1CheckDone:
-	lda	Joy1Press+1						; check for Select button = show decoded GG codes
+@DpadLeftDone:
+
+
+
+; -------------------------- check for Select = show decoded GG codes
+	lda	Joy1Press+1
 	and	#%00100000
 	beq	+							; if Select is released, clear decoded GG code lines
-	jsr	SelectButton
-	bra	__SelectCheck3Done
+	jsr	SelectPressed
+	bra	@SelButtonDone
 
 +	jsr	SelectReleased
 
-__SelectCheck3Done:
+@SelButtonDone:
 	jmp	LoadGGCodeLoop
 
 
@@ -290,86 +361,108 @@ __SelectCheck3Done:
 
 EditGGCodeLoop:
 	wai
-	lda	Joy1Press						; check for A/X button
-	and	#%11000000
-	beq	__AXCheckDone
 
-__AXPressed:
+
+
+; -------------------------- check for A/X buttons = increase value
+	lda	Joy1Press
+	and	#%11000000
+	beq	@AXButtonsDone
+
+@AXPressed:
 	jsr	GGCodeIncChar
+
 	lda	Joy1Old
 	and	#%11000000
-	bne	__AXHeld
+	bne	@AXHeld
 	ldx	#$000E							; 14 frames
 -	wai
 	lda	Joy1
 	and	#%11000000
-	beq	__AXCheckDone
+	beq	@AXButtonsDone
 	dex
 	bne	-
 
-	bra	__AXPressed
+	bra	@AXPressed
 
-__AXHeld:
+@AXHeld:
 	ldx	#$0003							; 3 frames
 -	wai
 	lda	Joy1
 	and	#%11000000
-	beq	__AXCheckDone
+	beq	@AXButtonsDone
 	dex
 	bne	-
 
-	bra	__AXPressed
+	bra	@AXPressed
 
-__AXCheckDone:
-	lda	Joy1Press+1						; check for B/Y button
+@AXButtonsDone:
+
+
+
+; -------------------------- check for B/Y buttons = decrease value
+	lda	Joy1Press+1
 	and	#%11000000
-	beq	__BYCheckDone
+	beq	@BYButtonsDone
 
-__BYPressed:
+@BYPressed:
 	jsr	GGCodeDecChar
+
 	lda	Joy1Old+1
 	and	#%11000000
-	bne	__BYHeld
+	bne	@BYHeld
 	ldx	#$000E							; 14 frames
 -	wai
 	lda	Joy1+1
 	and	#%11000000
-	beq	__BYCheckDone
+	beq	@BYButtonsDone
 	dex
 	bne	-
 
-	bra	__BYPressed
+	bra	@BYPressed
 
-__BYHeld:
+@BYHeld:
 	ldx	#$0003							; 3 frames
 -	wai
 	lda	Joy1+1
 	and	#%11000000
-	beq	__BYCheckDone
+	beq	@BYButtonsDone
 	dex
 	bne	-
 
-	bra	__BYPressed
+	bra	@BYPressed
 
-__BYCheckDone:
-	lda	Joy1New+1						; check for Start button = start game
+@BYButtonsDone:
+
+
+
+; -------------------------- check for Start button = start game
+	lda	Joy1New+1
 	and	#%00010000
-	beq	__StartCheck4Done
+	beq	@StartButtonDone
 	jmp	StartGame
 
-__StartCheck4Done:
-	lda	Joy1Press+1						; check for Select button = show decoded GG codes
+@StartButtonDone:
+
+
+
+; -------------------------- check for Select button = show decoded GG codes
+	lda	Joy1Press+1
 	and	#%00100000
 	beq	+							; if Select is released, clear decoded GG code lines
-	jsr	SelectButton
-	bra	__SelectCheck4Done
+	jsr	SelectPressed
+	bra	@SelButtonDone
 
 +	jsr	SelectReleased
 
-__SelectCheck4Done:
-	lda	Joy1New+1						; check for d-pad up
+@SelButtonDone:
+
+
+
+; -------------------------- check for d-pad up
+	lda	Joy1New+1
 	and	#%00001000
-	beq	__UpCheck4Done
+	beq	@DpadUpDone
 	lda	cursorY
 	cmp	#cursorYGGcode2
 	bcs	+
@@ -384,10 +477,14 @@ __SelectCheck4Done:
 	sbc	#$10
 	sta	cursorY
 
-__UpCheck4Done:
-	lda	Joy1New+1						; check for d-pad down
+@DpadUpDone:
+
+
+
+; -------------------------- check for d-pad down
+	lda	Joy1New+1
 	and	#%00000100
-	beq	__DownCheck4Done
+	beq	@DpadDownDone
 	lda	cursorY
 	cmp	#cursorYGGcode5
 	bcc	+
@@ -402,12 +499,16 @@ __UpCheck4Done:
 	adc	#$10
 	sta	cursorY
 
-__DownCheck4Done:
-	lda	Joy1Press+1						; check for d-pad left = move cursor left
-	and	#%00000010
-	beq	__LeftCheckDone
+@DpadDownDone:
 
-__LeftPressed:
+
+
+; -------------------------- check for d-pad left = move cursor left
+	lda	Joy1Press+1
+	and	#%00000010
+	beq	@DpadLeftDone
+
+@LeftPressed:
 	lda	cursorX
 	cmp	#cursorXcodes						; if at leftmost digit ...
 	bne	+
@@ -421,34 +522,38 @@ __LeftPressed:
 	sta	cursorX
 ++	lda	Joy1Old+1
 	and	#%00000010
-	bne	__LeftHeld
+	bne	@LeftHeld
 	ldx	#$000E							; 14 frames
 -	wai
 	lda	Joy1+1
 	and	#%00000010
-	beq	__LeftCheckDone
+	beq	@DpadLeftDone
 	dex
 	bne	-
 
-	bra	__LeftPressed
+	bra	@LeftPressed
 
-__LeftHeld:
+@LeftHeld:
 	ldx	#$0004							; 4 frames
 -	wai
 	lda	Joy1+1
 	and	#%00000010
-	beq	__LeftCheckDone
+	beq	@DpadLeftDone
 	dex
 	bne	-
 
-	bra	__LeftPressed
+	bra	@LeftPressed
 
-__LeftCheckDone:
-	lda	Joy1Press+1						; check for d-pad right = move cursor right
+@DpadLeftDone:
+
+
+
+; -------------------------- check for d-pad right = move cursor right
+	lda	Joy1Press+1						; check for d-pad right
 	and	#%00000001
-	beq	__RightCheckDone
+	beq	@DpadRightDone
 
-__RightPressed:
+@RightPressed:
 	lda	cursorX
 	cmp	#cursorXcodes+$70					; if at rightmost digit ...
 	bne	+
@@ -462,37 +567,42 @@ __RightPressed:
 	sta	cursorX
 ++	lda	Joy1Old+1
 	and	#%00000001
-	bne	__RightHeld
+	bne	@RightHeld
 	ldx	#$000E							; 14 frames
 -	wai
 	lda	Joy1+1
 	and	#%00000001
-	beq	__RightCheckDone
+	beq	@DpadRightDone
 	dex
 	bne	-
 
-	bra	__RightPressed
+	bra	@RightPressed
 
-__RightHeld:
+@RightHeld:
 	ldx	#$0004							; 4 frames
 -	wai
 	lda	Joy1+1
 	and	#%00000001
-	beq	__RightCheckDone
+	beq	@DpadRightDone
 	dex
 	bne	-
 
-	bra	__RightPressed
+	bra	@RightPressed
 
-__RightCheckDone:
-	lda	Joy1Press						; check for L+R button = clear out current GG code
+@DpadRightDone:
+
+
+
+; -------------------------- check for L+R button = clear out current GG code
+	lda	Joy1Press
 	and	#%00110000
 	cmp	#%00110000
-	bne	__LRCheckDone
+	bne	@LRButtonsDone
 	jsr	GGClearCurrentCode
 	jsr	PrintGGCodes						; refresh code display
 
-__LRCheckDone:
+@LRButtonsDone:
+
 	jmp	EditGGCodeLoop
 
 
@@ -502,7 +612,7 @@ __LRCheckDone:
 
 
 ; -------------------------- display GG codes / do misc. screen updates
-SelectButton:								; print decoded GG codes
+SelectPressed:								; print decoded GG codes
 	SetCursorPos GGcode1Y, GGcodesX+17
 
 	ldy	#$0000
@@ -597,29 +707,30 @@ GGClearCurrentCode:
 	cmp	#cursorYGGcode1
 	bne	+
 	ldy	#$0000							; code 1
-	bra	__GGClearCurrentCodeDone
+	bra	@GGClearCurrentCodeDone
 
 +	cmp	#cursorYGGcode2
 	bne	+
 	ldy	#$0008							; code 2
-	bra	__GGClearCurrentCodeDone
+	bra	@GGClearCurrentCodeDone
 
 +	cmp	#cursorYGGcode3
 	bne	+
 	ldy	#$0010							; code 3
-	bra	__GGClearCurrentCodeDone
+	bra	@GGClearCurrentCodeDone
 
 +	cmp	#cursorYGGcode4
 	bne	+
 	ldy	#$0018							; code 4
-	bra	__GGClearCurrentCodeDone
+	bra	@GGClearCurrentCodeDone
 
 +	; cmp	#cursorYGGcode5
 ;	bne	+
 	ldy	#$0020							; code 5
 
-__GGClearCurrentCodeDone:
+@GGClearCurrentCodeDone:
 	jsr	GameGenieClearCode					; clear out current GG code
+
 	rts
 
 
@@ -632,7 +743,7 @@ GGCodeIncChar:
 	SetCursorPos GGcode1Y, GGcodesX
 
 	ldy	#$0000							; store code 1 char
-	bra	__GGCodeIncCharDone
+	bra	@GGCodeIncCharDone
 
 +	cmp	#cursorYGGcode2
 	bne	+
@@ -640,7 +751,7 @@ GGCodeIncChar:
 	SetCursorPos GGcode2Y, GGcodesX
 
 	ldy	#$0008							; store code 2 char
-	bra	__GGCodeIncCharDone
+	bra	@GGCodeIncCharDone
 
 +	cmp	#cursorYGGcode3
 	bne	+
@@ -648,7 +759,7 @@ GGCodeIncChar:
 	SetCursorPos GGcode3Y, GGcodesX
 
 	ldy	#$0010							; store code 3 char
-	bra	__GGCodeIncCharDone
+	bra	@GGCodeIncCharDone
 
 +	cmp	#cursorYGGcode4
 	bne	+
@@ -656,7 +767,7 @@ GGCodeIncChar:
 	SetCursorPos GGcode4Y, GGcodesX
 
 	ldy	#$0018							; store code 4 char
-	bra	__GGCodeIncCharDone
+	bra	@GGCodeIncCharDone
 
 +	; cmp	#cursorYGGcode5
 ;	bne	+
@@ -665,9 +776,10 @@ GGCodeIncChar:
 
 	ldy	#$0020							; store code 5 char
 
-__GGCodeIncCharDone:
+@GGCodeIncCharDone:
 	jsr	GameGenieGetOffset
 	jsr	GameGenieNextChar					; save GG code changes
+
 	rts
 
 
@@ -680,7 +792,7 @@ GGCodeDecChar:
 	SetCursorPos GGcode1Y, GGcodesX
 
 	ldy	#$0000							; store code 1 char
-	bra	__GGCodeDecCharDone
+	bra	@GGCodeDecCharDone
 
 +	cmp	#cursorYGGcode2
 	bne	+
@@ -688,7 +800,7 @@ GGCodeDecChar:
 	SetCursorPos GGcode2Y, GGcodesX
 
 	ldy	#$0008							; store code 2 char
-	bra	__GGCodeDecCharDone
+	bra	@GGCodeDecCharDone
 
 +	cmp	#cursorYGGcode3
 	bne	+
@@ -696,7 +808,7 @@ GGCodeDecChar:
 	SetCursorPos GGcode3Y, GGcodesX
 
 	ldy	#$0010							; store code 3 char
-	bra	__GGCodeDecCharDone
+	bra	@GGCodeDecCharDone
 
 +	cmp	#cursorYGGcode4
 	bne	+
@@ -704,7 +816,7 @@ GGCodeDecChar:
 	SetCursorPos GGcode4Y, GGcodesX
 
 	ldy	#$0018							; store code 4 char
-	bra	__GGCodeDecCharDone
+	bra	@GGCodeDecCharDone
 
 +	; cmp	#cursorYGGcode5
 ;	bne	+
@@ -713,9 +825,10 @@ GGCodeDecChar:
 
 	ldy	#$0020							; store code 5 char
 
-__GGCodeDecCharDone:
+@GGCodeDecCharDone:
 	jsr	GameGenieGetOffset
 	jsr	GameGeniePrevChar					; save GG code changes
+
 	rts
 
 

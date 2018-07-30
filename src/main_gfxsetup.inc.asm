@@ -83,7 +83,7 @@ GFXsetup:
 
 	ldx	#$0000
 
-__BuildFontBG1:
+@BuildFontBG1:
 	ldy	#$0000
 -	lda.l	Font, x							; first, copy font tile (font tiles sit on the "left")
 	sta	REG_VMDATAL
@@ -100,13 +100,13 @@ __BuildFontBG1:
 	bne	-
 
 	cpx	#$0800							; 2 KiB font done?
-	bne	__BuildFontBG1
+	bne	@BuildFontBG1
 
 	ldx	#ADDR_VRAM_BG2_TILES					; set VRAM address for BG2 font tiles
 	stx	REG_VMADDL
 	ldx	#$0000
 
-__BuildFontBG2:
+@BuildFontBG2:
 	ldy	#$0000
 -	stz	REG_VMDATAL						; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
 	iny								; no more blank tiles because BG2 is 2bpp)
@@ -123,7 +123,7 @@ __BuildFontBG2:
 	bne	-
 
 	cpx	#$0800							; 2 KiB font done?
-	bne	__BuildFontBG2
+	bne	@BuildFontBG2
 
 	Accu8
 
@@ -164,8 +164,8 @@ __BuildFontBG2:
 
 
 
-; -------------------------- set up the screen
-GFXsetup2:
+; -------------------------- set up screen registers
+@Warmboot:
 	lda	#%00000011						; 8×8 (small) / 16×16 (large) sprites, character data at $6000
 	sta	REG_OBSEL
 	lda	#$05							; set BG mode 5 for horizontal high resolution :-)

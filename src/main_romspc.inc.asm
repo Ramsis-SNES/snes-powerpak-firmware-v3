@@ -78,14 +78,14 @@ InitROMBrowser:
 	jsr	FileBrowser
 	lda	DP_SelectionFlags					; check if selection was made
 	and	#%00000001
-	bne	__ROMselected						; yes, process file
+	bne	@ROMselected						; yes, process file
 	jsr	PrintClearScreen					; no, go back to intro screen
 	jmp	GotoIntroScreen
 
 
 
 ; -------------------------- process selected ROM file
-__ROMselected:
+@ROMselected:
 	Accu16
 
 	ldy	#$0000
@@ -130,86 +130,86 @@ __ROMselected:
 	jsr	CardLoadDir						; load save dir (.SRM files)
 	ldy	#$0000
 
-__GetROMExtPosition:							; check where ROM extension starts
+@GetROMExtPosition:							; check where ROM extension starts
 	lda	gameName, y
 	cmp	#'.'
-	bne	__IncPosition
+	bne	@IncPosition
 	lda	gameName+1, y
 	cmp	#'s'
-	beq	__ROMExtStartsWithS					; found .s (for .sfc, .smc, .swc ROMs)
+	beq	@ROMExtStartsWithS					; found .s (for .sfc, .smc, .swc ROMs)
 	cmp	#'S'
-	beq	__ROMExtStartsWithS					; found .S
+	beq	@ROMExtStartsWithS					; found .S
 	cmp	#'g'
-	beq	__ROMExtStartsWithG					; found .g (for .gd3 ROMs)
+	beq	@ROMExtStartsWithG					; found .g (for .gd3 ROMs)
 	cmp	#'G'
-	beq	__ROMExtStartsWithG					; found .G
+	beq	@ROMExtStartsWithG					; found .G
 	cmp	#'f'
-	beq	__ROMExtStartsWithF					; found .f (for .fig ROMs)
+	beq	@ROMExtStartsWithF					; found .f (for .fig ROMs)
 	cmp	#'F'
-	beq	__ROMExtStartsWithF					; found .F
+	beq	@ROMExtStartsWithF					; found .F
 	cmp	#'b'
-	beq	__ROMExtStartsWithB					; found .b (for .bin ROMs)
+	beq	@ROMExtStartsWithB					; found .b (for .bin ROMs)
 	cmp	#'B'
-	beq	__ROMExtStartsWithB					; found .B
+	beq	@ROMExtStartsWithB					; found .B
 
-__IncPosition:								; go to the next character
+@IncPosition:								; go to the next character
 	iny
 	cpy	#$007A							; 122 chars
-	bne	__GetROMExtPosition
-	bra	__NoROMExtFound
+	bne	@GetROMExtPosition
+	bra	@NoROMExtFound
 
-__ROMExtStartsWithS:
+@ROMExtStartsWithS:
 	iny								; skip the "f"/"m"/"w", only check for "c"
 	iny
 	lda	gameName+1, y
 	cmp	#'c'
-	beq	__ROMExtSuccess
+	beq	@ROMExtSuccess
 	cmp	#'C'
-	beq	__ROMExtSuccess
-	bra	__GetROMExtPosition
+	beq	@ROMExtSuccess
+	bra	@GetROMExtPosition
 
-__ROMExtStartsWithG:
+@ROMExtStartsWithG:
 	iny								; skip the "d", only check for "3"
 	iny
 	lda	gameName+1, y
 	cmp	#'3'
-	beq	__ROMExtSuccess
-	bra	__GetROMExtPosition
+	beq	@ROMExtSuccess
+	bra	@GetROMExtPosition
 
-__ROMExtStartsWithF:
+@ROMExtStartsWithF:
 	iny								; skip the "i", only check for "g"
 	iny
 	lda	gameName+1, y
 	cmp	#'g'
-	beq	__ROMExtSuccess
+	beq	@ROMExtSuccess
 	cmp	#'G'
-	beq	__ROMExtSuccess
-	bra	__GetROMExtPosition
+	beq	@ROMExtSuccess
+	bra	@GetROMExtPosition
 
-__ROMExtStartsWithB:
+@ROMExtStartsWithB:
 	iny								; skip the "i", only check for "n"
 	iny
 	lda	gameName+1, y
 	cmp	#'n'
-	beq	__ROMExtSuccess
+	beq	@ROMExtSuccess
 	cmp	#'N'
-	beq	__ROMExtSuccess
-	bra	__GetROMExtPosition
+	beq	@ROMExtSuccess
+	bra	@GetROMExtPosition
 
-__NoROMExtFound:
+@NoROMExtFound:
 	jmp	GotoGameOptions						; if no ROM extension is found at all, we can't go on searching
 
-__ROMExtSuccess:
+@ROMExtSuccess:
 	iny								; to get rid of the "+1"
 	sty	temp							; save Y value
 	jsr	DirFindEntryLong					; start searching, back here means matching save file found
 	ldy	temp
 
-__CopySaveName:
+@CopySaveName:
 	lda	tempEntry, y						; copy <SaveNameWeJustFound.srm>
 	sta	saveName, y
 	dey
-	bpl	__CopySaveName
+	bpl	@CopySaveName
 
 	Accu16
 
@@ -231,9 +231,9 @@ DirFindEntryLong:
 
 	stz	selectedEntry						; reset selectedEntry
 	lda	filesInDir						; only do the search if directory isn't empty
-	beq	__DirFindEntryLongFailed
+	beq	@Failed
 
-__DirFindEntryLongLoop:
+@Loop:
 	Accu8
 
 	lda	#%00000001						; use SDRAM buffer (h flag not relevant in this case)
@@ -244,36 +244,36 @@ __DirFindEntryLongLoop:
 	cmp	#'m'
 	beq	+
 	cmp	#'M'
-	bne	__IncrementEntryIdx
+	bne	@IncEntryIndex
 +	dey
 	lda	tempEntry, y
 	cmp	#'r'
 	beq	+
 	cmp	#'R'
-	bne	__IncrementEntryIdx
+	bne	@IncEntryIndex
 +	dey
 	lda	tempEntry, y
 	cmp	#'s'
 	beq	_f
 	cmp	#'S'
-	bne	__IncrementEntryIdx
+	bne	@IncEntryIndex
 __	dey
 	lda	tempEntry, y
 	cmp	gameName, y
-	bne	__IncrementEntryIdx
+	bne	@IncEntryIndex
 	cpy	#$0000
 	bne	_b
 	rts								; all chars match
 
-__IncrementEntryIdx:
+@IncEntryIndex:
 	Accu16
 
 	inc	selectedEntry						; increment entry index
 	lda	selectedEntry						; check for max. no. of files
 	cmp	filesInDir
-	bne	__DirFindEntryLongLoop
+	bne	@Loop
 
-__DirFindEntryLongFailed:
+@Failed:
 	pla								; clean up the stack as there's no rts from "jsr DirFindEntryLong" if no entry was found
 
 	Accu8

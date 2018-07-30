@@ -66,7 +66,7 @@ FileBrowser:
 
 
 
-__FileBrowserLoop:
+FileBrowserLoop:
 	wai
 
 .IFDEF SHOWDEBUGMSGS
@@ -100,13 +100,13 @@ __FileBrowserLoop:
 ; -------------------------- check for d-pad held up, scroll up after a short delay
 	lda	Joy1Press+1
 	and	#%00001000
-	beq	__FileBrowserUpCheckDone
+	beq	@DpadUpDone
 
-__UpPressed:
+@UpPressed:
 	lda	cursorYCounter
-	bne	__FileBrowserUpCheckDone
+	bne	@DpadUpDone
 	lda	scrollYCounter
-	bne	__FileBrowserUpCheckDone
+	bne	@DpadUpDone
 	lda	#$08
 	sta	speedScroll
 	lda	#$01
@@ -114,46 +114,46 @@ __UpPressed:
 	jsr	ScrollUp
 	lda	Joy1Old+1
 	and	#%00001000
-	bne	__UpHeld
+	bne	@UpHeld
 	ldx	#14							; 14 frames
 
-__UpLongDelay:
+@UpLongDelay:
 	wai
 	lda	Joy1+1
 	and	#%00001000
-	beq	__FileBrowserUpCheckDone
+	beq	@DpadUpDone
 	dex
-	bne	__UpLongDelay
+	bne	@UpLongDelay
 
-	bra	__UpPressed
+	bra	@UpPressed
 
-__UpHeld:
+@UpHeld:
 	ldx	#2							; 2 frames
 
-__UpShortDelay:
+@UpShortDelay:
 	wai
 	lda	Joy1+1
 	and	#%00001000
-	beq	__FileBrowserUpCheckDone
+	beq	@DpadUpDone
 	dex
-	bne	__UpShortDelay
+	bne	@UpShortDelay
 
-	bra	__UpPressed
+	bra	@UpPressed
 
-__FileBrowserUpCheckDone:
+@DpadUpDone:
 
 
 
 ; -------------------------- check for d-pad held down, scroll down after a short delay
 	lda	Joy1Press+1
 	and	#%00000100
-	beq	__FileBrowserDownCheckDone
+	beq	@DpadDownDone
 
-__DownPressed:
+@DownPressed:
 	lda	cursorYCounter
-	bne	__FileBrowserDownCheckDone
+	bne	@DpadDownDone
 	lda	scrollYCounter
-	bne	__FileBrowserDownCheckDone
+	bne	@DpadDownDone
 	lda	#$08
 	sta	speedScroll
 	lda	#$01
@@ -161,44 +161,44 @@ __DownPressed:
 	jsr	ScrollDown
 	lda	Joy1Old+1
 	and	#%00000100
-	bne	__DownHeld
+	bne	@DownHeld
 	ldx	#14							; 14 frames
 
-__DownLongDelay:
+@DownLongDelay:
 	wai
 	lda	Joy1+1
 	and	#%00000100
-	beq	__FileBrowserDownCheckDone
+	beq	@DpadDownDone
 	dex
-	bne	__DownLongDelay
+	bne	@DownLongDelay
 
-	bra	__DownPressed
+	bra	@DownPressed
 
-__DownHeld:
+@DownHeld:
 	ldx	#2							; 2 frames
 
-__DownShortDelay:
+@DownShortDelay:
 	wai
 	lda	Joy1+1
 	and	#%00000100
-	beq	__FileBrowserDownCheckDone
+	beq	@DpadDownDone
 	dex
-	bne	__DownShortDelay
+	bne	@DownShortDelay
 
-	bra	__DownPressed
+	bra	@DownPressed
 
-__FileBrowserDownCheckDone:
+@DpadDownDone:
 
 
 
 ; -------------------------- check for d-pad pressed left, scroll up very fast
 	lda	Joy1Press+1
 	and	#%00000010
-	beq	__FileBrowserLeftCheckDone
+	beq	@DpadLeftDone
 	lda	cursorYCounter
-	bne	__FileBrowserLeftCheckDone
+	bne	@DpadLeftDone
 	lda	scrollYCounter
-	bne	__FileBrowserLeftCheckDone
+	bne	@DpadLeftDone
 	lda	#$08
 ;	lda	#$04
 	sta	speedScroll
@@ -207,18 +207,18 @@ __FileBrowserDownCheckDone:
 	sta	speedCounter
 	jsr	ScrollUp
 
-__FileBrowserLeftCheckDone:
+@DpadLeftDone:
 
 
 
 ; -------------------------- check for d-pad pressed right, scroll down very fast
 	lda	Joy1Press+1
 	and	#%00000001
-	beq	__FileBrowserRightCheckDone
+	beq	@DpadRightDone
 	lda	cursorYCounter
-	bne	__FileBrowserRightCheckDone
+	bne	@DpadRightDone
 	lda	scrollYCounter
-	bne	__FileBrowserRightCheckDone
+	bne	@DpadRightDone
 	lda	#$08
 ;	lda	#$04
 	sta	speedScroll
@@ -227,45 +227,46 @@ __FileBrowserLeftCheckDone:
 	sta	speedCounter
 	jsr	ScrollDown
 
-__FileBrowserRightCheckDone:
+@DpadRightDone:
 
 
 
 ; -------------------------- check for left shoulder button = page up
 	lda	Joy1New
 	and	#%00100000
-	beq	__FileBrowserLCheckDone
+	beq	@LButtonDone
 
 	Accu16
 
 	lda	filesInDir						; if filesInDir <= maxFiles (i.e., there's only one "page"),
 	cmp	#maxFiles+1
-	bcc	__PgUpDone						; then do nothing at all
+	bcc	@PgUpDone						; then do nothing at all
 	pei	(selectedEntry)						; preserve selectedEntry (16 bit)
 	jsr	SyncPage						; make selectedEntry = entry no. of file at top of screen
 	jsr	SelEntryDecPage
 	jsr	PrintPage						; new parameters set, print previous page
+
 	pla								; restore selectedEntry (16 bit)
 	sta	selectedEntry
 	jsr	SelEntryDecPage
 
-__PgUpDone:
+@PgUpDone:
 	Accu8
 
-__FileBrowserLCheckDone:
+@LButtonDone:
 
 
 
 ; -------------------------- check for right shoulder button = page down
 	lda	Joy1New
 	and	#%00010000
-	beq	__FileBrowserRCheckDone
+	beq	@RButtonDone
 
 	Accu16
 
 	lda	filesInDir						; if filesInDir <= maxFiles (i.e., there's only one "page"),
 	cmp	#maxFiles+1
-	bcc	__PgDnDone						; then do nothing at all
+	bcc	@PgDnDone						; then do nothing at all
 	pei	(selectedEntry)						; preserve selectedEntry (16 bit)
 	jsr	SyncPage						; make selectedEntry = entry no. of file at top of screen
 	jsr	SelEntryIncPage
@@ -274,39 +275,38 @@ __FileBrowserLCheckDone:
 	sta	selectedEntry
 	jsr	SelEntryIncPage
 
-__PgDnDone:
+@PgDnDone:
 	Accu8
 
-__FileBrowserRCheckDone:
+@RButtonDone:
 
 
 
 ; -------------------------- check for A button = select file / load dir
 	lda	Joy1New
-	and	#%10000000
-	beq	__FileBrowserACheckDone
+	bpl	@AButtonDone
 
-__FileBrowserAorStartPressed:
+@AorStartPressed:
 	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
 	sta	CLDConfigFlags
 	jsr	DirGetEntry						; get selected entry
 	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
 	bne	+
-	jmp	__FileBrowserFileSelected
+	jmp	FileSelectedOrDirEmpty
 
 +	Accu16
 
 	lda	DP_SubDirCounter					; check if in root dir ...
-	beq	__FileBrowserSkipEntryHandler
+	beq	@SkipEntryHandler
 
-__FileBrowserEntryHandler:
+@EntryHandler:
 	lda	selectedEntry
 	beq	+							; ... no, don't push anything if selectedEntry = 0 (always /. when not in root dir)
 	cmp	#$0001							; special case: selectedEntry = 1 (always /.. when not in root dir)
-	beq	__FileBrowserDirLevelUp
+	beq	FileBrowserLoop@DirLevelUp
 
-__FileBrowserSkipEntryHandler:
+@SkipEntryHandler:
 	pei	(cursorX)						; push current cursor position
 	pei	(selectedEntry)						; push selectedEntry
 	pei	(DP_sourceCluster_BAK+2)				; push source cluster of current directory
@@ -334,25 +334,24 @@ __FileBrowserSkipEntryHandler:
 
 	Accu8
 
-__FileBrowserACheckDone:
+@AButtonDone:
 
 
 
 ; -------------------------- check for B button = go up one directory / return
 	lda	Joy1New+1
-	and	#%10000000
-	beq	__FileBrowserBCheckDone
+	bpl	@BButtonDone
 
 	Accu16
 
 	lda	DP_SubDirCounter					; check if in root dir ...
-	bne	__FileBrowserDirLevelUp
+	bne	@DirLevelUp
 
 	Accu8
 
-	jmp	__FileBrowserDone					; ... if so, return
+	jmp	FileSelectedOrDirEmpty@Done				; ... if so, return
 
-__FileBrowserDirLevelUp:
+@DirLevelUp:
 
 .ACCU 16
 
@@ -418,32 +417,32 @@ __FileBrowserDirLevelUp:
 
 	Accu8
 
-__FileBrowserBCheckDone:
+@BButtonDone:
 
 
 
 ; -------------------------- check for Start button = select file / load dir
 	lda	Joy1New+1
 	and	#%00010000
-	beq	__FileBrowserStartCheckDone
-	jmp	__FileBrowserAorStartPressed
+	beq	@StartButtonDone
+	jmp	@AorStartPressed
 
-__FileBrowserStartCheckDone:
+@StartButtonDone:
 
-	jmp	__FileBrowserLoop					; end of loop
+	jmp	FileBrowserLoop						; end of loop
 
 
 
 ; -------------------------- file selected, check for SPC file / end file browser
-__FileBrowserFileSelected:
+FileSelectedOrDirEmpty:
 	ldx	#0
 	jmp	FileBrowserCheckSPCFile
 
-__FileBrowserFileIsNotSPC:
+@FileIsNotSPC:
 	lda	#%00000001						; back here means file is not SPC, set "file selected" flag
 	sta	DP_SelectionFlags
 
-__FileBrowserDone:
+@Done:
 	Accu16
 
 	lda	DP_SubDirCounter
@@ -484,7 +483,7 @@ FileBrowserCheckDirEmpty:
 
 	WaitForUserInput
 
-	bra	__FileBrowserDone
+	bra	FileSelectedOrDirEmpty@Done
 
 
 
@@ -556,23 +555,18 @@ FileBrowserCheckSPCFile:
 	lda	sectorBuffer1, y
 	cmp	#'0'
 	bne	+
-	jmp	(FileBrowserFileIsSPCTable, x)
+	jmp	(PTR_FileBrowserFileIsSPC, x)
++	jmp	(PTR_FileBrowserFileNotSPC, x)
 
-+	jmp	(FileBrowserFileIsNotSPCTable, x)
-
-
-
-FileBrowserFileIsSPCTable:
+PTR_FileBrowserFileIsSPC:
 	.DW	GotoSPCplayer						; order of entries in both tables: 1. normal file browser,
 	.DW	InitWarmBoot						; 2. next SPC file,
 	.DW	InitWarmBoot						; 3. previous SPC file
 
-
-
-FileBrowserFileIsNotSPCTable:
-	.DW	__FileBrowserFileIsNotSPC
-	.DW	__SPCLoopCheckNextFile
-	.DW	__SPCLoopCheckPrevFile
+PTR_FileBrowserFileNotSPC:
+	.DW	FileSelectedOrDirEmpty@FileIsNotSPC
+	.DW	SPCPlayerLoop@CheckNextFile
+	.DW	SPCPlayerLoop@CheckPrevFile
 
 
 
@@ -590,7 +584,8 @@ PrintPage:
 
 	SetCursorPos 0, 0
 
--	inc	temp							; increment file counter
+@PrintPageLoop:
+	inc	temp							; increment file counter
 	jsr	DirPrintEntry
 
 	Accu16
@@ -601,16 +596,16 @@ PrintPage:
 	bcc	+
 	lda	filesInDir						; yes, check if dir contains less files than can be put on the screen
 	cmp	#maxFiles+1
-	bcc	__PrintPageLoopDone
+	bcc	@PrintPageLoopDone
 	stz	selectedEntry						; there are more files, reset selectedEntry so that it "wraps around" 
 
 +	Accu8
 
 	lda	temp							; check if printY max reached
 	cmp	#maxFiles
-	bcc	-
+	bcc	@PrintPageLoop
 
-__PrintPageLoopDone:
+@PrintPageLoopDone:
 	Accu16
 
 	pla								; restore selectedEntry (16 bit)
@@ -635,15 +630,15 @@ DirPrintEntry:
 	ldy	#PTR_tempEntry
 	lda	tempEntry.Flags						; if "dir" flag is set, then print a slash in front of entry name
 	and	#%00000001
-	beq	__PrintFileOnly
+	beq	@PrintFileOnly
 
 	PrintString " /%s\n"
-	bra	__DirPrintEntryDone
+	bra	@DirPrintEntryDone
 
-__PrintFileOnly:
+@PrintFileOnly:
 	PrintString "  %s\n"
 
-__DirPrintEntryDone:
+@DirPrintEntryDone:
 	stz	CLDConfigFlags						; reset CLDConfigFlags
 	rts
 
@@ -655,24 +650,24 @@ ScrollDown:
 	inc	selectedEntry						; increment entry index
 	lda	selectedEntry						; check if selectedEntry >= filesInDir
 	cmp	filesInDir
-	bcc	__ScrollDownCheckBottom
+	bcc	@CheckBottom
 	stz	selectedEntry						; yes, overflow --> reset selectedEntry
 	lda	filesInDir						; check if filesInDir > maxFiles
 	cmp	#maxFiles+1
-	bcs	__ScrollDownCheckBottom
+	bcs	@CheckBottom
 
 	Accu8
 
 	lda	#cursorYmin-$08						; put cursor at top of screen
 	sta	cursorY							; (subtraction necessary because it "scrolls in" from one line above)
-	bra	__ScrollDownCheckMiddle
+	bra	@CheckMiddle
 
-__ScrollDownCheckBottom:
+@CheckBottom:
 	Accu8
 
 	lda	cursorY
 	cmp	#cursorYmax						; check if cursor at bottom
-	bne	__ScrollDownCheckMiddle
+	bne	@CheckMiddle
 	lda	speedCounter						; cursor at bottom, move background, leave cursor
 	sta	scrollYCounter						; set scrollYCounter (8 or 4)
 	lda	speedScroll
@@ -705,16 +700,16 @@ __ScrollDownCheckBottom:
 	adc	#$01
 	and	#%00011111
 	sta	insertTop
-	bra	__ScrollDownDone
+	bra	@ScrollDownDone
 
-__ScrollDownCheckMiddle:
+@CheckMiddle:
 	lda	speedCounter
 	sta	cursorYCounter
 	lda	speedScroll
 	sta	cursorYDown
 	stz	cursorYUp
 
-__ScrollDownDone:
+@ScrollDownDone:
 	rts
 
 
@@ -725,13 +720,13 @@ ScrollUp:
 	dec	selectedEntry						; decrement entry index
 	lda	selectedEntry
 	cmp	#$FFFF							; check for underflow
-	bne	__ScrollUpCheckTop
+	bne	@CheckTop
 	lda	filesInDir						; underflow, set selectedEntry = filesInDir - 1
 	dec	a
 	sta	selectedEntry
 	lda	filesInDir						; check if filesInDir > maxFiles, which the cursor is restricted to, too
 	cmp	#maxFiles+1						; reminder: "+1" needed due to the way CMP affects the carry bit
-	bcs	__ScrollUpCheckTop
+	bcs	@CheckTop
 
 	Accu8
 
@@ -742,14 +737,14 @@ ScrollUp:
 	clc
 	adc	#cursorYmin						; add Y indention
 	sta	cursorY							; put cursor at bottom of list
-	bra	__ScrollUpCheckMiddle
+	bra	@CheckMiddle
 
-__ScrollUpCheckTop:
+@CheckTop:
 	Accu8
 
 	lda	cursorY
 	cmp	#cursorYmin						; check if cursor at top
-	bne	__ScrollUpCheckMiddle
+	bne	@CheckMiddle
 	lda	speedCounter
 	sta	scrollYCounter						; cursor at top, scroll background, leave cursor
 	lda	speedScroll
@@ -782,16 +777,16 @@ __ScrollUpCheckTop:
 	sbc	#$01
 	and	#%00011111
 	sta	insertTop
-	bra	__ScrollUpDone
+	bra	@ScrollUpDone
 
-__ScrollUpCheckMiddle:
+@CheckMiddle:
 	lda	speedCounter
 	sta	cursorYCounter
 	lda	speedScroll
 	sta	cursorYUp
 	stz	cursorYDown
 
-__ScrollUpDone:
+@ScrollUpDone:
 	rts
 
 

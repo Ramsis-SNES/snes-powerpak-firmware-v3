@@ -67,15 +67,15 @@ ClearBanks:
 FixMbits:
 	lda	gameROMMbits
 	cmp	#9
-	beq	Fix9or10Mbits
+	beq	@Fix9or10Mbits
 	cmp	#10
-	bne	FixMbitsDone
+	bne	@FixMbitsDone
 
-Fix9or10Mbits:								; ROM size fix, change 9 or 10 Mbits to 12 Mbits
+@Fix9or10Mbits:								; ROM size fix, change 9 or 10 Mbits to 12 Mbits
 	lda	#12
 	sta	gameROMMbits
 
-FixMbitsDone:
+@FixMbitsDone:
 
 
 
@@ -86,20 +86,19 @@ LoadSave:
 	Accu16
 
 	lda	saveName.Cluster
-	bne	LoadSaveStart
+	bne	@LoadSaveStart
 	lda	saveName.Cluster+2
-	bne	LoadSaveStart
+	bne	@LoadSaveStart
 
 	Accu8
 
 	PrintString "no SRAM file found."
 
-	jmp	LoadSaveDone
-
-LoadSaveStart:
+	jmp	@LoadSaveDone
 
 .ACCU 16
 
+@LoadSaveStart:
 	lda	saveName.Cluster
 	sta	sourceCluster
 	lda	saveName.Cluster+2
@@ -127,7 +126,7 @@ LoadSaveStart:
 
 	PrintString "%b KB"
 
-LoadSaveDone:
+@LoadSaveDone:
 
 
 

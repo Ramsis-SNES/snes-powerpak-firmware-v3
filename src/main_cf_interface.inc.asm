@@ -37,7 +37,7 @@ StateCardNotInserted:							; wait until card inserted, show no card message
 	sta	errorCode
 	and	#%11110000						; open bus = $A0
 	cmp	#$A0
-	bne	__StateCardInserted
+	bne	@StateCardInserted
 
 	SetCursorPos 21, 1
 	PrintString "CF card not found.\n  Error code: $"
@@ -48,14 +48,14 @@ StateCardNotInserted:							; wait until card inserted, show no card message
 	jsr	ShowMainGFX						; show logo
 	jmp	Forever
 
-__StateCardInserted:
+@StateCardInserted:
 
 
 
 StateCardBusy:								; wait until card not busy, show card busy message
 	lda	CARDSTATUS
 	sta	errorCode
-	bpl	StateCardBusyDone					; MSB clear --> card not busy
+	bpl	@StateCardBusyDone					; MSB clear --> card not busy
 	wai
 
 	SetCursorPos 21, 1
@@ -64,7 +64,7 @@ StateCardBusy:								; wait until card not busy, show card busy message
 
 	bra	StateCardBusy
 
-StateCardBusyDone:
+@StateCardBusyDone:
 
 
 
@@ -73,7 +73,7 @@ StateCardReady:								; wait until card ready, show card not ready message
 	sta	errorCode
 	and	#%01010000
 	cmp	#%01010000						; ready = $50
-	beq	StateCardReadyDone
+	beq	@StateCardReadyDone
 	wai
 
 	SetCursorPos 21, 1
@@ -82,7 +82,7 @@ StateCardReady:								; wait until card ready, show card not ready message
 
 	bra	StateCardReady
 
-StateCardReadyDone:
+@StateCardReadyDone:
 
 
 
@@ -349,61 +349,61 @@ CardFormatError:
 
 CardWaitNotBusy:
 
-CardWaitNotBusyLoop:							; wait for not busy
+@CardWaitNotBusyLoop:							; wait for not busy
 	lda	CARDSTATUS						; card status read
 ;	sta	errorCode
-	bpl	CardWaitNotBusyDone					; MSB = card busy flag
+	bpl	@CardWaitNotBusyDone					; MSB = card busy flag
 
 ;	SetCursorPos 12, 0
 ;	PrintString "    Error $"
 ;	PrintHexNum errorCode
 ;	PrintString " - CF card busy    "
 
-	bra	CardWaitNotBusyLoop
+	bra	@CardWaitNotBusyLoop
 
-CardWaitNotBusyDone:
+@CardWaitNotBusyDone:
 	rts
 
 
 
 CardWaitReady:
 
-CardWaitReadyLoop:							; wait until card ready
+@CardWaitReadyLoop:							; wait until card ready
 	lda	CARDSTATUS
 ;	sta	errorCode
 	and	#%01010000
 	cmp	#%01010000
-	beq	CardWaitReadyDone
+	beq	@CardWaitReadyDone
 
 ;	SetCursorPos 12, 0
 ;	PrintString "    Error $"
 ;	PrintHexNum errorCode
 ;	PrintString " - CF not ready    "
 
-	bra	CardWaitReadyLoop
+	bra	@CardWaitReadyLoop
 
-CardWaitReadyDone:
+@CardWaitReadyDone:
 	rts
 
 
 
 CardWaitDataReq:							; wait for not busy, ready, datareq, no error
 
-CardWaitDataReqLoop:
+@CardWaitDataReqLoop:
 	lda	CARDSTATUS
 ;	sta	errorCode
 	and	#%01011000
 	cmp	#%01011000
-	beq	CardWaitDataReqDone
+	beq	@CardWaitDataReqDone
 
 ;	SetCursorPos 12, 0
 ;	PrintString "    Error $"
 ;	PrintHexNum errorCode
 ;	PrintString " - CF no data req    "
 
-	bra	CardWaitDataReqLoop
+	bra	@CardWaitDataReqLoop
 
-CardWaitDataReqDone:
+@CardWaitDataReqDone:
 	rts
 
 
@@ -558,16 +558,20 @@ CardReadSector:
 
 	Accu8
 
-	jmp	(kDestTable, x)
+	jmp	(@PTR_kDest, x)
 
-kDestTable:
-	.DW	__CRS_toWRAMnoDMA, __CRS_toWRAM, __CRS_toFPGA, __CRS_toSDRAM, __CRS_toSDRAMnoDMA
+@PTR_kDest:
+	.DW	@CRS_toWRAMnoDMA
+	.DW	@CRS_toWRAM
+	.DW	@CRS_toFPGA
+	.DW	@CRS_toSDRAM
+	.DW	@CRS_toSDRAMnoDMA
 
 
 
-__CRS_toWRAM:
+@CRS_toWRAM:
 	lda	dontUseDMA
-	bne	__CRS_toWRAMnoDMA					; if dontUseDMA != 0, then don't use DMA
+	bne	@CRS_toWRAMnoDMA					; if dontUseDMA != 0, then don't use DMA
 	ldx	destLo
 	stx	REG_WMADDL						; set WRAM destination address
 	lda	destBank
@@ -575,40 +579,40 @@ __CRS_toWRAM:
 
 	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, $80, sourceBytes16
 
-	bra	__CRS_Done
+	bra	@CRS_Done
 
 
 
-__CRS_toFPGA:
+@CRS_toFPGA:
 	ldx	sourceBytes16
 -	lda	CARDDATAREAD						; read data byte
 	sta	FPGADATAWRITE						; write to FPGA
 	dex
 	bne	-
 
-	bra	__CRS_Done
+	bra	@CRS_Done
 
 
 
-__CRS_toSDRAM:
+@CRS_toSDRAM:
 	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, DMAPORT, sourceBytes16
 
-	bra	__CRS_Done
+	bra	@CRS_Done
 
 
 
-__CRS_toSDRAMnoDMA:
+@CRS_toSDRAMnoDMA:
 	ldx	sourceBytes16
 -	lda	CARDDATAREAD						; read data byte
 	sta	DMAREADDATA						; write to SDRAM
 	dex
 	bne	-
 
-	bra	__CRS_Done
+	bra	@CRS_Done
 
 
 
-__CRS_toWRAMnoDMA:							; read source256*sourceBytes bytes into WRAM
+@CRS_toWRAMnoDMA:							; read source256*sourceBytes bytes into WRAM
 	ldx	sourceBytes16
 	ldy	#$0000
 -	lda	CARDDATAREAD
@@ -620,7 +624,7 @@ __CRS_toWRAMnoDMA:							; read source256*sourceBytes bytes into WRAM
 ;	PrintHexNum bankCounter
 ;	PrintString "CardReadBytesDone\n"
 
-__CRS_Done:
+@CRS_Done:
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 	jsr	CardCheckError
@@ -720,7 +724,7 @@ CardReadFile:								; sourceCluster already set
 	stz	gameSize+1
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
-__CardReadFileLoop:
+@CardReadFileLoop:
 ;	PrintHexNum sourceSector+3
 ;	PrintHexNum sourceSector+2
 ;	PrintHexNum sourceSector+1
@@ -742,7 +746,7 @@ __CardReadFileLoop:
 	inc	destHi							; dest = dest + 512
 	inc	destHi
 	inc	bankCounter
-	bra	__CardReadFileLoop
+	bra	@CardReadFileLoop
 
 __	rts
 
@@ -755,7 +759,7 @@ CardWriteFile:								; sourceCluster already set
 	sta	destType
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
-__CardWriteFileLoop:
+@CardWriteFileLoop:
 	jsr	CardWriteSector
 
 	IncrementSectorNum
@@ -763,7 +767,7 @@ __CardWriteFileLoop:
 	inc	sourceHi						; source = source + 512
 	inc	sourceHi
 	inc	bankCounter
-	bra	__CardWriteFileLoop
+	bra	@CardWriteFileLoop
 
 __	rts
 
@@ -798,14 +802,15 @@ CardWriteSector:
 
 	Accu8
 
-	jmp	(kSourceTable, x)
+	jmp	(@PTR_kSource, x)
 
-kSourceTable:
-	.DW	__CWS_fromWRAM, __CWS_fromSDRAM
+@PTR_kSource:
+	.DW	@CWS_fromWRAM
+	.DW	@CWS_fromSDRAM
 
 
 
-__CWS_fromSDRAM:							; write source256*sourceBytes bytes onto CF card
+@CWS_fromSDRAM:							; write source256*sourceBytes bytes onto CF card
 	ldx	sourceBytes16
 -	lda	DMAREADDATA
 	sta	CARDDATAWRITE
@@ -820,11 +825,11 @@ __CWS_fromSDRAM:							; write source256*sourceBytes bytes onto CF card
 ; bottleneck on the hardware side). Tested with Dezaemon (J).srm, which
 ; is 1 Mbit in size.
 
-	bra	__CWS_Done
+	bra	@CWS_Done
 
 
 
-__CWS_fromWRAM:								; write source256*sourceBytes bytes onto CF card
+@CWS_fromWRAM:								; write source256*sourceBytes bytes onto CF card
 	ldx	sourceBytes16
 	ldy	#$0000
 -	lda	[sourceLo], y
@@ -833,7 +838,7 @@ __CWS_fromWRAM:								; write source256*sourceBytes bytes onto CF card
 	dex
 	bne	-
 
-__CWS_Done:
+@CWS_Done:
 	jsr	CardCheckError
 	lda	REG_RDNMI						; clear NMI flag // ADDED for v3.00
 	lda	#$81
@@ -862,7 +867,7 @@ ClusterToLBA:
 	lsr	source256
 	beq	+							; handle 1 sector per cluster
 
-__ClusterToLBALoop:
+@ClusterToLBALoop:
 	Accu16
 
 	asl	sourceSector
@@ -871,7 +876,7 @@ __ClusterToLBALoop:
 	Accu8
 
 	lsr	source256
-	bne	__ClusterToLBALoop
+	bne	@ClusterToLBALoop
 
 +	Accu16
 
@@ -929,13 +934,13 @@ CardLoadDir:
 
 	lda	fat32Enabled
 	and	#$0001
-	bne	__CLD_ReadSector					; FAT32 detected, go to read sector
+	bne	@CLD_ReadSector					; FAT32 detected, go to read sector
 	lda	sourceCluster						; FAT16 check if trying to load root dir
 	cmp	rootDirCluster
-	bne	__CLD_ReadSector
+	bne	@CLD_ReadSector
 	lda	sourceCluster+2
 	cmp	rootDirCluster+2
-	bne	__CLD_ReadSector
+	bne	@CLD_ReadSector
 
 	Accu8
 
@@ -953,7 +958,7 @@ CardLoadDir:
 	sbc	#$0000
 	sta	sourceSector+2
 
-__CLD_ReadSector:
+@CLD_ReadSector:
 	Accu8
 
 	lda	#kDestWRAM
@@ -970,10 +975,10 @@ CardLoadDirLoop:
 ; -------------------------- check for last entry
 	ldy	#$0000
 	lda	[sourceEntryLo], y					; if name[0] = 0x00, no more entries
-	bne	__CLD_EntryNotLast
-	jmp	__CLD_LastEntryFound
+	bne	@CLD_EntryNotLast
+	jmp	@CLD_LastEntryFound
 
-__CLD_EntryNotLast:
+@CLD_EntryNotLast:
 
 
 
@@ -981,11 +986,11 @@ __CLD_EntryNotLast:
 	ldy	#$0000
 	lda	[sourceEntryLo], y
 	cmp	#$E5							; if name[0] = 0xE5, entry unused, skip
-	bne	__CLD_EntryNotUnused
+	bne	@CLD_EntryNotUnused
 	stz	lfnFound
-	jmp	__CLD_NextEntry
+	jmp	@CLD_NextEntry
 
-__CLD_EntryNotUnused:
+@CLD_EntryNotUnused:
 
 
 
@@ -994,16 +999,16 @@ __CLD_EntryNotUnused:
 	lda	[sourceEntryLo], y					; if flag = %00001111, long file name entry found
 	and	#$0F
 	cmp	#$0F
-	bne	__CLD_EntryNotLFN
+	bne	@CLD_EntryNotLFN
 	ldy	#$0000							; check first byte of LFN entry = ordinal field
 	lda	[sourceEntryLo], y
 	and	#%10111111						; mask off "last entry" bit
 	cmp	#$0A							; if index = 1...9, load name
-	bcc	__CLD_EntryPrepareLoadLFN
+	bcc	@CLD_EntryPrepareLoadLFN
 	jsr	CLD_ClearEntryName					; if index >= 10, skip entry (reminder: index = 0 doesn't seem to exist ??)
-	jmp	__CLD_NextEntry
+	jmp	@CLD_NextEntry
 
-__CLD_EntryPrepareLoadLFN:
+@CLD_EntryPrepareLoadLFN:
 	sta	REG_M7A							; PPU multiplication
 	stz	REG_M7A
 	lda	#$0D							; LFNs consist of 13 unicode characters
@@ -1019,9 +1024,9 @@ __CLD_EntryPrepareLoadLFN:
 	Accu8
 
 	jsr	CLD_LoadLFN						; load LFN entry, store characters to tempEntry
-	jmp	__CLD_NextEntry
+	jmp	@CLD_NextEntry
 
-__CLD_EntryNotLFN:
+@CLD_EntryNotLFN:
 
 
 
@@ -1030,11 +1035,11 @@ __CLD_EntryNotLFN:
 	lda	[sourceEntryLo], y					; if flag = volume id, skip
 	and	#$08
 	cmp	#$08
-	bne	__CLD_EntryNotVolumeID
+	bne	@CLD_EntryNotVolumeID
 	jsr	CLD_ClearEntryName
-	jmp	__CLD_NextEntry
+	jmp	@CLD_NextEntry
 
-__CLD_EntryNotVolumeID:
+@CLD_EntryNotVolumeID:
 
 
 
@@ -1044,10 +1049,10 @@ __CLD_EntryNotVolumeID:
 	ldy	#$000B
 	lda	[sourceEntryLo], y
 	and	#$02							; if flag = 0x02, hidden, mark as such
-	beq	__CLD_EntryHiddenCheckDone
+	beq	@CLD_EntryHiddenCheckDone
 	tsb	tempEntry.Flags						; save "hidden" flag
 
-__CLD_EntryHiddenCheckDone:
+@CLD_EntryHiddenCheckDone:
 
 
 
@@ -1055,15 +1060,15 @@ __CLD_EntryHiddenCheckDone:
 	ldy	#$000B
 	lda	[sourceEntryLo], y					; if flag = directory, load entry
 	and	#$10
-	beq	__CLD_EntryNotDirectory
+	beq	@CLD_EntryNotDirectory
 	lda	#$01
 	tsb	tempEntry.Flags						; save "dir" flag
 
 	Accu16
 
-	bra	__CLD_ProcessMatchingEntry
+	bra	@CLD_ProcessMatchingEntry
 
-__CLD_EntryNotDirectory:
+@CLD_EntryNotDirectory:
 
 
 
@@ -1071,7 +1076,7 @@ __CLD_EntryNotDirectory:
 	ldx	extNum							; check if entry matches any extension wanted,
 	dex								; backwards from the Nth (= $NNNN-1) to the 1st (= $0000) extension
 
-__CLD_CheckExtLoop:
+@CLD_CheckExtLoop:
 	ldy	#$0008
 	lda	[sourceEntryLo], y
 	cmp	extMatch1, x
@@ -1083,14 +1088,14 @@ __CLD_CheckExtLoop:
 	iny
 	lda	[sourceEntryLo], y
 	cmp	extMatch3, x
-	beq	__CLD_EntryExtensionMatch				; extension matches
+	beq	@CLD_EntryExtensionMatch				; extension matches
 +	dex								; otherwise, try next extension indicated
-	bpl	__CLD_CheckExtLoop
+	bpl	@CLD_CheckExtLoop
 
 	jsr	CLD_ClearEntryName					; extension doesn't match, skip entry
-	jmp	__CLD_NextEntry
+	jmp	@CLD_NextEntry
 
-__CLD_EntryExtensionMatch:
+@CLD_EntryExtensionMatch:
 
 
 
@@ -1099,38 +1104,38 @@ __CLD_EntryExtensionMatch:
 
 	ldy	#$001E
 	lda	[sourceEntryLo], y					; upper 16 bit of file size
-	bne	__CLD_FileSizeNotZero
+	bne	@CLD_FileSizeNotZero
 	ldy	#$001C
 	lda	[sourceEntryLo], y					; lower 16 bit of file size
-	bne	__CLD_FileSizeNotZero
+	bne	@CLD_FileSizeNotZero
 
 	Accu8
 
 	jsr	CLD_ClearEntryName					; file size = 0, skip entry
-	jmp	__CLD_NextEntry
+	jmp	@CLD_NextEntry
 
 .ACCU 16
 
-__CLD_FileSizeNotZero:
+@CLD_FileSizeNotZero:
 	ldy	#$001C							; check lower 16 bit of file size for copier header
 	lda	[sourceEntryLo], y
 	and	#$03FF							; from FullSNES: "IF (filesize AND 3FFh)=200h THEN HeaderPresent=True"
 	cmp	#$0200
-	bne	__CLD_ProcessMatchingEntry
+	bne	@CLD_ProcessMatchingEntry
 	lda	#$0080							; copier header (apparently) present, set "copier header present" flag
 	tsb	tempEntry.Flags						; upper 8 bits (1st byte of tempEntry.Cluster) not affected
 
 
 
 ; -------------------------- load long/short dir or entry with matching ext. and size not zero
-__CLD_ProcessMatchingEntry:
+@CLD_ProcessMatchingEntry:
 	inc	filesInDir						; increment file counter
 
 	Accu8
 
 	lda	lfnFound
 	cmp	#$01
-	beq	__CLD_PrepareSaveEntry
+	beq	@CLD_PrepareSaveEntry
 	ldy	#$0000							; if lfnFound = 0, copy short file name only
 -	lda	[sourceEntryLo], y
 	sta	tempEntry, y
@@ -1140,7 +1145,7 @@ __CLD_ProcessMatchingEntry:
 
 	lda	tempEntry.Flags
 	and	#%00000001						; check for "dir" flag
-	bne	__CLD_PrepareSaveEntry
+	bne	@CLD_PrepareSaveEntry
 	lda	#'.'							; if not directory, copy short file name extension
 	sta	tempEntry+$8
 	ldy	#$0008
@@ -1153,7 +1158,7 @@ __CLD_ProcessMatchingEntry:
 	lda	[sourceEntryLo], y
 	sta	tempEntry+$B
 
-__CLD_PrepareSaveEntry:
+@CLD_PrepareSaveEntry:
 	Accu16
 
 	ldy	#$001A
@@ -1168,58 +1173,58 @@ __CLD_PrepareSaveEntry:
 	ldy	#$0000							; reset Y for upcoming loop
 	lda	CLDConfigFlags						; check for selected buffer
 	and	#%00000001
-	bne	__CLD_UseSDRAMbuffer
+	bne	@CLD_UseSDRAMbuffer
 	jsr	CLD_SaveEntryToWRAM
 
 	Accu16
 
 	lda	filesInDir						; check if file counter has reached 512
 	cmp	#$0200
-	bcc	__CLD_WRAMcontinue
+	bcc	@CLD_WRAMcontinue
 
 	Accu8								; if so, A = 8 bit
 
-	jmp	__CLD_LastEntryFound					; ... and don't process any more entries
+	jmp	@CLD_LastEntryFound					; ... and don't process any more entries
 
-__CLD_WRAMcontinue:
+@CLD_WRAMcontinue:
 	Accu8								; otherwise, A = 8 bit, and continue
 
 	jsr	CLD_ClearEntryName
-	bra	__CLD_NextEntry
+	bra	@CLD_NextEntry
 
-__CLD_UseSDRAMbuffer:
+@CLD_UseSDRAMbuffer:
 	lda	CLDConfigFlags						; check if hidden files/folders are to be skipped
 	and	#%00000010
-	beq	__CLD_SaveEntryToSDRAM
+	beq	@CLD_SaveEntryToSDRAM
 	lda	tempEntry.Flags
 	and	#%00000010						; yes, check for "hidden" flag
-	beq	__CLD_SaveEntryToSDRAM
+	beq	@CLD_SaveEntryToSDRAM
 
 	Accu16
 
 	dec	filesInDir						; hidden dir/file found, decrement file counter ...
-	bra	__CLD_SDRAMcontinue					; ... and jump out
+	bra	@CLD_SDRAMcontinue					; ... and jump out
 
 .ACCU 8
 
-__CLD_SaveEntryToSDRAM:
+@CLD_SaveEntryToSDRAM:
 	lda	tempEntry, y						; save entry to SDRAM
 	sta	DMAREADDATA
 	iny
 	cpy	#$0080
-	bne	__CLD_SaveEntryToSDRAM
+	bne	@CLD_SaveEntryToSDRAM
 
 	Accu16
 
 	lda	filesInDir
 	cmp	#$FFFF							; check if file counter has reached 65535
-	bcc	__CLD_SDRAMcontinue
+	bcc	@CLD_SDRAMcontinue
 
 	Accu8								; if so, A = 8 bit
 
-	jmp	__CLD_LastEntryFound					; ... and don't process any more entries
+	jmp	@CLD_LastEntryFound					; ... and don't process any more entries
 
-__CLD_SDRAMcontinue:
+@CLD_SDRAMcontinue:
 	Accu8								; otherwise, A = 8 bit, and continue
 
 	jsr	CLD_ClearEntryName
@@ -1227,7 +1232,7 @@ __CLD_SDRAMcontinue:
 
 
 ; -------------------------- finally, increment to next entry, and loop
-__CLD_NextEntry:
+@CLD_NextEntry:
 	Accu16
 
 	clc								; increment entry source address
@@ -1239,13 +1244,13 @@ __CLD_NextEntry:
 
 	lda	sourceEntryHi						; if source overflows, get next sector
 	cmp	#>sectorBuffer1+$02					; LAST CHANGE
-	beq	__CLD_NextSector
+	beq	@CLD_NextSector
 	jmp	CardLoadDirLoop
 
 
 
 ; -------------------------- if necessary, increment source sector
-__CLD_NextSector:
+@CLD_NextSector:
 	Accu16
 
 	clc
@@ -1257,29 +1262,29 @@ __CLD_NextSector:
 	sta	sourceSector+2
 	lda	fat32Enabled						; if FAT32, increment sector
 	and	#$0001
-	bne	__CLD_SectorIncrement
+	bne	@CLD_SectorIncrement
 	lda	sourceCluster						; FAT16 check if trying to load root dir
 	cmp	rootDirCluster
-	bne	__CLD_SectorIncrement
+	bne	@CLD_SectorIncrement
 	lda	sourceCluster+2
 	cmp	rootDirCluster+2
-	bne	__CLD_SectorIncrement
+	bne	@CLD_SectorIncrement
 
 	Accu8
 
 	inc	sectorCounter						; FAT16 root dir all sequential sectors
 	lda	sectorCounter
 	cmp	fat16RootSectors					; if sectorCounter = fat16RootSectors, jump out
-	beq	__CLD_LastEntryFound
-	bra	__CLD_LoadNextSector					; FAT16 skip cluster lookup when max root sectors not reached
+	beq	@CLD_LastEntryFound
+	bra	@CLD_LoadNextSector					; FAT16 skip cluster lookup when max root sectors not reached
 
-__CLD_SectorIncrement:
+@CLD_SectorIncrement:
 	Accu8
 
 	inc	sectorCounter						; one more sector
 	lda	sectorCounter
 	cmp	sectorsPerCluster					; make sure cluster isn't overflowing
-	bne	__CLD_LoadNextSector
+	bne	@CLD_LoadNextSector
 	jsr	NextCluster						; move to next cluster
 
 	Accu16
@@ -1290,33 +1295,33 @@ __CLD_SectorIncrement:
 
 	lda	fat32Enabled						; check for FAT32
 	and	#$0001
-	bne	__CLD_LastClusterMaskFAT32
+	bne	@CLD_LastClusterMaskFAT32
 	stz	temp+2							; if FAT16, high word = $0000
-	bra	__CLD_LastClusterMaskDone
+	bra	@CLD_LastClusterMaskDone
 
-__CLD_LastClusterMaskFAT32:
+@CLD_LastClusterMaskFAT32:
 	lda	#$0FFF							; if FAT32, high word = $0FFF
 	sta	temp+2
 
-__CLD_LastClusterMaskDone:						; if cluster = last cluster, jump to last entry found
+@CLD_LastClusterMaskDone:						; if cluster = last cluster, jump to last entry found
 	lda	sourceCluster
 	cmp	#$FFFF							; low word = $FFFF (FAT16/32)
-	bne	__CLD_NextSectorNum
+	bne	@CLD_NextSectorNum
 	lda	sourceCluster+2
 	cmp	temp+2
-	bne	__CLD_NextSectorNum
+	bne	@CLD_NextSectorNum
 
 	Accu8
 
-	bra	__CLD_LastEntryFound					; last cluster, jump out
+	bra	@CLD_LastEntryFound					; last cluster, jump out
 
-__CLD_NextSectorNum:
+@CLD_NextSectorNum:
 	Accu8
 
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 	stz	sectorCounter						; reset sector counter
 
-__CLD_LoadNextSector:
+@CLD_LoadNextSector:
 	ldx	#sectorBuffer1
 	stx	destLo							; reset sector dest
 	stx	sourceEntryLo						; reset entry source
@@ -1327,7 +1332,7 @@ __CLD_LoadNextSector:
 	jsr	CardReadSector
 	jmp	CardLoadDirLoop
 
-__CLD_LastEntryFound:
+@CLD_LastEntryFound:
 	stz	CLDConfigFlags						; reset CardLoadDir config flags
 	rts
 
@@ -1337,7 +1342,7 @@ __CLD_LastEntryFound:
 CLD_LoadLFN:
 	ldy	#$0001
 
-__CLD_LoadLFNLoop1:
+@CLD_LoadLFNLoop1:
 	lda	[sourceEntryLo], y					; copy unicode chars 1-5 from offsets $01, $03, $05, $07, $09
 	cmp	#$FF
 	beq	+
@@ -1346,11 +1351,11 @@ __CLD_LoadLFNLoop1:
 	iny
 	iny
 	cpy	#$000B
-	bne	__CLD_LoadLFNLoop1
+	bne	@CLD_LoadLFNLoop1
 
 	ldy	#$000E
 
-__CLD_LoadLFNLoop2:
+@CLD_LoadLFNLoop2:
 	lda	[sourceEntryLo], y					; copy unicode chars 6-11 from offsets $0E, $10, $12, $14, $16, $18
 	cmp	#$FF
 	beq	+
@@ -1359,11 +1364,11 @@ __CLD_LoadLFNLoop2:
 	iny
 	iny
 	cpy	#$001A
-	bne	__CLD_LoadLFNLoop2
+	bne	@CLD_LoadLFNLoop2
 
 	ldy	#$001C
 
-__CLD_LoadLFNLoop3:
+@CLD_LoadLFNLoop3:
 	lda	[sourceEntryLo], y					; copy unicode chars 12-13 from offsets $1C, $1E
 	cmp	#$FF
 	beq	+
@@ -1372,7 +1377,7 @@ __CLD_LoadLFNLoop3:
 	iny
 	iny
 	cpy	#$0020
-	bne	__CLD_LoadLFNLoop3
+	bne	@CLD_LoadLFNLoop3
 
 	lda	#$01
 	sta	lfnFound
@@ -1434,11 +1439,11 @@ NextCluster:
 	rol	sourceCluster+2						; mask = 00 00 ff ff
 	lda	fat32Enabled
 	and	#$0001
-	beq	NextClusterSectorNum
+	beq	@NextClusterSectorNum
 	asl	sourceCluster						; FAT32: offset = clutsernum << 2 || cluster 2 << 2 = 8
 	rol	sourceCluster+2						; mask = 0f ff ff ff
 
-NextClusterSectorNum:							; FAT sector num = fatBeginLBA + (offset / 512) || cluster = $2f8
+@NextClusterSectorNum:							; FAT sector num = fatBeginLBA + (offset / 512) || cluster = $2f8
 	lda	sourceCluster+1						; first, divide by 256 by shifting sourceCluster 8 bits right,
 	sta	sourceSector+0						; and store to sourceSector
 
@@ -1487,24 +1492,24 @@ NextClusterSectorNum:							; FAT sector num = fatBeginLBA + (offset / 512) || c
 	ldy	temp+2
 	ldx	#$0000
 
-NextClusterLoop:
+@NextClusterLoop:
 	lda	[sourceLo], y
 	sta	sourceCluster, x
 	iny
 	inx
 	cpx	#$0004
-	bne	NextClusterLoop
+	bne	@NextClusterLoop
 
 	lda	sourceCluster+3						; FAT32 mask off top 4 bits
 	and	#$0F
 	sta	sourceCluster+3
 	lda	fat32Enabled
 	cmp	#$01
-	beq	NextClusterDone						; no more mask for FAT32
+	beq	@NextClusterDone					; no more mask for FAT32
 	stz	sourceCluster+3						; FAT16 mask
 	stz	sourceCluster+2
 
-NextClusterDone:
+@NextClusterDone:
 	rts
 
 
@@ -1526,15 +1531,10 @@ LoadNextSectorNum:							; get next sector, use sectorCounter to check if next c
 
 	inc	sectorCounter						; one more sector
 	lda	sectorCounter
-	cmp	sectorsPerCluster
-	beq	__LoadNextClusterNum
-	rts
-
-__LoadNextClusterNum:
-	stz	sectorCounter
+	cmp	sectorsPerCluster					; are we there yet?
+	bne	+
+	stz	sectorCounter						; yes, next cluster needed
 	jsr	NextCluster						; get cluster num into sourceCluster from FAT table
-
-
 
 .IFDEF DEBUG
 	PrintString "cluster="
@@ -1558,7 +1558,7 @@ __LoadNextClusterNum:
 	DelayFor 172
 .ENDIF
 
-	rts
++	rts
 
 
 
@@ -1617,7 +1617,7 @@ FindFreeSector:
 
 	ldx	#$0000
 -	lda	sectorBuffer1, x
-	bne	__SectorNotEmpty
+	bne	@SectorNotEmpty
 	inx
 	inx
 	cpx	#512
@@ -1630,7 +1630,7 @@ FindFreeSector:
 	jmp	Forever
 ;	jmp	FindFreeSector
 
-__SectorNotEmpty:
+@SectorNotEmpty:
 	Accu16
 
 	inc	sourceSector

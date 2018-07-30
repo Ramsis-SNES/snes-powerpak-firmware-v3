@@ -47,7 +47,7 @@ InitSRMBrowser:
 	jsr	FileBrowser
 	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
-	beq	__SRAMBrowserEnd					; no, jump out
+	beq	@SRAMBrowserEnd					; no, jump out
 
 	Accu16								; SRM file selected
 
@@ -61,7 +61,7 @@ InitSRMBrowser:
 
 	Accu8
 
-__SRAMBrowserEnd:
+@SRAMBrowserEnd:
 	rts
 
 
@@ -85,21 +85,21 @@ BattUsedInitSaveSRAM:
 
 	jsr	LoadLastGame						; load last game info
 	lda	saveName.Cluster					; if cluster=0, no file loaded previously
-	bne	__AutoSaveEntry
+	bne	@AutoSaveEntry
 	lda	saveName.Cluster+1
-	bne	__AutoSaveEntry
+	bne	@AutoSaveEntry
 	lda	saveName.Cluster+2
-	bne	__AutoSaveEntry
+	bne	@AutoSaveEntry
 	lda	saveName.Cluster+3
-	bne	__AutoSaveEntry
+	bne	@AutoSaveEntry
 
 	PrintString "(No SRAM file loaded previously, auto-saving disabled)"
 
 	lda	#$A0
 	sta	cursorY
-	bra	__AutoSaveMenuNext
+	bra	@AutoSaveMenuNext
 
-__AutoSaveEntry:
+@AutoSaveEntry:
 	lda	#$88							; cursor line = (cursorY - $18) / $08 (in this case, $0E=14)
 	sta	cursorY
 
@@ -116,7 +116,7 @@ __AutoSaveEntry:
 
 	jsr	PrintTempEntry
 
-__AutoSaveMenuNext:
+@AutoSaveMenuNext:
 	SetCursorPos 17, 1
 	PrintString "Select a file ..."
 	SetCursorPos 18, 1
@@ -139,61 +139,65 @@ SRAMQuestionsLoop:
 
 ; -------------------------- check for A button = make a selection
 	lda	Joy1New
-	and	#%10000000
-	bne	__SRAMSelectionMade
+	bmi	SRAMSelectionMade
+
+@AButtonDone:
 
 
 
 ; -------------------------- check for d-pad up = change selection
 	lda	Joy1New+1
 	and	#%00001000
-	beq	+
+	beq	@DpadUpDone
 	jsr	PrevButton						; up pressed
-+
+
+@DpadUpDone:
 
 
 
 ; -------------------------- check for d-pad down = change selection
 	lda	Joy1New+1
 	and	#%00000100
-	beq	+
+	beq	@DpadDownDone
 	jsr	NextButton						; down pressed
-+
+
+@DpadDownDone:
+
 	bra	SRAMQuestionsLoop
 
 
 
 ; -------------------------- selection made
-__SRAMSelectionMade:
+SRAMSelectionMade:
 	lda	cursorY
 	cmp	#$88							; if at "Save to previous file", do just that :-)
-	beq	__AutoSaveSRAM
+	beq	@AutoSaveSRAM
 	cmp	#$A0							; if at "Select a file", go to SRAM browser
-	beq	__SelectSRAMFile
-	jmp	__SRAMSavedOrCancelled					; otherwise, discard SRAM
+	beq	@SelectSRAMFile
+	jmp	@SRAMSavedOrCancelled					; otherwise, discard SRAM
 
-__SelectSRAMFile:
+@SelectSRAMFile:
 	lda	#%00001000						; disable color math channel
 	trb	DP_HDMAchannels
 	jsr	SpriteMessageLoading
 	jsr	InitSRMBrowser						; launch SRAM browser
 	lda	DP_SelectionFlags					; back from browser, check again if SRM file was picked or not
 	and	#%00000001
-	bne	__SRAMFilePicked
+	bne	@SRAMFilePicked
 	jmp	BattUsedInitSaveSRAM					; no SRM file picked --> go back to questions
 
-__AutoSaveSRAM:
+@AutoSaveSRAM:
 	lda	saveName.Cluster					; if cluster=0, no file loaded previously ...
-	bne	__SRAMFilePicked
+	bne	@SRAMFilePicked
 	lda	saveName.Cluster+1
-	bne	__SRAMFilePicked
+	bne	@SRAMFilePicked
 	lda	saveName.Cluster+2
-	bne	__SRAMFilePicked
+	bne	@SRAMFilePicked
 	lda	saveName.Cluster+3
-	bne	__SRAMFilePicked
+	bne	@SRAMFilePicked
 	jmp	SRAMQuestionsLoop					; ... so go back to questions loop
 
-__SRAMFilePicked:
+@SRAMFilePicked:
 	jsr	PrintClearScreen
 
 	DrawFrame 0, 15, 31, 5						; draw a smaller frame for success message
@@ -208,7 +212,7 @@ __SRAMFilePicked:
 
 	WaitForUserInput
 
-__SRAMSavedOrCancelled:							; if cursor was at "Cancel" (cursorY=$A8), go back to intro as well
+@SRAMSavedOrCancelled:							; if cursor was at "Cancel" (cursorY=$A8), go back to intro as well
 	lda	#$0F
 -	wai								; screen fade-out loop
 	dec	a							; 15 / 3 = 5 frames
@@ -241,19 +245,19 @@ NextButton:								; $88 -> $A0 -> $A8
 	adc	#$08
 	sta	cursorY
 	cmp	#$B0
-	bne	__NextButtonDone
+	bne	@NextButtonDone
 	lda	#$88
 	sta	cursorY
-	bra	__NextButtonDone2
+	bra	@NextButtonDone2
 
-__NextButtonDone:
+@NextButtonDone:
 	lda	cursorY
 	cmp	#$90
-	bne	__NextButtonDone2
+	bne	@NextButtonDone2
 	lda	#$A0
 	sta	cursorY
 
-__NextButtonDone2:
+@NextButtonDone2:
 	rts
 
 
@@ -264,19 +268,19 @@ PrevButton:								; $A8 -> $A0 -> $88
 	sbc	#$08
 	sta	cursorY
 	cmp	#$80
-	bne	__PrevButtonDone
+	bne	@PrevButtonDone
 	lda	#$A8
 	sta	cursorY
-	bra	__PrevButtonDone2
+	bra	@PrevButtonDone2
 
-__PrevButtonDone:
+@PrevButtonDone:
 	lda	cursorY
 	cmp	#$98
-	bne	__PrevButtonDone2
+	bne	@PrevButtonDone2
 	lda	#$88
 	sta	cursorY
 
-__PrevButtonDone2:
+@PrevButtonDone2:
 	rts
 
 

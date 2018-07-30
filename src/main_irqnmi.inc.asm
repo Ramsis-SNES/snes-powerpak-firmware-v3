@@ -37,7 +37,7 @@ VBlank:
 
 ; -------------------------- do scrolling
 	lda	cursorYCounter						; check cursor counter, no scroll if counter=0
-	beq	__CursorCheckDone
+	beq	@CursorCheckDone
 	dec	cursorYCounter
 	lda	cursorY							; cursorY = cursorY - cursorYUp + cursorYDown
 	sec
@@ -46,9 +46,9 @@ VBlank:
 	adc	cursorYDown
 	sta	cursorY
 
-__CursorCheckDone:
+@CursorCheckDone:
 	lda	scrollYCounter						; check scroll counter, no scroll if counter=0
-	beq	__DoYScrollDone
+	beq	@DoYScrollDone
 	dec	scrollYCounter
 	lda	scrollY							; scrollY = scrollY - scrollYUp + scrollYDown
 	sec
@@ -57,7 +57,7 @@ __CursorCheckDone:
 	adc	scrollYDown
 	sta	scrollY
 
-__DoYScrollDone:
+@DoYScrollDone:
 
 
 
@@ -158,8 +158,8 @@ __DoYScrollDone:
 GetInput:
 	lda	#$01
 
-_W1:	bit	REG_HVBJOY
-	bne	_W1							; wait till automatic JoyPort read is complete
+@W1:	bit	REG_HVBJOY
+	bne	@W1							; wait till automatic JoyPort read is complete
 
 	AccuIndex16
 
@@ -208,17 +208,17 @@ _W1:	bit	REG_HVBJOY
 	ldx	#$0001
 	lda	#$000F
 	bit	Joy1							; A = joy state, if any of the bottom 4 bits are on... either nothing is plugged
-	beq	_joy2							; into the joy port, or it is not a joypad
+	beq	@joy2							; into the joy port, or it is not a joypad
 	stx	Joy1							; if it is not a valid joypad put $0001 into the 2 joy state variables
 	stz	Joy1Press
 
-_joy2:
+@joy2:
 	bit	Joy2							; A = joy state, if any of the bottom 4 bits are on... either nothing is plugged
-	beq	_done							; into the joy port, or it is not a joypad
+	beq	@done							; into the joy port, or it is not a joypad
 	stx	Joy2							; if it is not a valid joypad put $0001 into the 2 joy state variables
 	stz	Joy2Press
 
-_done:
+@done:
 	Accu8
 
 	rts

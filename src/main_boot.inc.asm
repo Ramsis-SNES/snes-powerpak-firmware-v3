@@ -26,16 +26,16 @@ Main:
 	lda	DP_ColdBootCheck1					; check for warm-boot signature (self-reminder: Don't worry about the DBR not being set at this point, as all three vars are Direct Page = bank 0)
 	cmp	#kWarmBoot1
 	beq	+
-	jmp	__ColdBoot
+	jmp	ColdBoot
 
 +	lda	DP_ColdBootCheck2
 	cmp	#kWarmBoot2
 	beq	+
-	jmp	__ColdBoot
+	jmp	ColdBoot
 
 +	lda	DP_ColdBootCheck3
 	cmp	#kWarmBoot3
-	bne	__ColdBoot
+	bne	ColdBoot
 
 
 
@@ -54,7 +54,7 @@ Main:
 	plb
 	jsr	ClearSpriteText						; remove all sprites used by SPC player
 	jsr	HideButtonSprites
-	jsr	GFXsetup2						; reinitialize GFX registers
+	jsr	GFXsetup@Warmboot					; reinitialize GFX registers
 
 	JoyInit								; reinitialize joypads, enable NMI
 
@@ -74,12 +74,11 @@ Main:
 	sta	REG_INIDISP
 	lda	#$80							; make cursor "visible" again
 	sta	SpriteBuf1.Cursor+2
-	jmp	__FileBrowserLoop					; return to file browser
+	jmp	FileBrowserLoop						; return to file browser
 
 
 
-; -------------------------- cold boot
-__ColdBoot:
+ColdBoot:
 	ldx	#$1FFF							; set up the stack
 	txs
 	phk								; set Data Bank = Program Bank
@@ -245,14 +244,14 @@ __ColdBoot:
 	Index16
 
 .IFDEF DEMOMODE
-	jmp	__InDemoModeToIntroScreen
+	jmp	DemoModeIntroScreen
 .ENDIF
 
 	jsr	AccessCFcard						; begin CF interaction, back here means valid card found
 
 
 
-; -------------------------- load configuration
+LoadConfig:
 	jsr	CardLoadDir						; root dir
 
 	Accu16
@@ -327,10 +326,10 @@ __ColdBoot:
 	lda	DP_ThemeFileClusterLo					; check for empty theme file cluster
 	bne	+
 	lda	DP_ThemeFileClusterHi
-	beq	__NoThemeFileSaved
-+	jmp	__ThemeFileClusterSet
+	beq	@NoThemeFileSaved
++	jmp	@ThemeFileClusterSet
 
-__NoThemeFileSaved:
+@NoThemeFileSaved:
 	FindFile "THEMES.   "						; this makes A = 8 bit
 
 	jsr	ClearFindEntry
@@ -366,12 +365,12 @@ __NoThemeFileSaved:
 	lda	tempEntry.Cluster+2
 	sta	DP_ThemeFileClusterHi
 
-__ThemeFileClusterSet:
+@ThemeFileClusterSet:
 	Accu8
 
 
 
-; --------------------------- configure FPGA
+ConfigureFPGA:
 	lda	CONFIGREADSTATUS					; open bus = $20
 ;	sta	errorCode
 
@@ -383,7 +382,7 @@ __ThemeFileClusterSet:
 
 	and	#$F0
 	cmp	#$A0
-	bne	ConfigureFPGA
+	bne	@FPGANotConfigured
 
 ;	SetCursorPos 15, 1
 ;	PrintString "FPGA was configured"
@@ -391,7 +390,7 @@ __ThemeFileClusterSet:
 	lda	CONFIGREADSTATUS					; battery used = D1
 	and	#$02
 	bne	+
-	jmp	__ConfigureFPGADone					; battery not used, continue with intro
+	jmp	@ConfigureFPGADone					; battery not used, continue with intro
 
 +	jsr	LoadTheme						; battery used, load theme file before activating the screen
 
@@ -405,9 +404,7 @@ __ThemeFileClusterSet:
 	jsr	BattUsedInitSaveSRAM					; offer to save SRAM to card
 	jmp	GotoIntroScreen
 
-
-
-ConfigureFPGA:
+@FPGANotConfigured:
 	lda	#$01
 	sta	FPGAPROGRAMWRITE					; SEND PROGRAM SIGNAL TO FPGA
 	lda	#$00
@@ -443,15 +440,15 @@ ConfigureFPGA:
 	jsr	DSPCheck
 	jsr	SDRAMCheck
 
-__ConfigureFPGADone:
+@ConfigureFPGADone:
 	jsr	LoadTheme						; load theme file data
-
-__InDemoModeToIntroScreen:
-	jsr	ClearSpriteText						; clear sprite text so PrintRomVersion will use the sprite FWT from the loaded theme file
 
 
 
 ; --------------------------- load intro
+DemoModeIntroScreen:
+	jsr	ClearSpriteText						; clear sprite text so PrintRomVersion will use the sprite FWT from the loaded theme file
+
 GotoIntroScreen:
 	HideCursorSprite						; necessary when returning here from another section
 
@@ -565,49 +562,54 @@ IntroLoop:
 
 ; -------------------------- check for A button = go to ROM browser
 	lda	Joy1New
-	and	#%10000000
-	beq	+
+	bpl	@AButtonDone
 	jsr	SpriteMessageLoading
 	jmp	InitROMBrowser
-+
+
+@AButtonDone:
 
 
 
 ; -------------------------- check for X button = go to settings
 	lda	Joy1New
 	and	#%01000000
-	beq	+
+	beq	@XButtonDone
 	jmp	GotoSettings
-+
+
+@XButtonDone:
 
 
 
 ; -------------------------- check for Y button = test SRM file creation // WIP
 ;	lda	Joy1New+1
 ;	and	#%01000000
-;	beq	+
+;	beq	@YButtonDone
 ;	jmp	GotoSRMTest						; in main_cf_interface.inc.asm
-;+
+;
+;@YButtonDone:
 
 
 
 ; -------------------------- check for Start button = load last game info
 	lda	Joy1New+1
 	and	#%00010000
-	beq	+
+	beq	@StartButtonDone
 	jsr	SpriteMessageLoading
 	jsr	LoadLastGame
 	jmp	GotoGameOptions
-+
+
+@StartButtonDone:
 
 
 
 ; -------------------------- check for Select button = call test routine
 ;	lda	Joy1New+1
 ;	and	#%00100000
-;	beq	+
+;	beq	@SelButtonDone
 ;	jsr	CardTESTCheckError
-;+
+;
+;@SelButtonDone:
+
 	bra	IntroLoop
 
 
@@ -621,10 +623,10 @@ FPGACheck:
 	sta	errorCode
 	and	#$F0
 	cmp	#$A0
-	bne	__FPGACheckFail
+	bne	@FPGACheckFail
 	rts
 
-__FPGACheckFail:
+@FPGACheckFail:
 	jsr	SpriteMessageError
 
 	ldy	#errorCode
@@ -651,10 +653,10 @@ SDRAMCheck:
 	sta	$F00000
 	lda	$F00000
 	cmp	#$AA
-	bne	__SDRAMError
+	bne	@SDRAMError
 	rts
 
-__SDRAMError:
+@SDRAMError:
 	jsr	SpriteMessageError
 
 	SetCursorPos 21, 1
@@ -673,16 +675,16 @@ DSPCheck:
 	lda.l	$007000							; HiROM $00:6000 = DR, $00:7000 = SR
 	sta	errorCode
 	and	#%10000000
-	beq	__NoDSP
+	beq	@NoDSP
 
 	PrintString "DSP1: installed"
 
-	bra	__DSPCheckDone
+	bra	@DSPCheckDone
 
-__NoDSP:
+@NoDSP:
 	PrintString "DSP1: not installed"
 
-__DSPCheckDone:
+@DSPCheckDone:
 	rts
 
 
@@ -694,16 +696,16 @@ ShowChipsetDMA:
 	PrintString "DMA : "
 
 	lda	dontUseDMA
-	bne	__DMAOff
+	bne	@DMAOff
 
 	PrintString "on "
 
-	bra	__ShowChipsetDMADone
+	bra	@ShowChipsetDMADone
 
-__DMAOff:
+@DMAOff:
 	PrintString "off"
 
-__ShowChipsetDMADone:
+@ShowChipsetDMADone:
 
 	SetCursorPos 13, 17
 	PrintString "Video: "						; completed in the following subroutine
@@ -738,13 +740,13 @@ CheckFrameLength:
 
 	lda	REG_RDNMI
 	cpy	#$15A0							; rough average between 50 and 60 Hz values (see debug section below)
-	bcc	__60hz
+	bcc	@60hz
 
 	PrintString "50 Hz"
 
 	bra	+
 
-__60hz:
+@60hz:
 	PrintString "60 Hz"
 
 +
@@ -791,9 +793,9 @@ Forever:
 	sta	REG_NMITIMEN
 	cli
 
-__ForeverLoop:
+@ForeverLoop:
 	wai								; wait for next frame
-	bra	__ForeverLoop
+	bra	@ForeverLoop
 
 
 
@@ -829,7 +831,7 @@ SpriteInit:
 
 	ldx	#$0000
 
-__Init_OAM_lo:
+@Init_OAM_lo:
 	lda	#$F0F0
 	sta	SpriteBuf1, x						; initialize all sprites to be off the screen
 	inx
@@ -839,26 +841,26 @@ __Init_OAM_lo:
 	inx
 	inx
 	cpx	#$0200
-	bne	__Init_OAM_lo
+	bne	@Init_OAM_lo
 
 	Accu8
 
 	lda	#%10101010						; large sprites for everything except the sprite font
 	ldx	#$0000
 
-__Init_OAM_hi1:
+@Init_OAM_hi1:
 	sta	SpriteBuf2, x
 	inx
 	cpx	#$0018							; see .STRUCT oam_high
-	bne	__Init_OAM_hi1
+	bne	@Init_OAM_hi1
 
 	lda	#%00000000						; small sprites
 
-__Init_OAM_hi2:
+@Init_OAM_hi2:
 	sta	SpriteBuf2, x
 	inx
 	cpx	#$0020
-	bne	__Init_OAM_hi2
+	bne	@Init_OAM_hi2
 
 	lda	#$80							; tile num for cursor, next is palette
 	sta	SpriteBuf1.Cursor+2
@@ -883,7 +885,7 @@ HideButtonSprites:							; this moves SNES joypad button sprites off the screen
 	lda	#$F0
 	ldx	#$0000
 
-__Write2SpriteBufButtons:
+@Write2SpriteBufButtons:
 	sta	SpriteBuf1.Buttons, x					; X
 	inx
 	sta	SpriteBuf1.Buttons, x					; Y
@@ -891,7 +893,7 @@ __Write2SpriteBufButtons:
 	inx								; skip tile num & tile properties
 	inx
 	cpx	#$0030							; 48 bytes
-	bne	__Write2SpriteBufButtons
+	bne	@Write2SpriteBufButtons
 
 	rts
 
@@ -901,11 +903,11 @@ HideLogoSprites:							; this moves main graphics sprites off the screen
 	lda	#%01010101
 	ldx	#$0000
 
-__Write2SpriteBufMainGFX:
+@Write2SpriteBufMainGFX:
 	sta	SpriteBuf2.MainGFX, x
 	inx
 	cpx	#$0010
-	bne	__Write2SpriteBufMainGFX
+	bne	@Write2SpriteBufMainGFX
 
 	rts
 
@@ -996,7 +998,7 @@ ShowMainGFX:
 DirGetEntry:
 	lda	CLDConfigFlags						; check for buffer location
 	and	#%00000001
-	beq	__GetEntryFromWRAM
+	beq	@GetEntryFromWRAM
 	lda	selectedEntry+1						; get entry from SDRAM
 	lsr	a
 	sta	DMAWRITEBANK
@@ -1008,18 +1010,18 @@ DirGetEntry:
 	sta	DMAWRITELO
 	ldy	#$0000
 
-__GetEntryFromSDRAMLoop:
+@GetEntryFromSDRAMLoop:
 	lda	DMAREADDATA
 	sta	tempEntry, y
 	iny
 	cpy	#$0080
-	bne	__GetEntryFromSDRAMLoop
+	bne	@GetEntryFromSDRAMLoop
 
 	rts
 
 
 
-__GetEntryFromWRAM:
+@GetEntryFromWRAM:
 	lda	#$01							; set bank = $7F
 	sta	REG_WMADDH
 	lda	selectedEntry+1
@@ -1032,12 +1034,12 @@ __GetEntryFromWRAM:
 	sta	REG_WMADDL
 	ldy	#$0000
 
-__GetEntryFromWRAMLoop:
+@GetEntryFromWRAMLoop:
 	lda	REG_WMDATA
 	sta	tempEntry, y
 	iny
 	cpy	#$0080
-	bne	__GetEntryFromWRAMLoop
+	bne	@GetEntryFromWRAMLoop
 
 	rts
 
@@ -1050,33 +1052,33 @@ DirFindEntry:
 
 	stz	selectedEntry						; reset selectedEntry
 	lda	filesInDir						; only do the search if directory isn't empty
-	beq	__DirFindEntryFailed
+	beq	@DirFindEntryFailed
 
-__DirFindEntryLoop:
+@DirFindEntryLoop:
 	Accu8
 
 	jsr	DirGetEntry
 	ldy	#$0000
 
-__DirFindEntryCharLoop:							; check if entry matches, only look at first 8 chars
+@DirFindEntryCharLoop:							; check if entry matches, only look at first 8 chars
 	lda	tempEntry, y
 	cmp	findEntry, y
-	bne	__DirFindEntryNext
+	bne	@DirFindEntryNext
 	iny
 	cpy	#$0008
-	bne	__DirFindEntryCharLoop
+	bne	@DirFindEntryCharLoop
 
 	rts								; all 8 chars match
 
-__DirFindEntryNext:
+@DirFindEntryNext:
 	Accu16
 
 	inc	selectedEntry						; increment to next entry index
 	lda	selectedEntry						; check for max. no. of files
 	cmp	filesInDir
-	bne	__DirFindEntryLoop
+	bne	@DirFindEntryLoop
 
-__DirFindEntryFailed:
+@DirFindEntryFailed:
 	Accu8
 
 	jsr	PrintClearScreen
@@ -1137,7 +1139,7 @@ LoadLastGame:
 	ldy	#$0000
 	ldx	#$0000
 
-LoadLastGameLoop:							; game name and cluster
+@LoadLastGameLoop:							; game name and cluster
 	lda	sectorBuffer1, y
 	sta	gameName, x
 	inx
@@ -1145,11 +1147,11 @@ LoadLastGameLoop:							; game name and cluster
 	iny
 	iny
 	cpx	#$0080							; 128 bytes
-	bne	LoadLastGameLoop
+	bne	@LoadLastGameLoop
 
 	ldx	#$0000
 
-LoadLastSaveLoop:							; save name and cluster
+@LoadLastSaveLoop:							; save name and cluster
 	lda	sectorBuffer1, y
 	sta	saveName, x
 	inx
@@ -1157,26 +1159,26 @@ LoadLastSaveLoop:							; save name and cluster
 	iny
 	iny
 	cpx	#$0080							; 128 bytes
-	bne	LoadLastSaveLoop
+	bne	@LoadLastSaveLoop
 
 	ldx	#$0000
 
-LoadLastGameGenieLoop:							; GameGenie codes
+@LoadLastGameGenieLoop:							; GameGenie codes
 	lda	sectorBuffer1, y
-	beq	__LoadLastEmptyLOG					; unused GG codes are filled with $10s, so no zeroes allowed
+	beq	@LoadLastEmptyLOG					; unused GG codes are filled with $10s, so no zeroes allowed
 	sta	GameGenie.Codes, x
 	inx
 	inx
 	iny
 	iny
 	cpx	#$0028
-	bne	LoadLastGameGenieLoop
+	bne	@LoadLastGameGenieLoop
 
 	Accu8
 
 	rts
 
-__LoadLastEmptyLOG:							; zeroes within GG code list detected --> LOG file must be empty
+@LoadLastEmptyLOG:							; zeroes within GG code list detected --> LOG file must be empty
 
 .ACCU 16
 
@@ -1206,7 +1208,7 @@ SaveLastGame:
 	ldy	#$0000
 	ldx	#$0000
 
-SaveLastGameLoop:							; game name and cluster
+@SaveLastGameLoop:							; game name and cluster
 	lda	gameName, x
 	sta	sectorBuffer1, y
 	inx
@@ -1214,11 +1216,11 @@ SaveLastGameLoop:							; game name and cluster
 	iny
 	iny
 	cpx	#$0080							; 128 bytes
-	bne	SaveLastGameLoop
+	bne	@SaveLastGameLoop
 
 	ldx	#$0000
 
-SaveLastSaveLoop:							; save name and cluster
+@SaveLastSaveLoop:							; save name and cluster
 	lda	saveName, x
 	sta	sectorBuffer1, y
 	inx
@@ -1226,11 +1228,11 @@ SaveLastSaveLoop:							; save name and cluster
 	iny
 	iny
 	cpx	#$0080							; 128 bytes
-	bne	SaveLastSaveLoop
+	bne	@SaveLastSaveLoop
 
 	ldx	#$0000
 
-SaveLastGameGenieLoop:							; GameGenie codes
+@SaveLastGameGenieLoop:							; GameGenie codes
 	lda	GameGenie.Codes, x
 	sta	sectorBuffer1, y
 	inx
@@ -1238,7 +1240,7 @@ SaveLastGameGenieLoop:							; GameGenie codes
 	iny
 	iny
 	cpx	#$0028							; 5 * 8 = 40 bytes
-	bne	SaveLastGameGenieLoop
+	bne	@SaveLastGameGenieLoop
 
 	lda	#$0000							; fill rest of LASTGAME.LOG with zeroes
 -	sta	sectorBuffer1, y
@@ -1276,7 +1278,7 @@ CardLoadFPGA:
 	lda	#$80
 	sta	REG_INIDISP						; turn screen off
 
-CardLoadFPGALoop:
+@CardLoadFPGALoop:
 	lda	#kDestFPGA
 	sta	destType
 	jsr	CardReadSector						; sector -> FPGA
@@ -1290,35 +1292,35 @@ CardLoadFPGALoop:
 
 	lda	fat32Enabled						; check for FAT32
 	and	#$0001
-	bne	__FPGALastClusterMaskFAT32
+	bne	@LastClusterMaskFAT32
 	stz	temp+2							; if FAT16, high word = $0000
-	bra	__FPGALastClusterMaskDone
+	bra	@LastClusterMaskDone
 
-__FPGALastClusterMaskFAT32:
+@LastClusterMaskFAT32:
 	lda	#$0FFF							; if FAT32, high word = $0FFF
 	sta	temp+2
 
-__FPGALastClusterMaskDone:						; if cluster = last cluster, jump to last entry found
+@LastClusterMaskDone:						; if cluster = last cluster, jump to last entry found
 	lda	sourceCluster
 	cmp	#$FFFF							; low word = $FFFF (FAT16/32)
-	bne	__FPGANextSector
+	bne	@FPGANextSector
 	lda	sourceCluster+2
 	cmp	temp+2
-	bne	__FPGANextSector
+	bne	@FPGANextSector
 
 	Accu8
 
-	bra	__LoadFPGADone						; last cluster, jump out
+	bra	@LoadFPGADone						; last cluster, jump out
 
-__FPGANextSector:
+@FPGANextSector:
 	Accu8
 
 	inc	bankCounter
 	lda	bankCounter
 	cmp	#$6B							; 437312 bits = 54664 bytes = 107 sectors = $6B
-	bne	CardLoadFPGALoop
+	bne	@CardLoadFPGALoop
 
-__LoadFPGADone:
+@LoadFPGADone:
 ;	lda	#$0F
 ;	sta	REG_INIDISP						; turn screen on // never mind, done on intro screen
 	rts
@@ -1433,16 +1435,16 @@ PrintCardFS:
 
 	lda	fat32Enabled
 	cmp	#$01
-	beq	__FAT32enabled
+	beq	@FAT32enabled
 
 	PrintString "16"
 
-	bra	__PrintCardFSDone
+	bra	@PrintCardFSDone
 
-__FAT32enabled:
+@FAT32enabled:
 	PrintString "32"
 
-__PrintCardFSDone:
+@PrintCardFSDone:
 	rts
 
 
