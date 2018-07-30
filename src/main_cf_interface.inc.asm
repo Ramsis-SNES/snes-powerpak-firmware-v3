@@ -668,8 +668,6 @@ CardReadGameFill:
 	Accu16
 
 	stz	gameSize
-
-__CRGF_Reiterate:
 	lda	gameName.Cluster					; set source cluster
 	sta	sourceCluster
 	lda	gameName.Cluster+2
@@ -682,29 +680,41 @@ __CRGF_Reiterate:
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	bit	fixheader						; check for "assume copier header" flag
-	bpl	__CRGF_ReadSector
-	lda	#%10000000						; clear flag for next iteration
-	trb	fixheader
-	bra	__CRGF_NextSector					; sector=0 and header present --> skip that sector
+	bpl	@ReadSector
+	bra	@NextSector						; sector=0 and header present --> skip that sector
 
-__CRGF_ReadSector:
-	lda	#kDestSDRAM
+.ACCU 16
+
+@Reiterate:
+	lda	gameName.Cluster					; set source cluster (again)
+	sta	sourceCluster
+	lda	gameName.Cluster+2
+	sta	sourceCluster+2
+
+	Accu8
+
+	stz	sectorCounter
+	stz	bankCounter
+	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
+
+@ReadSector:
+	lda	#kDestSDRAM						; read sectors to SDRAM (self-reminder: this needs to be declared every iteration as destType is destroyed in a sub-sub routine of IncrementSectorNum [namely NextCluster])
 	sta	destType
 	jsr	CardReadSector
 
 	Accu16
 
-	inc	gameSize						; keep track of game size, skipping header sectors
+	inc	gameSize						; keep track of game size, skipping header sector
 
 	Accu8
 
-__CRGF_NextSector:
+@NextSector:
 	IncrementSectorNum
 
 	inc	destHi
 	inc	destHi
 	inc	bankCounter
-	bra	__CRGF_ReadSector
+	bra	@ReadSector
 
 __	lda	gameSize+1
 	cmp	#$04							; read file again until $400 sectors = 512KB have been copied
@@ -713,7 +723,7 @@ __	lda	gameSize+1
 
 +	Accu16
 
-	jmp	__CRGF_Reiterate
+	jmp	@Reiterate
 
 
 
