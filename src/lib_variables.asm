@@ -301,6 +301,7 @@
 .DEFINE cursorYmax		(maxFiles + minPrintY) * 8		; 24 "lines" (max. no. of files), so $D0/208 in this case
 .DEFINE insertStandardTop	(minPrintY - 1) & $1F			; tilemaps have 32 = $20 "lines", so $1F is the first possible "negative" value
 .DEFINE insertStandardBottom	maxFiles + minPrintY			; "line" no. in the tilemap where to put the next (positive) "off-screen" entry
+.DEFINE SelLineHeight		$08
 
 
 
@@ -338,8 +339,6 @@
 .DEFINE cursorYsetmenu3		$70
 .DEFINE cursorYsetmenu4		$78
 .DEFINE cursorYsetmenu5		$80
-
-.DEFINE SetMenLineHeight	$08
 
 
 

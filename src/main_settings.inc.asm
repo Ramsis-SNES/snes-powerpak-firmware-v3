@@ -112,8 +112,8 @@ SettingsLoop:
 	beq	@DpadUpDone
 	lda	cursorY
 	sec
-	sbc	#SetMenLineHeight
-	cmp	#cursorYsetmenu1-SetMenLineHeight
+	sbc	#SelLineHeight
+	cmp	#cursorYsetmenu1-SelLineHeight
 	bne	+
 	lda	#cursorYsetmenu5
 +	sta	cursorY
@@ -128,8 +128,8 @@ SettingsLoop:
 	beq	@DpadDownDone
 	lda	cursorY
 	clc
-	adc	#SetMenLineHeight
-	cmp	#cursorYsetmenu5+SetMenLineHeight
+	adc	#SelLineHeight
+	cmp	#cursorYsetmenu5+SelLineHeight
 	bne	+
 	lda	#cursorYsetmenu1
 +	sta	cursorY
@@ -191,13 +191,31 @@ CheckSelection:
 
 
 ; -------------------------- check for cursor position
-	lda	cursorY
-	cmp	#cursorYsetmenu1					; line = system info?
-	bne	+
-	jmp	ShowSysInfo
+	lda	cursorY							; (cursorY RSH 2) - 24 = jump index
+	lsr	a
+	lsr	a
+	sec
+	sbc	#24
 
-+	cmp	#cursorYsetmenu2					; line = toggle DMA?
-	bne	++
+	Accu16
+
+	and	#$00FF							; remove garbage in high byte
+	tax
+
+	Accu8
+
+	jmp	(@PTR_SetMenuItem, x)
+
+@PTR_SetMenuItem:
+	.DW ShowSysInfo
+	.DW ToggleDMA
+	.DW InitTHMBrowser
+	.DW GotoDevNote
+	.DW CheckForUpdate
+
+
+
+ToggleDMA:
 	lda	dontUseDMA						; toggle DMA setting ...
 	beq	+
 	stz	dontUseDMA
@@ -209,16 +227,6 @@ CheckSelection:
 @ToggleDMADone:
 	jsr	DisplayDMASetting
 	jmp	SettingsLoop						; ... and return
-
-++	cmp	#cursorYsetmenu3					; line = select theme?
-	bne	+
-	jmp	InitTHMBrowser
-
-+	cmp	#cursorYsetmenu5					; line = firmware update?
-	beq	CheckForUpdate
-	jsr	SpriteMessageLoading					; otherwise, go to developer's note
-	jsr	LoadDevMusic						; load music
-	jmp	GotoDevNote
 
 
 
