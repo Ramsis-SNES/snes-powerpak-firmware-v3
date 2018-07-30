@@ -26,34 +26,43 @@ StartGame:
 
 ;	PrintHexNum errorCode
 
-	ldx	#$0000
-
-ClearBanks:
-	stz	gameBanks, x
+	ldx	#$0000							; clear gameBanks variable in case it was written to before (i.e. by a failed ROM loading attempt)
+-	stz	gameBanks, x
 	inx
 	cpx	#$0020
-	bne	ClearBanks
+	bne	-
 
-	SetCursorPos 1, 0
+	lda	#$DC							; $40FFDC = location of ExHiROM checksum complement
+	sta	DMAWRITELO
+	lda	#$FF
+	sta	DMAWRITEHI
+	lda	#$40
+	sta	DMAWRITEBANK
+	stz	DMAREADDATA						; zero out checksum & complement in case an ExHiROM game was played before
+	stz	DMAREADDATA
+	stz	DMAREADDATA
+	stz	DMAREADDATA
 
 
 
 ; -------------------------- ROM loading
-	bit	gameName.Flags						; check for "copier header present" flag
-	bpl	+
+	SetCursorPos 1, 0
+
+	lda	gameName.Flags						; load copier header/ROM mapping flags
+	and	#%10000011						; mask off unused bits just in case
+	sta	fixheader
+	bpl	+							; acknowledge "copier header present" flag
 
 	PrintString "Copier header detected\n"
 + 	PrintString "Loading game ..."
 
 	wai
-	lda	gameName.Flags						; load copier header/ROM mapping guesswork flags
-	and	#%11000000						; mask off unused bits just in case
-	sta	fixheader
 	lda	#$00							; read file to beginning of SDRAM
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 	sta	DMAWRITEBANK
 	jsr	CardReadGameFill
+
 	ldy	#gameSize						; print ROM sectors in decimal ### FIXME add FAT32 excess cluster mask
 
 	PrintString "\nLoaded %d sectors = "
@@ -130,174 +139,269 @@ LoadSave:
 
 
 
-; -------------------------- ROM ID checks
+; -------------------------- determine ROM type
+	lda	fixheader
+
+	Accu16
+
+	and	#$0003							; only keep the 2 lowest bits (ROM mapping flags)
+	asl	a
+	tax
+
+	Accu8
+
+	jmp	(PTR_TryInternalHeader, x)
+
+PTR_TryInternalHeader:
+	.DW CheckInternalHeaderExHi					; if no ROM mapping flags are set at all, continue normally
+	.DW CheckInternalHeaderLo@IsLo
+	.DW CheckInternalHeaderHi@IsHi
+	.DW CheckInternalHeaderExHi@IsExHi
+
+
+
 CheckInternalHeaderExHi:
-	lda	#$C0
+	lda	#$DC							; $40FFDC = location of checksum complement
 	sta	DMAWRITELO
 	lda	#$FF
 	sta	DMAWRITEHI
 	lda	#$40
-	sta	DMAWRITEBANK						; check for internal header  40FFC0
+	sta	DMAWRITEBANK
+	lda	DMAREADDATA						; read  checksum complement
+	sta	temp
+	lda	DMAREADDATA
+	sta	temp+1
+	lda	DMAREADDATA						; read  checksum
+	sta	temp+2
+	lda	DMAREADDATA
+	sta	temp+3
+
+	Accu16
+
+	lda	temp+2							; check if checksum & complement match
+	eor	#$FFFF
+	cmp	temp
+	bne	@NotExHi
+
+	Accu8
+
+@IsExHi:
+	lda	#$C0							; ROM is ExHiROM, copy internal header
+	sta	DMAWRITELO
+	lda	#$FF
+	sta	DMAWRITEHI
+	lda	#$40
+	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
-;	PrintString "/nmapper="
-;	PrintHexNum gameROMMapper
+	PrintString "\nHeader at $40FFC0"
 
-	lda	gameROMMapper
+	lda	#%00000011						; set ExHiROM mapping flags
+	tsb	fixheader
+	jmp	InternalHeaderDone
 
-;	cmp	#$35
-; 	beq	CheckInternalHeaderExHiType
-	cmp	#$25
-	beq	CheckInternalHeaderExHiType
-	bra	NotInternalHeaderExHi
-
-CheckInternalHeaderExHiType:
-
-;	PrintString "/nMAP good "
-
-	lda	gameROMType
-	cmp	#$06							; ROM type must be <= 5
-	bcs	NotInternalHeaderExHi
-
-;	PrintString "/nROM good "
-
-	lda	#$60
-	cmp	gameROMMbits						; ROM size <= 96Mbits
-	bcc	NotInternalHeaderExHi
-
-;	PrintString "SIZE good "
-
-	lda	#$08
-	cmp	saveSize						; SRAM size <= 8d
-	bcc	NotInternalHeaderExHi
-
-;	PrintString "RAM good "
-
-	lda	gameResetVector+1
-	cmp	#$80							; reset vector goes to >= 8000
-	bcc	NotInternalHeaderExHi
-
-;	PrintString "RESET good "
-
-	jmp	InternalHeaderIsExHi
-
-NotInternalHeaderExHi:
+@NotExHi:
+	Accu8
 	PrintString "\nNo $40FFC0 header"
 
 
 
 CheckInternalHeaderHi:
-	lda	#$C0
+	lda	#$DC							; $00FFDC = location of checksum complement
 	sta	DMAWRITELO
 	lda	#$FF
 	sta	DMAWRITEHI
 	lda	#$00
-	sta	DMAWRITEBANK						; check for internal header $FFC0
+	sta	DMAWRITEBANK
+	lda	DMAREADDATA						; read  checksum complement
+	sta	temp
+	lda	DMAREADDATA
+	sta	temp+1
+	lda	DMAREADDATA						; read  checksum
+	sta	temp+2
+	lda	DMAREADDATA
+	sta	temp+3
+
+	Accu16
+
+	lda	temp+2							; check if checksum & complement match
+	eor	#$FFFF
+	cmp	temp
+	bne	@NotHi
+
+	Accu8
+
+@IsHi:
+	lda	#$C0							; ROM is HiROM, copy internal header
+	sta	DMAWRITELO
+	lda	#$FF
+	sta	DMAWRITEHI
+	lda	#$00
+	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
-	bit	fixheader
-	bvc	CheckInternalHeaderHiMapper				; don't fix the header
-	lda	#$21
-	sta	gameROMMapper						; assume HiROM
 
-CheckInternalHeaderHiMapper:
-	lda	gameROMMapper
+	PrintString "\nHeader at $FFC0"
 
-;	cmp	#$20
-;	beq	CheckInternalHeaderHiType
-	cmp	#$21
-	beq	CheckInternalHeaderHiType
-;	cmp	#$22
-;	beq	CheckInternalHeaderHiType
-	cmp	#$25
-	bne	NotInternalHeaderHi
+	lda	#%00000010						; set HiROM mapping flag
+	tsb	fixheader
+	jmp	InternalHeaderDone
 
-CheckInternalHeaderHiType:
-	lda	gameROMType
-	cmp	#$06							; ROM type must be <= 5
-	bcs	NotInternalHeaderHi
-	lda	#$40
-	cmp	gameROMMbits						; ROM size <= 64Mbits
-	bcc	NotInternalHeaderHi
-	lda	#$08
-	cmp	saveSize						; SRAM size <= 8d
-	bcc	NotInternalHeaderHi
-	lda	gameResetVector+1
-	cmp	#$80							; reset vector goes to >= 8000
-	bcc	NotInternalHeaderHi
-	jmp	InternalHeaderIsHi
-
-NotInternalHeaderHi:
+@NotHi:
+	Accu8
 	PrintString "\nNo $FFC0 header"
 
 
 
 CheckInternalHeaderLo:
-	lda	#$C0
+	lda	#$DC							; $007FDC = location of checksum complement
 	sta	DMAWRITELO
 	lda	#$7F
 	sta	DMAWRITEHI
 	lda	#$00
-	sta	DMAWRITEBANK						; check for internal header $7FC0
+	sta	DMAWRITEBANK
+	lda	DMAREADDATA						; read  checksum complement
+	sta	temp
+	lda	DMAREADDATA
+	sta	temp+1
+	lda	DMAREADDATA						; read  checksum
+	sta	temp+2
+	lda	DMAREADDATA
+	sta	temp+3
+
+	Accu16
+
+	lda	temp+2							; check if checksum & complement match
+	eor	#$FFFF
+	cmp	temp
+	bne	@NotLo
+
+	Accu8
+
+@IsLo:
+	lda	#$C0							; ROM is LoROM, copy internal header
+	sta	DMAWRITELO
+	lda	#$7F
+	sta	DMAWRITEHI
+	lda	#$00
+	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
-	bit	fixheader
-	bvc	CheckInternalHeaderLoMapper				; don't fix the header
-	lda	#$20
-	sta	gameROMMapper						; assume LoROM
 
-CheckInternalHeaderLoMapper:
-	lda	gameROMMbits
-	cmp	#$60
-	beq	InternalHeaderIs96
-	lda	gameROMMapper
-	cmp	#$20
-	beq	CheckInternalHeaderLoType
-;	cmp	#$21
-;	beq	CheckInternalHeaderLoType
-	cmp	#$22
-	beq	CheckInternalHeaderLoType
-;	cmp	#$25
-;	beq	CheckInternalHeaderLoType
-	bra	NotInternalHeaderLo
-
-CheckInternalHeaderLoType:
-	lda	gameROMType
-	cmp	#$06							; ROM type must be <= 5
-	bcs	NotInternalHeaderLo
-	lda	#$20
-	cmp	gameROMMbits						; ROM size <= 32Mbits
-	bcc	NotInternalHeaderLo
-	lda	#$08
-	cmp	saveSize						; SRAM size <= 8d
-	bcc	NotInternalHeaderLo
-	lda	gameResetVector+1
-	cmp	#$80							; reset vector goes to >= 8000
-	bcc	NotInternalHeaderLo
-	bra	InternalHeaderIsLo
-
-NotInternalHeaderLo:
-	PrintString "\nNo $7FC0 header"
-
-	jmp	NoInternalHeader
-
-InternalHeaderIs96:
-	PrintString "\n96Mbit ROM"
-
-	bra	InternalHeaderDone
-
-InternalHeaderIsExHi:
-	PrintString "\nHeader at $40FFC0"
-
-	bra	InternalHeaderDone
-
-InternalHeaderIsLo:
 	PrintString "\nHeader at $7FC0"
 
-	bra	InternalHeaderDone
+	lda	#%00000001						; set LoROM mapping flag
+	tsb	fixheader
+	jmp	InternalHeaderDone
 
-InternalHeaderIsHi:
-	PrintString "\nHeader at $FFC0"
+@NotLo:
+	Accu8
+	PrintString "\nNo $7FC0 header"
 
-;	bra	InternalHeaderDone
+NoInternalHeader:
+	lda	fixheader
+	and	#%00000011						; check if any mapping bit is set
+	beq	+
+	jmp	CantLoadROM						; force ROM mapping already attempted, no luck
+
++	jsr	PrintClearScreen
+
+	SetCursorPos 1, 0
+	PrintString "Internal header is corrupt, let's try to force ROM mapping:"
+	SetCursorPos 3, 0
+	PrintString "LoROM/ExLoROM"
+	PrintString "HiROM"
+	PrintString "ExHiROM"
+
+	lda	#cursorXmapping						; put cursor on first selection line
+	sta	cursorX
+	lda	#cursorYmappingLo
+	sta	cursorY
+
+
+
+MappingLoop:
+	wai
+
+
+
+; -------------------------- check for d-pad up, move cursor
+	lda	Joy1New+1
+	and	#%00001000
+	beq	@DpadUpDone
+	lda	cursorY
+	sec
+	sbc	#SelLineHeight
+	cmp	#cursorYmappingLo-SelLineHeight
+	bne	+
+	lda	#cursorYmappingExHi
++	sta	cursorY
+
+@DpadUpDone:
+
+
+
+; -------------------------- check for d-pad down, move cursor
+	lda	Joy1New+1
+	and	#%00000100
+	beq	@DpadDownDone
+	lda	cursorY
+	clc
+	adc	#SelLineHeight
+	cmp	#cursorYmappingExHi+SelLineHeight
+	bne	+
+	lda	#cursorYmappingLo
++	sta	cursorY
+
+@DpadDownDone:
+
+
+
+; -------------------------- check for A button = make a selection
+	lda	Joy1New
+	bpl	MappingLoop
+
+
+
+MappingSelectionMade:
+	lda	cursorY
+	sta	temp
+
+	HideCursorSprite
+
+	jsr	PrintClearScreen
+
+	SetCursorPos 1, 0
+
+	lda	temp							; mapping flags = (cursorY / 8) - 5
+	lsr	a
+	lsr	a
+	lsr	a
+	sec
+	sbc	#5
+	sta	temp
+	lda	fixheader
+	and	#%11111100						; mapping bits shouldn't be set at this point, mask them off anyway to be safe
+	ora	temp
+	sta	fixheader
+	and	#%00000011						; mask off everything except mapping bytes, and use value as jump index
+	asl	a
+
+	Accu16
+
+	and	#$00FF							; remove garbage in high byte
+	tax
+
+	Accu8
+
+	jmp	(PTR_TryInternalHeader, x)
+
+
+
+CantLoadROM:
+	PrintString "\nI'm sorry, but I can't load this ROM file. :-("
+
+	jmp	FatalError
+
+
 
 InternalHeaderDone:
 	ldy	#PTR_tempEntry						; game title in tempEntry
@@ -306,28 +410,30 @@ InternalHeaderDone:
 
 
 
-; -------------------------- SRAM mapping
-ROMBattCheck:
+; -------------------------- check for battery-backed SRAM support
 	PrintString "\nSavegame"
 
 	lda	gameROMType
+	and	#$0F							; mask off upper nibble (coprocessor type)
 	cmp	#$02
-	beq	__ROMHasBatt
+	beq	@ROMHasSRAM
 	cmp	#$05
-	beq	__ROMHasBatt
+	beq	@ROMHasSRAM
 
 	PrintString " not"
 
 	lda	#$00
-	bra	__ROMBattCheckDone
+	bra	@SRAMCheckDone
 
-__ROMHasBatt:
+@ROMHasSRAM:
 	lda	#$01
 
-__ROMBattCheckDone:
+@SRAMCheckDone:
 	sta	useBattery
 
-SetSRAMSize:
+
+
+; -------------------------- allocate/print SRAM size accordingly
 	Accu16
 
 	lda	saveSize
@@ -340,7 +446,6 @@ SetSRAMSize:
 	sta	sramSizeByte
 	sta	CONFIGWRITESRAMSIZE
 
-PrintSRAMSize:
 	Accu16
 
 	tya
@@ -355,69 +460,36 @@ PrintSRAMSize:
 
 	PrintString " supported, %s KB SRAM added"
 
-PrintSRAMSizeDone:
 
 
-
-; -------------------------- ROM banking
-SetROMBanking:
+; -------------------------- set ROM/SRAM banking
 	stz	bankOffset
 	stz	bankOffset+1
-
-
-
-Check96Banking:
 	lda	gameROMMbits
-	cmp	#$60
-	bne	Check96BankingDone
+	cmp	#$60							; check for 96 Mbit
+	bne	+
 	jmp	ExHiROMBanking
 
-Check96BankingDone:
-
-
-
-CheckLoROMBanking:
-	lda	gameROMMapper
-	cmp	#$20
-	beq	LoROMBanking
-
-CheckLoROMBankingDone:
-
-
-
-CheckHiROMBanking:
-	lda	gameROMMapper
-	cmp	#$21
-	bne	CheckHiROMBankingDone
++	lda	gameROMMapper						; check for LoROM
+	and	#$0F							; mask off upper nibble (SlowROM/FastROM)
+	beq	LoROMBanking						; 0 = LoROM
+	cmp	#$01							; check for HiROM
+	bne	+
 	jmp	HiROMBanking
 
-CheckHiROMBankingDone:
-
-
-
-CheckExLoROMBanking:
-	lda	gameROMMapper
-	cmp	#$22
-	bne	CheckExLoROMBankingDone
++	cmp	#$02							; check for ExLoROM // CHECKME, does this even work at all?
+	bne	+
 	jmp	ExLoROMBanking
 
-CheckExLoROMBankingDone:
-
-
-
-CheckExHiROMBanking:
-	lda	gameROMMapper
-	cmp	#$25
-	bne	CheckExHiROMBankingDone
++	cmp	#$05							; check for ExHiROM
+	bne	+
 	jmp	ExHiROMBanking
 
-CheckExHiROMBankingDone:
++	PrintString "\nROM mapping $"
+	PrintHexNum gameROMMapper
+	PrintString " unsupported!"
 
-;	PrintString "\nMapper "
-;	PrintHexNum gameROMMapper
-;	PrintString " unsupported"
-
-;	jmp	FatalError
+	jmp	FatalError
 
 
 
@@ -457,11 +529,9 @@ LoROMBanking:
 
 	jsr	CopyBanks
 
-
-
-LoROMSRAM:
+@LoROMSRAM:
 	lda	saveSize
-	beq	LoROMBankingDone
+	beq	@LoROMBankingDone
 
 	PrintString "\nSRAM in 7x/Fx"
 
@@ -471,7 +541,7 @@ LoROMSRAM:
 	sta	CONFIGWRITEBANK+$1E0					; F0l
 	sta	gameBanks+$1E
 
-LoROMBankingDone:
+@LoROMBankingDone:
 
 	lda	#$00
 	sta	CONFIGWRITESRAMLO					; no SRAM in $6000-$7fff
@@ -484,59 +554,29 @@ ExLoROMBanking:
 	PrintString "\nExLoROM "
 
 	lda	gameROMMbits
-
-ExLoROMBanking48Mbit:
 	cmp	#$30
-	bne	ExLoROMBankingNot48Mbit
+	bne	+
 
 	PrintString "48Mbit"
 
 	ldx	#ExLoRom48Mbit
 	stx	destLo
-	jmp	ExLoROMBankingLoop
+	jsr	CopyBanks
+	jmp	LoROMBanking@LoROMSRAM
 
-ExLoROMBankingNot48Mbit:
-
-
-
-ExLoROMBanking64Mbit:
-	cmp	#$40
-	bne	ExLoROMBankingNot64Mbit
++	cmp	#$40
+	bne	+
 
 	PrintString "64Mbit"
 
 	ldx	#ExLoRom64Mbit
 	stx	destLo
-	bra	ExLoROMBankingLoop
-
-ExLoROMBankingNot64Mbit:
-
-	bit	fixheader						; ExLoROM of wrong size found
-	bvc	ExLoROMTryHeaderFix
-	jmp	FatalError
-
-
-
-ExLoROMTryHeaderFix:
-	jsr	PrintClearScreen
-
-	SetCursorPos 1, 0
-
-;	PrintString "\nExLoROM "
-;	PrintNum gameROMMbits
-;	PrintString " Mbit unsupported"
-;	PrintString "\nRetrying with fixed header ..."
-	PrintString "Unsupported ExLoROM size, but I'll try to fix it ..."
-
-	lda	#%11000000						; set "assume copier header" and "try to guess ROM mapping" flags
-	tsb	fixheader
-	jmp	CheckInternalHeaderHi
-
-
-
-ExLoROMBankingLoop:
 	jsr	CopyBanks
-	jmp	LoROMSRAM
+	jmp	LoROMBanking@LoROMSRAM
+
++	PrintString "Unsupported ExLoROM size!"
+
+	jmp	FatalError
 
 
 
@@ -575,8 +615,9 @@ HiROMBanking:
 	Accu8
 
 	jsr	CopyBanks
+
 	lda	saveSize
-	beq	HiROMNoSRAM
+	beq	@HiROMNoSRAM
 
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
 
@@ -585,100 +626,71 @@ HiROMBanking:
 	sta	CONFIGWRITESRAMHI
 
 ;;;;;;FIXME lda something here?
+	lda	gameROMMbits						; not sure what this is all about as the only non-special chip 48 Mbit game (ToP) is ExHiROM, not HiROM
 	cmp	#$30
-	bne	HiROMBankingDone
+	bne	@HiROMBankingDone
 
-
-
-HiROM48SRAM:
+@HiROM48SRAM:
 	PrintString "\nSRAM in $80-BF:$6000-7FFF"
+
 	lda	#$00
 	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 00 0F
 	lda	#$0F
 	sta	CONFIGWRITESRAMHI
-	bra	HiROMBankingDone
+	bra	@HiROMBankingDone
 
-
-
-HiROMNoSRAM:
+@HiROMNoSRAM:
 	PrintString "\nNo HiROM SRAM"
+
 	lda	#$00
 	sta	CONFIGWRITESRAMLO					; no SRAM
 	sta	CONFIGWRITESRAMHI
 
-
-
-HiROMBankingDone:
+@HiROMBankingDone:
 	jmp	SetROMBankingDone
 
 
 
 ExHiROMBanking:
 	PrintString "\nExHiROM "
+
 	lda	#$00
 	sta	CONFIGWRITESRAMLO					; no SRAM
 	sta	CONFIGWRITESRAMHI
 	lda	gameROMMbits
-
-
-
-ExHiROMBanking48Mbit:
 	cmp	#$30
-	bne	ExHiROMBankingNot48Mbit
+	bne	+
 
 	PrintString "48Mbit"
 
 	ldx	#ExHiRom48Mbit
 	stx	destLo
+	bra	@ExHiROMSRAM
 
-;	PrintString "\nSRAM in $80-BF:$6000-7FFF"
-;	lda	#$00
-;	sta	CONFIGWRITESRAMLO           ;;sram in 6000-7fff = 00 0F
-;	lda	#$0F
-;	sta	CONFIGWRITESRAMHI
-
-	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
-
-	lda	#$0C
-	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
-	sta	CONFIGWRITESRAMHI
-	jmp	ExHiROMBankingLoop
-
-ExHiROMBankingNot48Mbit:
-
-
-
-ExHiROMBanking64Mbit:
-	cmp	#$40
-	bne	ExHiROMBankingNot64Mbit
++	cmp	#$40
+	bne	+
 
 	PrintString "64Mbit"
 
 	ldx	#ExHiRom64Mbit
 	stx	destLo
-	bra	ExHiROMSRAM
+	bra	@ExHiROMSRAM
 
-ExHiROMBankingNot64Mbit:
-
-
-
-ExHiROMBanking96Mbit:
-	cmp	#$60
-	bne	ExHiROMBankingNot96Mbit
++	cmp	#$60
+	bne	+
 
 	PrintString "96Mbit"
 
 	ldx	#ExHiRom96Mbit
 	stx	destLo
-	bra	ExHiROMSRAM
+	bra	@ExHiROMSRAM
 
-ExHiROMBankingNot96Mbit:
-	PrintNum gameROMMbits
++	PrintNum gameROMMbits
 	PrintString "Mbit unsupported"
 
-ExHiROMSRAM:
+@ExHiROMSRAM:
 	lda	saveSize
-	beq	ExHiROMBankingLoop
+	beq	@ExHiROMBankingDone
 
 	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"
 
@@ -686,11 +698,8 @@ ExHiROMSRAM:
 	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
 	sta	CONFIGWRITESRAMHI
 
-ExHiROMBankingLoop:
+@ExHiROMBankingDone:
 	jsr	CopyBanks
-
-ExHiROMBankingDone:
-;	bra	SetROMBankingDone
 
 SetROMBankingDone:
 
@@ -700,23 +709,23 @@ SetROMBankingDone:
 ROMDSPCheck:
 	lda	gameROMType
 	cmp	#$03
-	beq	ROMHasDSP
+	beq	@ROMHasDSP
 	cmp	#$04
-	beq	ROMHasDSP
+	beq	@ROMHasDSP
 	cmp	#$05
-	beq	ROMHasDSP
-	jmp	ROMDSPCheckDone
+	beq	@ROMHasDSP
+	jmp	@ROMDSPCheckDone
 
-ROMHasDSP:
+@ROMHasDSP:
 
 ;DSPCheck:
 	lda	#$04							; turn on HiROM chip
 	sta	CONFIGWRITEDSP						; HiROM $00:6000 = DR, $00:7000 = SR
 	lda	$007000
 	and	#%10000000
-	bne	DSPGood
+	bne	@DSPGood
 
-DSPBad:
+@DSPBad:
 	lda	#$00
 	sta	CONFIGWRITEDSP						; turn off DSP
 
@@ -724,28 +733,25 @@ DSPBad:
 
 	jmp	FatalError
 
-DSPGood:
+@DSPGood:
 	lda	#$00
 	sta	CONFIGWRITEDSP						; turn off DSP
 	lda	gameROMMapper
-	cmp	#$21
-	beq	HiROMDSP						; HiROM
+	and	#$0F							; mask off upper nibble (SlowROM/FastROM)
+	cmp	#$01
+	beq	@HiROMDSP						; HiROM
 	lda	gameROMMbits						; LoROM 16MB
 	cmp	#$09
-	bcs	LoROM16DSP
-	bra	LoROM8DSP
+	bcs	@LoROM16DSP
+	bra	@LoROM8DSP
 
-
-
-HiROMDSP:
+@HiROMDSP:
 	PrintString "\nHiROM DSP1"					; $00-1f:6000-7fff
 	lda	#$04
 	sta	CONFIGWRITEDSP
-	bra	ROMDSPCheckDone
+	bra	@ROMDSPCheckDone
 
-
-
-LoROM8DSP:
+@LoROM8DSP:
 	PrintString "\nLoROM DSP1 4-8Mb"				; $20-3f:8000-ffff
 
 	lda	#$01
@@ -759,11 +765,9 @@ LoROM8DSP:
 	sta	gameBanks+$07
 	sta	CONFIGWRITEBANK+$170					; B0
 	sta	gameBanks+$17
-	bra	ROMDSPCheckDone
+	bra	@ROMDSPCheckDone
 
-
-
-LoROM16DSP:
+@LoROM16DSP:
 	PrintString "\nLoROM DSP1 16Mb"					; $60-6f:0000-7fff
 
 	lda	#$02
@@ -773,11 +777,8 @@ LoROM16DSP:
 	sta	gameBanks+$0C
 	sta	CONFIGWRITEBANK+$1C0					; E0
 	sta	gameBanks+$1C
-;	bra	ROMDSPCheckDone
 
-
-
-ROMDSPCheckDone:
+@ROMDSPCheckDone:
 	jsr	PrintBanks						; skip to avoid user confusion due to possible screen overflow
 
 
@@ -828,12 +829,12 @@ LoadGameGenie:
 
 
 ; -------------------------- boot game
-;ResetSystem:
+BootGame:
 	stz	Joy1New
 	stz	Joy1New+1
 	lda	Joy1Press+1
 	and	#%00100000						; if user holds Select, log screen and wait
-	beq	__ResetSystemNow
+	beq	@BootGameNow
 	jsr	LogScreenMessage
 
 ;	SetCursorPos 27, 1
@@ -846,17 +847,18 @@ LoadGameGenie:
 
 	WaitForUserInput
 
-__ResetSystemNow:
-	lda	fixheader						; if ROM mapping was successfully guessed, save flag along with game name etc. so the PowerPak "remembers" the correct mapping
-	and	#%01000000
+@BootGameNow:
+	lda	fixheader						; if ROM mapping was successfully forced, save flags along with game name etc. so the PowerPak "remembers" the correct mapping
+	and	#%10000011
 	tsb	gameName.Flags
 	jsr	SaveLastGame
+
 	lda	#$80							; enter forced blank, this should help suppress annoying effects
-	sta	$2100
+	sta	REG_INIDISP
 	sei								; disable NMI & IRQ so we can reset DMA registers before the game starts
 	stz	REG_NMITIMEN
-	stz	$420B							; turn off DMA & HDMA
-	stz	$420C
+	stz	REG_MDMAEN						; turn off DMA & HDMA
+	stz	REG_HDMAEN
 	lda	#$FF							; fill DMA registers with initial values, this fixes Nightmare Busters (Beta ROM) crash upon boot
 	ldx	#$0000
 -	sta	$4300, x
@@ -879,111 +881,7 @@ __ResetSystemNow:
 
 
 
-; *********************** Screen logging message ***********************
-
-LogScreenMessage:
-	jsr	LogScreen
-
-	PrintString "\nScreen saved to POWERPAK/ERROR.LOG"
-
-	rts
-
-
-
-; *************************** Error handling ***************************
-
-FatalError:
-	jsr	LogScreenMessage
-
-	PrintString "\n\nPress any button to return to the titlescreen."
-
-	WaitForUserInput
-
-	jsr	PrintClearScreen
-	jmp	GotoIntroScreen						; return to titlescreen
-
-;	lda	#%10000001						; alternatively:
-;	sta	CONFIGWRITESTATUS					; Start pressed, reset PowerPak, stay in boot mode
-
-
-
-NoInternalHeader:
-	bit	fixheader
-	bvs	NoInteralHeaderFixed					; header fix already attempted
-	jsr	PrintClearScreen
-
-	SetCursorPos 1, 0
-	PrintString "No internal header found, I'll make an educated guess ..."
-
-	lda	#%01000000						; set "try to guess ROM mapping" flag
-	tsb	fixheader
-	jmp	CheckInternalHeaderHi
-
-
-
-NoInteralHeaderFixed:
-	PrintString "\nI'm sorry, but I can't load this ROM file. :-("
-
-	jmp	FatalError
-
-
-
-; ************************ Load ROM information ************************
-
-CopyROMInfo:
-	ldx	#$0000
--	lda	DMAREADDATA						; start at C0 (game title)
-	bpl	+							; if character exceeds standard ASCII (>= $80),
-	lda	#'?'							; replace character with question mark
-+	sta	tempEntry, x
-	inx
-	cpx	#$0015							; 21 bytes
-	bne	-
-
-	stz	tempEntry, x						; NUL-terminate game title
-	lda	DMAREADDATA						; D5
-	sta	errorCode
-	and	#%11101111						; mask off fast/slow
-	sta	gameROMMapper
-
-	PrintString "\nMode $"
-	PrintHexNum errorCode
-
-	lda	DMAREADDATA						; D6
-	sta	gameROMType
-
-	PrintString ", Type $"
-	PrintHexNum gameROMType
-
-	lda	DMAREADDATA						; D7
-;	sta	gameROMSize						; ROM size is taken from file size!
-	sta	errorCode
-
-	PrintString ", Size $"
-	PrintHexNum errorCode
-
-	lda	DMAREADDATA						; D8
-	sta	saveSize
-
-	PrintString ", SRAM $"
-	PrintHexNum saveSize
-
-	lda	#$FC
-	sta	DMAWRITELO
-
-	lda	DMAREADDATA						; FC
-	sta	gameResetVector
-
-	lda	DMAREADDATA						; FD
-	sta	gameResetVector+1
-
-	PrintString ", Reset $"
-	PrintHexNum gameResetVector+1
-	PrintHexNum gameResetVector
-
-	rts
-
-
+; **************************** Subroutines *****************************
 
 CopyBanks:
 	ldy	#$0000
@@ -1118,13 +1016,149 @@ CopyBanks:
 
 
 
+/* NEW COPYBANKS
+
+CopyBanks:
+	ldx	#$0001
+	ldy	#$0000
+
+@CopyOddBanks:
+	lda	[destLo], y
+	iny
+	sta	gameBanks, x
+
+	Accu16
+
+	phx								; preserve X index
+	txa
+	asl	a							; shift left by 4 bits
+	asl	a
+	asl	a
+	asl	a
+	tax
+
+	Accu8
+
+	sta	CONFIGWRITEBANK, x
+	plx								; restore index
+	inx
+	inx
+	cpx	#$001F+2
+	bne	@CopyOddBanks
+
+	ldx	#$0000
+
+@CopyEvenBanks:
+	lda	[destLo], y
+	iny
+	sta	gameBanks, x
+
+	Accu16
+
+	phx								; preserve X index
+	txa
+	asl	a							; shift left by 4 bits
+	asl	a
+	asl	a
+	asl	a
+	tax
+
+	Accu8
+
+	sta	CONFIGWRITEBANK, x
+	plx								; restore index
+	inx
+	inx
+	cpx	#$001E+2
+	bne	@CopyEvenBanks
+
+	rts
+
+*/
+
+
+
+CopyROMInfo:
+	ldx	#$0000
+-	lda	DMAREADDATA						; start at C0 (game title)
+	bpl	+							; if character exceeds standard ASCII (>= $80),
+	lda	#'?'							; replace character with question mark
++	sta	tempEntry, x
+	inx
+	cpx	#$0015							; 21 bytes
+	bne	-
+
+	stz	tempEntry, x						; NUL-terminate game title
+	lda	DMAREADDATA						; D5
+	sta	gameROMMapper
+
+	PrintString "\nMode $"
+	PrintHexNum gameROMMapper
+
+	lda	DMAREADDATA						; D6
+	sta	gameROMType
+
+	PrintString ", Type $"
+	PrintHexNum gameROMType
+
+	lda	DMAREADDATA						; D7
+;	sta	gameROMSize						; ROM size is taken from file size!
+	sta	errorCode
+
+	PrintString ", Size $"
+	PrintHexNum errorCode
+
+	lda	DMAREADDATA						; D8
+	sta	saveSize
+
+	PrintString ", SRAM $"
+	PrintHexNum saveSize
+
+	lda	#$FC
+	sta	DMAWRITELO
+
+	lda	DMAREADDATA						; FC
+	sta	gameResetVector
+
+	lda	DMAREADDATA						; FD
+	sta	gameResetVector+1
+
+	PrintString ", Reset $"
+	PrintHexNum gameResetVector+1
+	PrintHexNum gameResetVector
+
+	rts
+
+
+
+FatalError:
+	jsr	LogScreenMessage
+
+	PrintString "\n\nPress any button to return to the titlescreen."
+
+	WaitForUserInput
+
+	jsr	PrintClearScreen
+	jmp	GotoIntroScreen						; return to titlescreen
+
+
+
+LogScreenMessage:
+	jsr	LogScreen
+
+	PrintString "\nScreen saved to POWERPAK/ERROR.LOG"
+
+	rts
+
+
+
 PrintBanks:
 	PrintString "\n0 1 2 3 4 5 6 7 8 9 A B C D E F\tBanks2\t    Banks3\n"
 
 	ldx	#$0001
 	ldy	#$0010
 
-__PrintBanks1:
+@PrintBanks1:
 	lda	gameBanks, x
 	sta	errorCode
 
@@ -1133,14 +1167,14 @@ __PrintBanks1:
 	inx
 	inx
 	dey
-	bne	__PrintBanks1
+	bne	@PrintBanks1
 
 	PrintString "\t"
 
 	ldx	#$0008
 	ldy	#$0004
 
-__PrintBanks2:
+@PrintBanks2:
 	lda	gameBanks, x
 	sta	errorCode
 
@@ -1149,14 +1183,14 @@ __PrintBanks2:
 	inx
 	inx
 	dey
-	bne	__PrintBanks2
+	bne	@PrintBanks2
 
 	PrintString "    "
 
 	ldx	#$0018
 	ldy	#$0004
 
-__PrintBanks3:
+@PrintBanks3:
 	lda	gameBanks, x
 	sta	errorCode
 
@@ -1165,7 +1199,7 @@ __PrintBanks3:
 	inx
 	inx
 	dey
-	bne	__PrintBanks3
+	bne	@PrintBanks3
 	rts
 
 
