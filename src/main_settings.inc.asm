@@ -355,7 +355,7 @@ ShowSysInfo:
 	jsr	FPGACheck
 	jsr	DSPCheck
 	jsr	SDRAMCheck
-	jsr	MemCheck						; test SDRAM, back here means SDRAM = O.K.
+	jsr	SDRAMCheckFull						; test SDRAM byte by byte, back here means SDRAM = O.K.
 	jsr	PrintClearScreen
 	jsr	HideLogoSprites
 	jmp	GotoSettings						; return to settings menu
@@ -452,7 +452,7 @@ SaveConfig:
 
 ; **************************** SDRAM check *****************************
 
-MemCheck:
+SDRAMCheckFull:
 	SetCursorPos 17, 1
 	PrintString "SDRAM check:"
 
