@@ -331,6 +331,15 @@
 
 
 
+; -------------------------- ROM mapping selection layout
+.DEFINE cursorXmapping		$0D
+.DEFINE cursorYmappingDiff	$0A
+.DEFINE cursorYmappingLo	$30
+.DEFINE cursorYmappingHi	$38
+.DEFINE cursorYmappingExHi	$40
+
+
+
 ; -------------------------- Settings menu layout
 .DEFINE cursorXsettings		$40
 
@@ -489,7 +498,7 @@
 	bankOffset		dw
 	partitionIndex		dw
 
-	fixheader		db					; cfrrrrrr [c = assume copier header, f = try to guess ROM mapping, r = reserved]
+	fixheader		db					; crrrrrmm [c = assume copier header, m = force ROM mapping (0 = don't, 1 = LoROM, 2 = HiROM, 3 = ExHiROM), r = reserved]
 
 	audioPC			dsb 2					; audio variables for blargg's SPC player
 	audioA			db
@@ -586,7 +595,7 @@
 
 .STRUCT temp_entry
 	Name			dsb 123
-	Flags			db					; '$7B' / c0rrrrhd [c = copier header present, r = Reserved, h = Hidden, d = Directory]
+	Flags			db					; '$7B' / crrrrrhd [c = copier header present, r = Reserved, h = Hidden, d = Directory]
 	Cluster			dsb 4					; '$7C'-'$7F'
 .ENDST
 
@@ -594,7 +603,7 @@
 
 .STRUCT game_name
 	Name			dsb 123
-	Flags			db					; '$7B' / cfrrrr00 [c = copier header present, f = guess ROM mapping, r = Reserved]
+	Flags			db					; '$7B' / crrrrr00 [c = copier header present, r = Reserved]
 	Cluster			dsb 4					; '$7C'-'$7F'
 .ENDST
 
