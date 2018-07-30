@@ -49,7 +49,7 @@ FileBrowser:
 
 	stz	DP_SelectionFlags					; clear all selection-related flags
 	lda	#%00000011						; use SDRAM buffer, skip hidden files
-	sta	CLDConfigFlags
+	sta	CLDConfigFlags						; acknowledge flags set before this routine was called
 	jsr	CardLoadDir						; load content of directory selected via sourceCluster (32-bit)
 	jsr	FileBrowserCheckDirEmpty
 

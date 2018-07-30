@@ -10,6 +10,9 @@
 
 
 GotoDevNote:
+	jsr	SpriteMessageLoading
+	jsr	LoadDevMusic						; load music
+
 	Accu8
 	Index16
 

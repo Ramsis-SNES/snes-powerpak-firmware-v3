@@ -743,7 +743,7 @@ CardReadFile:								; sourceCluster already set
 
 	Accu16
 
-	inc	gameSize						; keep track of game size
+	inc	gameSize						; keep track of file size
 
 	Accu8
 

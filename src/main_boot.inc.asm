@@ -225,10 +225,10 @@ ColdBoot:
 
 	Accu8
 
-	DMA_CH0 $09, :CONST_Zeroes, CONST_Zeroes, $18, 0		; VRAM (length $0000 = 65536 bytes)
+	DMA_CH0 $09, :CONST_Zeroes, CONST_Zeroes, $18, 0		; VRAM (length 0 = 65536 bytes)
 	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $22, 512		; CGRAM (512 bytes)
 	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $04, 512+32		; OAM (low+high OAM tables = 512+32 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0		; WRAM (length $0000 = 65536 bytes = lower 64K of WRAM)
+	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0		; WRAM (length 0 = 65536 bytes = lower 64K of WRAM)
 
 ;	lda	#%00000001						; never mind, Accu still contains this value
 	sta	REG_MDMAEN						; WRAM address in $2181-$2183 has reached $10000 now, re-initiate DMA transfer for the upper 64K of WRAM
