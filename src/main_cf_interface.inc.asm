@@ -790,11 +790,13 @@ CardWriteSector:
 	jsr	CardWaitReady
 	jsr	CardCheckError
 	jsr	CardLoadLBA
+
 	ldx	#$0200							; write 512 bytes at a time
 	stx	sourceBytes16
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 	jsr	CardCheckError
+
 	lda	#$30
 	sta	CARDCOMMAND						; send card write sector command
 	nop

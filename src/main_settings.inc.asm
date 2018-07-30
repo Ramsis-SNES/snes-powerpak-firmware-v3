@@ -68,7 +68,6 @@ GotoSettings:
 
 .IFDEF SHOWDEBUGMSGS
 	SetCursorPos 0, 22
-
 	Accu16
 
 	tsc								; print stack pointer (initial value: $1FFF)
@@ -100,7 +99,6 @@ SettingsLoop:
 
 .IFDEF SHOWDEBUGMSGS
 	SetCursorPos 2, 22
-
 	PrintNum dontUseDMA
 .ENDIF
 

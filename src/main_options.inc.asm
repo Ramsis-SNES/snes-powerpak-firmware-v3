@@ -62,6 +62,7 @@ GotoGameOptions:
 	SetCursorPos 2, 1
 
 	jsr	PrintTempEntry
+
 	lda	#cursorYPlayLoop					; put cursor on "Play" line
 	sta	cursorY
 	lda	#cursorXstart
@@ -95,6 +96,7 @@ GotoGameOptions:
 	PrintString "Clear codes!"
 
 	jsr	ShowHelpGeneral
+
 	stz	Joy1New							; reset input buttons
 	stz	Joy1New+1
 	stz	Joy1Press
@@ -637,6 +639,7 @@ SelectPressed:								; print decoded GG codes
 
 	ldy	#$0020
 	jsr	GameGenieDecode
+
 	rts
 
 
@@ -661,6 +664,7 @@ SelectReleased:
 	SetCursorPos GGcode5Y, GGcodesX+17
 
 	jsr	SelectReleased2
+
 	rts
 
 
@@ -698,6 +702,7 @@ PrintGGCodes:
 
 	ldy	#$0020
 	jsr	GameGeniePrint
+
 	rts
 
 

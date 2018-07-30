@@ -45,10 +45,12 @@ InitTHMBrowser:
 	sta	DP_SubDirCounter
 	stz	DP_SubDirCounter+1
 	jsr	FileBrowser
+
 	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
 	bne	ThemeFileSelected					; yes, process file
 	jsr	PrintClearScreen					; no, clear screen
+
 	lda	#cursorXsettings					; put cursor back on 3rd menu line
 	sta	cursorX
 	lda	#cursorYsetmenu3
@@ -106,6 +108,7 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 ;	lda	#kDestSDRAM						; never mind, this is done in CardReadFile
 ;	sta	destType
 	jsr	CardReadFile						; load selected file to SDRAM
+
 	sei								; disable interrupts (as VRAM addresses are changed during NMI)
 	stz	REG_NMITIMEN
 	lda	#$00							; reset SDRAM address once again

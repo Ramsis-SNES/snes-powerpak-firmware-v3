@@ -229,7 +229,6 @@ CopyDate:								; date
 	lda	#$03A2							; tile properties, tile num for B button
 	sta	SpriteBuf1.Buttons+6
 
-
 	Accu8
 
 	SetCursorPos 19+32, 3

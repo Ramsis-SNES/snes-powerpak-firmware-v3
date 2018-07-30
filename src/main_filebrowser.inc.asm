@@ -676,6 +676,7 @@ ScrollDown:
 	lda	insertBottom
 	sta	temp
 	jsr	PrintClearLine
+
 	lda	temp
 	asl	a
 	asl	a
@@ -690,6 +691,7 @@ ScrollDown:
 	lsr	a
 	sta	Cursor+1
 	jsr	DirPrintEntry
+
 	lda	insertBottom
 	clc
 	adc	#$01
@@ -753,6 +755,7 @@ ScrollUp:
 	lda	insertTop
 	sta	temp
 	jsr	PrintClearLine
+
 	lda	temp
 	asl	a
 	asl	a
@@ -767,6 +770,7 @@ ScrollUp:
 	lsr	a
 	sta	Cursor+1
 	jsr	DirPrintEntry
+
 	lda	insertBottom
 	sec
 	sbc	#$01

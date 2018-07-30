@@ -50,6 +50,7 @@ Main:
 	stz	DP_ColdBootCheck2
 	stz	DP_ColdBootCheck3
 	jsl	apu_ram_init						; initialize sound RAM
+
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 	jsr	ClearSpriteText						; remove all sprites used by SPC player
@@ -233,13 +234,13 @@ ColdBoot:
 ;	lda	#%00000001						; never mind, Accu still contains this value
 	sta	REG_MDMAEN						; WRAM address in $2181-$2183 has reached $10000 now, re-initiate DMA transfer for the upper 64K of WRAM
 	jsl	apu_ram_init						; initialize sound RAM
+
 	phk								; set data bank = program bank (needed as apu_ram_init sits in ROM bank 2)
 	plb
 	jsr	SpriteInit						; set up sprite buffer
 	jsr	GFXsetup						; set up VRAM, video mode, background and character pointers
 
 	JoyInit								; initialize joypads and enable NMI
-
 	Accu8
 	Index16
 

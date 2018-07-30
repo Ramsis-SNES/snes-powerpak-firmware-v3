@@ -125,6 +125,7 @@ LoadSave:
 	lda	#kDestSDRAM
 	sta	destType
 	jsr	CardReadFile
+
 	ldy	#gameSize						; print SRAM sectors in decimal
 
 	PrintString "present, loaded %d sectors = "
