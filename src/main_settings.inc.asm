@@ -372,7 +372,7 @@ ResetSystem:
 	dec	a							; 15 / 3 = 5 frames
 	dec	a
 	dec	a
-	sta	$2100
+	sta	REG_INIDISP
 	bne	-
 
 	lda	#%10000001

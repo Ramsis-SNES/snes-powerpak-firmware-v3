@@ -116,18 +116,18 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 
 
 ; -------------------------- process theme file data 01: "expand" BG font for hi-res use into VRAM
-	lda	#$80							; VRAM address increment mode: increment address by one word after accessing the high byte ($2119)
-	sta	$2115
+	lda	#$80							; VRAM address increment mode: increment address by one word after accessing the high byte (REG_VMDATAH)
+	sta	REG_VMAIN
 	ldx	#ADDR_VRAM_BG1_TILES					; set VRAM address for BG1 font tiles
-	stx	$2116
+	stx	REG_VMADDL
 	ldx	#0
 
 @BuildFontFromThemeBG1:
 	ldy	#0
 -	lda	DMAREADDATA						; first, copy font tile (font tiles sit on the "left")
-	sta	$2118
+	sta	REG_VMDATAL
 	lda	DMAREADDATA
-	sta	$2119
+	sta	REG_VMDATAH
 	inx
 	inx
 	iny
@@ -135,8 +135,8 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 	bne	-
 
 	ldy	#0
--	stz	$2118							; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16×8 tiles
-	stz	$2119
+-	stz	REG_VMDATAL							; next, add 3 blank tiles (1 blank tile because Mode 5 forces 16×8 tiles
+	stz	REG_VMDATAH
 	iny								; and 2 blank tiles because BG1 is 4bpp)
 	cpy	#24							; 16 bytes (8 double bytes) per tile
 	bne	-
@@ -149,22 +149,22 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 	sta	DMAWRITEHI
 	sta	DMAWRITELO
 	ldx	#ADDR_VRAM_BG2_TILES					; set VRAM address for BG2 font tiles
-	stx	$2116
+	stx	REG_VMADDL
 	ldx	#0
 
 @BuildFontFromThemeBG2:
 	ldy	#0
--	stz	$2118							; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
-	stz	$2119
+-	stz	REG_VMDATAL							; first, add 1 blank tile (Mode 5 forces 16×8 tiles,
+	stz	REG_VMDATAH
 	iny								; no more blank tiles because BG2 is 2bpp)
 	cpy	#8							; 16 bytes (8 double bytes) per tile
 	bne	-
 
 	ldy	#0
 -	lda	DMAREADDATA						; next, copy 8×8 font tile (font tiles sit on the "right")
-	sta	$2118
+	sta	REG_VMDATAL
 	lda	DMAREADDATA
-	sta	$2119
+	sta	REG_VMDATAH
 	inx
 	inx
 	iny
@@ -178,14 +178,14 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 
 ; -------------------------- process theme file data 02-04: sprite-based font, main GFX, and cursor/button sprites (14 KiB total) --> VRAM
 ;	lda	#$80							; never mind, this was done before
-;	sta	$2115
+;	sta	REG_VMAIN
 	ldx	#ADDR_VRAM_SPR_TILES					; set VRAM address for sprite tiles
-	stx	$2116
+	stx	REG_VMADDL
 	ldx	#0
 -	lda	DMAREADDATA						; low byte of GFX data
-	sta	$2118
+	sta	REG_VMDATAL
 	lda	DMAREADDATA						; high byte of GFX data
-	sta	$2119
+	sta	REG_VMDATAH
 	inx
 	cpx	#7168							; 14 KiB (sic, because of low/high byte write) done?
 	bne	-
@@ -193,28 +193,28 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 
 
 ; -------------------------- process theme file data 05-08: palettes --> CGRAM
-	stz	$2121							; reset CGRAM address
+	stz	REG_CGADD							; reset CGRAM address
 	ldx	#0
 -	lda	DMAREADDATA
-	sta	$2122
+	sta	REG_CGDATA
 	inx
 	cpx	#8							; 4 colors = 8 bytes done?
 	bne	-
 
 	lda	#ADDR_CGRAM_MAIN_GFX					; set CGRAM address to main GFX palette
-	sta	$2121
+	sta	REG_CGADD
 	ldx	#0
 -	lda	DMAREADDATA
-	sta	$2122
+	sta	REG_CGDATA
 	inx
 	cpx	#64							; 32 colors = 64 bytes done?
 	bne	-
 
 	lda	#ADDR_CGRAM_FONT_SPR					; set CGRAM address for sprite-based font palettes
-	sta	$2121
+	sta	REG_CGADD
 	ldx	#0
 -	lda	DMAREADDATA
-	sta	$2122
+	sta	REG_CGDATA
 	inx
 	cpx	#160							; 80 colors = 160 bytes done?
 	bne	-
@@ -223,32 +223,32 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 
 ; -------------------------- process theme file data 09: BG color gradient --> WRAM (theme buffer)
 	ldx	#(HDMAtable.BG & $FFFF)					; set WRAM address = HDMA backdrop color gradient buffer, get lower word
-	stx	$2181
-	stz	$2183
+	stx	REG_WMADDL
+	stz	REG_WMADDH
 	ldx	#0							; rebuild table
 -	lda	#1							; scanline no.
-	sta	$2180
-	stz	$2180							; 1st word: CGRAM address ($00)
-	stz	$2180
+	sta	REG_WMDATA
+	stz	REG_WMDATA							; 1st word: CGRAM address ($00)
+	stz	REG_WMDATA
 	lda	DMAREADDATA						; 2nd word: color
-	sta	$2180
+	sta	REG_WMDATA
 	lda	DMAREADDATA
-	sta	$2180
+	sta	REG_WMDATA
 	inx
 	cpx	#224							; 224 HDMA table entries done?
 	bne	-
 
-	stz	$2180							; end of HDMA table
+	stz	REG_WMDATA							; end of HDMA table
 
 
 
 ; -------------------------- process theme file data 10: sprite-based font width table --> WRAM (theme buffer)
 	ldx	#(SpriteFWT & $FFFF)					; set WRAM address = font width table buffer
-	stx	$2181
-	stz	$2183
+	stx	REG_WMADDL
+	stz	REG_WMADDH
 	ldx	#0
 -	lda	DMAREADDATA						; copy table to WRAM buffer
-	sta	$2180
+	sta	REG_WMDATA
 	inx
 	cpx	#128							; 128 table entries done?
 	bne	-

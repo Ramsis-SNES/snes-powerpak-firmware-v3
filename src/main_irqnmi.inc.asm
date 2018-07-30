@@ -74,8 +74,8 @@ VBlank:
 
 
 ; -------------------------- refresh sprites
-	stz	$2102							; reset OAM address
-	stz	$2103
+	stz	REG_OAMADDL						; reset OAM address
+	stz	REG_OAMADDH
 
 	; DMA parameters:
 	; Mode: $00, CPU -> PPU, auto increment, write 1 byte
@@ -84,15 +84,14 @@ VBlank:
 	; B bus register: $2104 (OAM data write)
 	; number of bytes to transfer: 512 + 32 (OAM size)
 
-	DMA_CH0 $00, $00, SpriteBuf1, $04, 544
+	DMA_CH0 $00, $00, SpriteBuf1, <REG_OAMDATA, 544
 
 
 
 ; -------------------------- refresh BG1
-	lda	#$00							; VRAM address increment mode: increment address by one word
-	sta	$2115							; after accessing the low byte ($2118)
+	stz	REG_VMAIN						; VRAM address increment mode: increment address by one word after accessing the low byte ($2118)
 	ldx	#ADDR_VRAM_BG1_TILEMAP					; set VRAM address to BG1 tile map
-	stx	$2116
+	stx	REG_VMADDL
 
 	; DMA parameters:
 	; Mode: $00, CPU -> PPU, auto increment, write 1 byte
@@ -101,15 +100,13 @@ VBlank:
 	; B bus register: $2118 (VRAM low byte)
 	; number of bytes to transfer: 2048 (tile map size)
 
-	DMA_CH0 $00, $7E, (TextBuffer.BG1 & $FFFF), $18, 2048
+	DMA_CH0 $00, $7E, (TextBuffer.BG1 & $FFFF), <REG_VMDATAL, 2048
 
 
 
 ; -------------------------- refresh BG2
-	lda	#$00							; VRAM address increment mode: increment address by one word
-	sta	$2115							; after accessing the low byte ($2118)
 	ldx	#ADDR_VRAM_BG2_TILEMAP					; set VRAM address to BG2 tile map
-	stx	$2116
+	stx	REG_VMADDL
 
 	; DMA parameters:
 	; Mode: $00, CPU -> PPU, auto increment, write 1 byte
@@ -118,20 +115,21 @@ VBlank:
 	; B bus register: $2118 (VRAM low byte)
 	; number of bytes to transfer: 2048 (tile map size)
 
-	DMA_CH0 $00, $7E, (TextBuffer.BG2 & $FFFF), $18, 2048
+	DMA_CH0 $00, $7E, (TextBuffer.BG2 & $FFFF), <REG_VMDATAL, 2048
 
 
 
 ; -------------------------- misc. tasks
 	jsr	GetInput
+
 	lda	scrollY
-	sta	$210E							; BG1 vertical scroll
-	stz	$210E
-	sta	$2110							; BG2 vertical scroll
-	stz	$2110
+	sta	REG_BG1VOFS						; BG1 vertical scroll
+	stz	REG_BG1VOFS
+	sta	REG_BG2VOFS						; BG2 vertical scroll
+	stz	REG_BG2VOFS
 	lda	DP_HDMAchannels						; initiate HDMA transfers
 	and	#%11111100						; make sure channels 0, 1 (reserved for normal DMA) aren't used
-	sta	$420C
+	sta	REG_HDMAEN
 	lda	REG_RDNMI						; clear NMI flag (just to be sure)
 
 	AccuIndex16
