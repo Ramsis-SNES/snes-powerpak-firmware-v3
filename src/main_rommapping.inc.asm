@@ -151,17 +151,19 @@ LoadSave:
 
 	Accu8
 
-	jmp	(PTR_TryInternalHeader, x)
+	jmp	(PTR_CheckInternalHeader, x)
 
-PTR_TryInternalHeader:
-	.DW CheckInternalHeaderExHi					; if no ROM mapping flags are set at all, continue normally
-	.DW CheckInternalHeaderLo@IsLo
-	.DW CheckInternalHeaderHi@IsHi
-	.DW CheckInternalHeaderExHi@IsExHi
+PTR_CheckInternalHeader:
+	.DW CheckInternalHeader						; if no ROM mapping flags are set at all, continue normally
+	.DW CheckInternalHeader@ForceLoROM				; bit 0 set --> force LoROM
+	.DW CheckInternalHeader@ForceHiROM				; bit 1 set --> force HiROM
+	.DW CheckInternalHeader@ForceExHiROM				; both bits set --> force ExHiROM
 
 
 
-CheckInternalHeaderExHi:
+CheckInternalHeader:
+
+@ExHiROM:
 	lda	#$DC							; $40FFDC = location of checksum complement
 	sta	DMAWRITELO
 	lda	#$FF
@@ -182,12 +184,12 @@ CheckInternalHeaderExHi:
 	lda	temp+2							; check if checksum & complement match
 	eor	#$FFFF
 	cmp	temp
-	bne	@NotExHi
+	bne	@NotExHiROM
 
 	Accu8
 
-@IsExHi:
-	lda	#$C0							; ROM is ExHiROM, copy internal header
+@IsExHiROM:
+	lda	#$C0							; ROM is ExHiROM, copy internal header (all known games with a matching checksum & complement at $40FFDC are ExHiROM, so no header sanity checks needed at this point)
 	sta	DMAWRITELO
 	lda	#$FF
 	sta	DMAWRITEHI
@@ -195,19 +197,34 @@ CheckInternalHeaderExHi:
 	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
-	PrintString "\nHeader at $40FFC0"
+	PrintString "\n$40FFC0 header valid"
 
-	lda	#%00000011						; set ExHiROM mapping flags
+	bra	+
+
+@ForceExHiROM:
+	lda	#$C0							; ROM is treated as ExHiROM, copy internal header
+	sta	DMAWRITELO
+	lda	#$FF
+	sta	DMAWRITEHI
+	lda	#$40
+	sta	DMAWRITEBANK
+	jsr	CopyROMInfo
+
+	PrintString "\n$40FFC0 header forced"
+
++	lda	#%00000011						; set ExHiROM mapping flags
 	tsb	fixheader
+	lda	gameROMMapper
+	and	#$F0							; discard mapping bits
+	ora	#$05							; set ExHiROM mapping (lower nibble = 5)
+	sta	gameROMMapper
 	jmp	InternalHeaderDone
 
-@NotExHi:
+@NotExHiROM:
 	Accu8
-	PrintString "\nNo $40FFC0 header"
+	PrintString "\n$40FFC0 header invalid, checking $FFC0 instead ..."
 
-
-
-CheckInternalHeaderHi:
+@HiROM:
 	lda	#$DC							; $00FFDC = location of checksum complement
 	sta	DMAWRITELO
 	lda	#$FF
@@ -228,12 +245,16 @@ CheckInternalHeaderHi:
 	lda	temp+2							; check if checksum & complement match
 	eor	#$FFFF
 	cmp	temp
-	bne	@NotHi
+	beq	@IsHiROM
 
 	Accu8
 
-@IsHi:
-	lda	#$C0							; ROM is HiROM, copy internal header
+	jmp	@NotHiROM
+
+@IsHiROM:
+	Accu8
+
+	lda	#$C0							; ROM seems to be HiROM, copy internal header
 	sta	DMAWRITELO
 	lda	#$FF
 	sta	DMAWRITEHI
@@ -241,19 +262,58 @@ CheckInternalHeaderHi:
 	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
-	PrintString "\nHeader at $FFC0"
+	PrintString "\n$FFC0 header found, checking sanity ..."		; this is necessary as some LoROM games (notably Return of Double Dragon aka Super Double Dragon) have two internal headers (at both $FFC0 and $7FC0)
 
-	lda	#%00000010						; set HiROM mapping flag
+	lda	gameROMMapper
+	and	#$0F							; mask off upper nibble (ROM speed)
+	cmp	#$01
+	bne	@NotHiROM
+
+	lda	gameROMType
+	cmp	#$06							; ROM type must be <= 5
+	bcs	@NotHiROM
+
+;	lda	#$40
+;	cmp	gameROMMbits						; ROM size <= 64Mbits // whoa, what? HiROM games are 32 Mbit max. ??
+;	bcc	@NotHiROM
+
+	lda	#$08
+	cmp	saveSize						; SRAM size <= 8d
+	bcc	@NotHiROM
+
+	lda	gameResetVector+1
+	cmp	#$80							; reset vector goes to >= 8000
+	bcs	@ValidHiROM
+	bra	@NotHiROM
+
+@ForceHiROM:
+	lda	#$C0							; ROM is treated as HiROM, copy internal header
+	sta	DMAWRITELO
+	lda	#$FF
+	sta	DMAWRITEHI
+	lda	#$00
+	sta	DMAWRITEBANK
+	jsr	CopyROMInfo
+
+	PrintString "\n$FFC0 header forced"
+
+	bra	+
+
+@ValidHiROM:
+	PrintString "\n$FFC0 header valid"
+
++	lda	#%00000010						; make sure HiROM mapping flag is set
 	tsb	fixheader
+	lda	gameROMMapper
+	and	#$F0							; discard mapping bits
+	ora	#$01							; set HiROM mapping (lower nibble = 1)
+	sta	gameROMMapper
 	jmp	InternalHeaderDone
 
-@NotHi:
-	Accu8
-	PrintString "\nNo $FFC0 header"
+@NotHiROM:
+	PrintString "\n$FFC0 header invalid, checking $7FC0 instead ..."
 
-
-
-CheckInternalHeaderLo:
+@LoROM:
 	lda	#$DC							; $007FDC = location of checksum complement
 	sta	DMAWRITELO
 	lda	#$7F
@@ -274,11 +334,12 @@ CheckInternalHeaderLo:
 	lda	temp+2							; check if checksum & complement match
 	eor	#$FFFF
 	cmp	temp
-	bne	@NotLo
+	beq	@IsLoROM
+	jmp	@NotLoROM
 
+@IsLoROM:
 	Accu8
 
-@IsLo:
 	lda	#$C0							; ROM is LoROM, copy internal header
 	sta	DMAWRITELO
 	lda	#$7F
@@ -287,30 +348,85 @@ CheckInternalHeaderLo:
 	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
-	PrintString "\nHeader at $7FC0"
+	PrintString "\n$7FC0 header found, checking sanity ..."		; for good measure
 
-	lda	#%00000001						; set LoROM mapping flag
+	lda	gameROMMbits
+	cmp	#$60							; check for 96 Mbit ROM first
+	beq	@96MbitLoROM
+
+	lda	gameROMMapper
+	and	#$0F							; mask off upper nibble (ROM speed)
+	beq	+							; lower nibble must be zero for LoROM
+	jmp	@NotLoROM
+
++	lda	gameROMType
+	cmp	#$06							; ROM type must be <= 5
+	bcs	@NotLoROM
+
+	lda	#$20
+	cmp	gameROMMbits						; ROM size <= 32Mbits
+	bcc	@NotLoROM
+
+	lda	#$08
+	cmp	saveSize						; SRAM size <= 8d
+	bcc	@NotLoROM
+
+	lda	gameResetVector+1
+	cmp	#$80							; reset vector goes to >= 8000
+	bcs	@ValidLoROM
+	bra	@NotLoROM
+
+@ForceLoROM:
+	lda	#$C0							; ROM is treated as LoROM, copy internal header
+	sta	DMAWRITELO
+	lda	#$7F
+	sta	DMAWRITEHI
+	lda	#$00
+	sta	DMAWRITEBANK
+	jsr	CopyROMInfo
+
+	PrintString "\n$7FC0 header forced"
+
+	bra	+
+
+@ValidLoROM:
+	PrintString "\n$7FC0 header valid"
+
++	lda	#%00000001						; make sure LoROM mapping flag is set
 	tsb	fixheader
+	lda	gameROMMapper
+	and	#$F0							; discard mapping bits
+	sta	gameROMMapper						; set LoROM mapping (lower nibble = 0)
 	jmp	InternalHeaderDone
 
-@NotLo:
+@96MbitLoROM:
+	PrintString "\n96 Mbit ROM"
+
+	jmp	InternalHeaderDone
+
+@NotLoROM:
 	Accu8
-	PrintString "\nNo $7FC0 header"
+	PrintString "\n$7FC0 header invalid!\n\nPress any button ..."
+	WaitForUserInput
+
+
 
 NoInternalHeader:
-	lda	fixheader
-	and	#%00000011						; check if any mapping bit is set
-	beq	+
-	jmp	CantLoadROM						; force ROM mapping already attempted, no luck
+	jsr	PrintClearScreen
 
-+	jsr	PrintClearScreen
+	DrawFrame 0, 11, 31, 9
 
-	SetCursorPos 1, 0
-	PrintString "Internal header is corrupt, let's try to force ROM mapping:"
-	SetCursorPos 3, 0
-	PrintString "LoROM/ExLoROM"
-	PrintString "HiROM"
-	PrintString "ExHiROM"
+	lda	#92							; patch HDMA table in WRAM with scanline values matching the questions "window" border
+	sta	HDMAtable.ColorMath+0
+	lda	#70
+	sta	HDMAtable.ColorMath+3
+	lda	#%00001000						; enable color math channel
+	tsb	DP_HDMAchannels
+
+	SetCursorPos 11, 0
+	PrintString "No internal header found, please select ROM mapping\nmanually:"
+	SetCursorPos 14, 1
+	PrintString "LoROM/ExLoROM\n  HiROM\n  ExHiROM"
 
 	lda	#cursorXmapping						; put cursor on first selection line
 	sta	cursorX
@@ -363,44 +479,39 @@ MappingLoop:
 
 
 MappingSelectionMade:
-	lda	cursorY
-	sta	temp
+	lda	cursorY							; save cursorY before hiding cursor
+	sta	DP_cursorY_BAK
 
 	HideCursorSprite
 
+	lda	#%00001000						; disable color math channel
+	trb	DP_HDMAchannels
 	jsr	PrintClearScreen
 
 	SetCursorPos 1, 0
 
-	lda	temp							; mapping flags = (cursorY / 8) - 5
+	lda	DP_cursorY_BAK						; (cursorY / 8) - 16 = mapping flags (%01, %10, or %11)
 	lsr	a
 	lsr	a
 	lsr	a
 	sec
-	sbc	#5
+	sbc	#16
 	sta	temp
 	lda	fixheader
-	and	#%11111100						; mapping bits shouldn't be set at this point, mask them off anyway to be safe
-	ora	temp
+	and	#%11111100						; fixheader mapping flags shouldn't be set at this point, mask them off anyway to be safe
+	ora	temp							; set mapping flags according to user selection
 	sta	fixheader
-	and	#%00000011						; mask off everything except mapping bytes, and use value as jump index
-	asl	a
+	and	#%00000011						; mask off everything except mapping bits, and use value as jump index
+	asl	a							; value × 2 due to word entries in table
 
 	Accu16
 
 	and	#$00FF							; remove garbage in high byte
-	tax
+	tax								; save as index for upcoming indirect jump instruction
 
 	Accu8
 
-	jmp	(PTR_TryInternalHeader, x)
-
-
-
-CantLoadROM:
-	PrintString "\nI'm sorry, but I can't load this ROM file. :-("
-
-	jmp	FatalError
+	jmp	(PTR_CheckInternalHeader, x)
 
 
 
@@ -1091,6 +1202,7 @@ CopyROMInfo:
 
 	stz	tempEntry, x						; NUL-terminate game title
 	lda	DMAREADDATA						; D5
+;	ora	gameROMMapper						; acknowledge possibly forced ROM mapping
 	sta	gameROMMapper
 
 	PrintString "\nMode $"

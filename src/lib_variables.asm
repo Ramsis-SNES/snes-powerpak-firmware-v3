@@ -334,9 +334,9 @@
 ; -------------------------- ROM mapping selection layout
 .DEFINE cursorXmapping		$0D
 .DEFINE cursorYmappingDiff	$0A
-.DEFINE cursorYmappingLo	$30
-.DEFINE cursorYmappingHi	$38
-.DEFINE cursorYmappingExHi	$40
+.DEFINE cursorYmappingLo	$88
+.DEFINE cursorYmappingHi	$90
+.DEFINE cursorYmappingExHi	$98
 
 
 
@@ -498,7 +498,7 @@
 	bankOffset		dw
 	partitionIndex		dw
 
-	fixheader		db					; crrrrrmm [c = assume copier header, m = force ROM mapping (0 = don't, 1 = LoROM, 2 = HiROM, 3 = ExHiROM), r = reserved]
+	fixheader		db					; crrrrrmm [c = assume copier header, m = force ROM mapping (%00 = don't, %01 = LoROM, %10 = HiROM, %11 = ExHiROM), r = reserved]
 
 	audioPC			dsb 2					; audio variables for blargg's SPC player
 	audioA			db
