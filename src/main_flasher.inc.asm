@@ -26,7 +26,7 @@ GotoFlashUpdater:
 
 	PrintSpriteText 3, 2, "SNES PowerPak Flash Updater", 4
 	SetCursorPos 2, 0
-	PrintString "v3.01, (c) 2018 by https://manuloewe.de\n\n"
+	PrintString "v3.01, (c) 2019 by https://manuloewe.de\n\n"
 	PrintString "Detected flash ROM chip ID: "
 
 	ldx	#$0000
