@@ -126,7 +126,7 @@ sb_start:
 	rep	#A_8BIT			; write port0+port1 data
 	sta	REG_APUIO0		;
 	sep	#A_8BIT			;--------------------------------------
-	cpx	#SM_SPC_end-SM_SPC	; loop until all bytes transferred
+	cpx	#_sizeof_SM_SPC		; loop until all bytes transferred
 	bcc	sb_send			;
 ;----------------------------------------------------------------------
 ; all bytes transferred

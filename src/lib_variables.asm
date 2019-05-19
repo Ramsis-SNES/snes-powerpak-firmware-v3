@@ -161,8 +161,6 @@
 .DEFINE REG_APUIO1		$2141
 .DEFINE REG_APUIO2		$2142
 .DEFINE REG_APUIO3		$2143
-.DEFINE REG_APUIO01		$2140					; for 16-bit writes to $2140/$2141
-.DEFINE REG_APUIO23		$2142					; for 16-bit writes to $2142/$2143
 .DEFINE REG_WMDATA		$2180
 .DEFINE REG_WMADDL		$2181
 .DEFINE REG_WMADDM		$2182
@@ -665,11 +663,6 @@
 
 .ENUM $7E2000
 	TextBuffer		INSTANCEOF text_buffer			; 4096 bytes
-.ENDE
-
-
-
-.ENUM $7E3000
 	LogBuffer		dsb 2048				; for writing error messages to ERROR.LOG
 	HDMAtable		INSTANCEOF hdma_tables			; 1186 bytes
 	SpriteFWT		dsb 128					; font width table for sprite-based font

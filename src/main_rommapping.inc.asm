@@ -942,8 +942,6 @@ LoadGameGenie:
 
 ; -------------------------- boot game
 BootGame:
-	stz	Joy1New
-	stz	Joy1New+1
 	lda	Joy1Press+1
 	and	#%00100000						; if user holds Select, log screen and wait
 	beq	@BootGameNow
