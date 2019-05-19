@@ -181,6 +181,7 @@ SRAMSelectionMade:
 	trb	DP_HDMAchannels
 	jsr	SpriteMessageLoading
 	jsr	InitSRMBrowser						; launch SRAM browser
+
 	lda	DP_SelectionFlags					; back from browser, check again if SRM file was picked or not
 	and	#%00000001
 	bne	@SRAMFilePicked

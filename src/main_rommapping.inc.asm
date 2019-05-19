@@ -91,7 +91,6 @@ FixMbits:
 ; -------------------------- SRAM loading
 LoadSave:
 	PrintString "\nChecking savegame ... "
-
 	Accu16
 
 	lda	saveName.Cluster
@@ -100,7 +99,6 @@ LoadSave:
 	bne	@LoadSaveStart
 
 	Accu8
-
 	PrintString "no SRAM file found."
 
 	jmp	@LoadSaveDone
@@ -958,7 +956,7 @@ BootGame:
 	WaitForUserInput
 
 @BootGameNow:
-	lda	fixheader						; if ROM mapping was successfully forced, save flags along with game name etc. so the PowerPak "remembers" the correct mapping
+	lda	fixheader						; save flags along with game name etc. so the PowerPak "remembers" the correct mapping
 	and	#%10000011
 	tsb	gameName.Flags
 	jsr	SaveLastGame
@@ -1234,10 +1232,8 @@ CopyROMInfo:
 
 	lda	#$FC
 	sta	DMAWRITELO
-
 	lda	DMAREADDATA						; FC
 	sta	gameResetVector
-
 	lda	DMAREADDATA						; FD
 	sta	gameResetVector+1
 
@@ -1253,7 +1249,6 @@ FatalError:
 	jsr	LogScreenMessage
 
 	PrintString "\n\nPress any button to return to the titlescreen."
-
 	WaitForUserInput
 
 	jsr	PrintClearScreen

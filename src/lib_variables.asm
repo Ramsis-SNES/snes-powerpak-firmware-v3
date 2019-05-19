@@ -351,7 +351,7 @@
 
 
 ; -------------------------- warm-boot signature
-; Added for v3.00 by ManuLöwe. Basically, any three 8-bit-values will do.
+; Added for v3.00 by ManuLöwe. Basically, any three 8-bit values will do.
 
 .DEFINE kWarmBoot1		$2A
 .DEFINE kWarmBoot2		$97
@@ -442,7 +442,7 @@
 	scrollYUp		db
 	scrollYDown		db					; 135 bytes
 
-	cursorX			db					; cursorX/cursorY must be kept in consecutive order due to occasional 16-bit writes
+	cursorX			db					; sprite cursor coordinates (cursorX/cursorY must be kept in consecutive order due to occasional 16-bit writes)
 	cursorY			db
 	cursorYCounter		db
 	cursorYUp		db

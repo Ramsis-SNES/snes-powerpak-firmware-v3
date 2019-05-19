@@ -455,6 +455,7 @@ GotoIntroScreen:
 
 	jsr	PrintRomVersion						; restore ROM version string (with sprite FWT from theme file)
 	jsr	ShowMainGFX						; set up OAM to show main sprite graphics
+
 	lda	#$00
 	sta	CONFIGWRITEDSP						; turn off DSP chip
 
@@ -713,6 +714,7 @@ ShowChipsetDMA:
 	PrintString "Video: "						; completed in the following subroutine
 
 	jsr	CheckFrameLength
+
 	rts
 
 
@@ -1060,6 +1062,7 @@ DirFindEntry:
 	Accu8
 
 	jsr	DirGetEntry
+
 	ldy	#$0000
 
 @DirFindEntryCharLoop:							; check if entry matches, only look at first 8 chars
@@ -1259,6 +1262,7 @@ SaveLastGame:
 	lda	#kWRAM
 	sta	DP_DestOrSrcType
 	jsr	CardWriteFile
+
 	rts
 
 
@@ -1373,6 +1377,7 @@ LogScreen:
 	lda	#kWRAM
 	sta	DP_DestOrSrcType
 	jsr	CardWriteFile
+
 	rts
 
 

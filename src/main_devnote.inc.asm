@@ -66,12 +66,12 @@ GotoDevNote:
 	PrintString "Exit"
 	SetTextPos 23, 4
 	PrintString "Start/stop music"
-	PrintString "... I'm proud to say that v3.0X \"MUFASA\" takes your SNES\n"
  	SetTextPos 1+32, 0						; "page" 2 in upper 32×32 tilemap
+	PrintString "... I'm proud to say that v3.XX \"MUFASA\" takes your SNES\n"
 	PrintString "PowerPak to yet another dimension. :D Not only is this\n"
 	PrintString "a faster and more usable firmware than ever before, but\n"
 	PrintString "it also lets you customize its visuals to your very own\n"
-	PrintString "liking: Choose from no less than seven themes supplied\n"
+	PrintString "liking: Choose from any of the various themes supplied\n"
 	PrintString "within this firmware package--be it bleak and desolate,\n"
 	PrintString "just like the original manufacturer's design, or a\n"
 	PrintString "colorful homage to your favorite platformer. Or, and\n"
@@ -138,6 +138,7 @@ GotoDevNote:
 ; -------------------------- dev's note loop
 DevNoteLoop:
 	jsl	spcProcess
+
 	wai
 
 
@@ -189,6 +190,7 @@ DevNoteLoop:
 @StartButtonDone:
 
 
+
 ; -------------------------- Start pressed, reset
 	lda	#$0E							; reduce screen brightness by 1
 	sta	REG_INIDISP
@@ -199,6 +201,7 @@ DevNoteLoop:
 	pha
 	jsl	spcSetModuleVolume
 	jsl	spcProcess
+
 	pla
 	pha								; make the screen fade to black at the same time
 	lsr	a							; volume / 16 = screen brightness :-)
@@ -211,6 +214,7 @@ DevNoteLoop:
 
 	jsl	spcStop
 	jsl	spcProcess
+
 	wai
 	lda	#%10000001
 	sta	CONFIGWRITESTATUS					; reset PowerPak, stay in boot mode
@@ -360,11 +364,13 @@ FadeOutMusic:
 	pha
 	jsl	spcSetModuleVolume
 	jsl	spcProcess
+
 	pla
 	bne	-
 
 	jsl	spcStop
 	jsl	spcProcess
+
 	wai
 	rts
 

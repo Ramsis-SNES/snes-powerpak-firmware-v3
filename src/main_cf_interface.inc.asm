@@ -439,8 +439,8 @@ CardCheckError:
 	lda	CARDSTATUS						; get card status, check for general error
 	sta	errorCode
 	and	#%00000001
-;	bne	CardError
-	cmp	#%00000001	; patch: 008F89 D0 (bne) : 008F8A 03 (CardError) : 008F8B 60 (rts)
+;	bne	CardError						; CAVEAT: THIS MYSTERIOUSLY DOES NOT WORK!!!
+	cmp	#%00000001
 	beq	CardError
 	rts
 
@@ -500,26 +500,31 @@ CardLoadLBA:
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 	jsr	CardCheckError
+
 	lda	#$01
 	sta	CARDSECTORCOUNT
 	jsr	CardWaitNotBusy						; LAST check busy/ready/error after each command
 	jsr	CardWaitReady
 ;	jsr	CardCheckError
+
 	lda	sourceSector
 	sta	CARDLBA0
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 ;	jsr	CardCheckError
+
 	lda	sourceSector+1
 	sta	CARDLBA1
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 ;	jsr	CardCheckError
+
 	lda	sourceSector+2
 	sta	CARDLBA2
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 ;	jsr	CardCheckError
+
 	lda	sourceSector+3						; load LBA number
 	and	#%00001111
 	ora	#%11100000
@@ -528,6 +533,7 @@ CardLoadLBA:
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 	jsr	CardCheckError
+
 	rts
 
 
@@ -617,6 +623,7 @@ CardReadSector:
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 	jsr	CardCheckError
+
 ;	lda	CARDSECTORCOUNTREAD
 ;	sta	errorCode
 ;	bne	CardReadSectorFailed					; LAST make sure sectors = 0
@@ -625,6 +632,7 @@ CardReadSector:
 ;	jsr	CardWaitNotBusy						; LAST check for busy before error
 ;	jsr	CardWaitReady
 ;	jsr	CardCheckError
+
 	lda	REG_RDNMI						; clear NMI flag, this is necessary to prevent occasional graphics glitches (see Fullsnes, 4210h/RDNMI)
 	lda	#$81
 	sta	REG_NMITIMEN						; re-enable VBlank NMI
@@ -831,6 +839,7 @@ CardWriteSector:
 
 @CWS_Done:
 	jsr	CardCheckError
+
 	lda	REG_RDNMI						; clear NMI flag // ADDED for v3.00
 	lda	#$81
 	sta	REG_NMITIMEN						; re-enable VBlank NMI
@@ -925,7 +934,7 @@ CardLoadDir:
 
 	lda	fat32Enabled
 	and	#$0001
-	bne	@CLD_ReadSector					; FAT32 detected, go to read sector
+	bne	@CLD_ReadSector						; FAT32 detected, go to read sector
 	lda	sourceCluster						; FAT16 check if trying to load root dir
 	cmp	rootDirCluster
 	bne	@CLD_ReadSector

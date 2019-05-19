@@ -22,14 +22,10 @@ VBlank:
 	phy
 	phk								; set Data Bank = Program Bank
 	plb
-	lda	temp+6							; push temp variables on the stack (used in scrolling routines)
-	pha
-	lda	temp+4
-	pha
-	lda	temp+2
-	pha
-	lda	temp
-	pha
+	pei	(temp+6)						; push temp variables on the stack (used in scrolling routines)
+	pei	(temp+4)
+	pei	(temp+2)
+	pei	(temp)
 
 	Accu8
 
