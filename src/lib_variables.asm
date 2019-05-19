@@ -343,11 +343,12 @@
 ; -------------------------- Settings menu layout
 .DEFINE cursorXsettings		$40
 
-.DEFINE cursorYsetmenu1		$60
-.DEFINE cursorYsetmenu2		$68
-.DEFINE cursorYsetmenu3		$70
-.DEFINE cursorYsetmenu4		$78
-.DEFINE cursorYsetmenu5		$80
+.DEFINE cursorYsetmenu1		$58
+.DEFINE cursorYsetmenu2		$60
+.DEFINE cursorYsetmenu3		$68
+.DEFINE cursorYsetmenu4		$70
+.DEFINE cursorYsetmenu5		$78
+.DEFINE cursorYsetmenu6		$80
 
 
 
@@ -492,7 +493,7 @@
 									; Reminder: Supporting both buffers is mandatory because FPGA programming --
 									; and thus, SDRAM unlocking -- can only occur after TOPLEVEL.BIT has been loaded.
 
-	dontUseDMA		db
+	DP_UserSettings		db					; rzrrrrrd [z = randomize SNES RAM upon game boot, d = don't use DMA when loading files, r = reserved]
 
 	bankCounter		db
 	bankOffset		dw
@@ -638,12 +639,13 @@
 	SpriteBuf1		INSTANCEOF oam_low			; 512 bytes
 	SpriteBuf2		INSTANCEOF oam_high			; 32 bytes
 	GameGenie		INSTANCEOF game_genie			; 94 bytes
+	RandomNumbers		dsb 130					; for random numbers // reminder: when relocating this, adapt RandomizeWRAM routine accordingly!
 .ENDE
-; -------------------------- total: 3071 ($BFF) bytes
+; -------------------------- total: 3200 ($C80) bytes
 
 
 
-.ENUM $C00								; more SNESMod variables
+.ENUM $D00								; more SNESMod variables
 	spc_fifo		dsb 256					; 128-byte command fifo
 	spc_sfx_next		db
 	spc_q			db
@@ -657,7 +659,7 @@
 
 
 
-.ENUM $C00								; SPC RAM buffer variables (memory area shared with SNESMod vars)
+.ENUM $D00								; SPC RAM buffer variables (memory area shared with SNESMod vars)
 	spcRAM1stBytes		dsb 2
 	spcFLGReg		db
 	spcKONReg		db
@@ -669,11 +671,11 @@
 
 
 
-.ENUM $C00								; sic! (spcF8Buffer only uses the "upper" 264 of its assigned 512 bytes)
+.ENUM $D00								; sic! (spcF8Buffer only uses the "upper" 264 of its assigned 512 bytes)
 	spcF8Buffer		dsb 512
 	spcRegBuffer		dsb 128					; SPC RAM buffer total: 640 bytes
 .ENDE
-; -------------------------- total: 3711 ($E7F) bytes (reminder: stack is <= $1FFF)
+; -------------------------- total (with gaps): 3968 ($F80) bytes (reminder: stack is <= $1FFF)
 
 
 

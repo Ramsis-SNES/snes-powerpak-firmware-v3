@@ -302,8 +302,8 @@ LoadConfig:
 	jsr	CardReadSector						; sector -> WRAM
 
 	ldy	#$0000
-	lda	sectorBuffer1, y					; transfer first byte to DMA "blocker" variable (standard = $00 = DMA on)
-	sta	dontUseDMA						; (reminder: DMA was off until now)
+	lda	sectorBuffer1, y					; transfer first byte to user settings variable
+	sta	DP_UserSettings						; (reminder: DMA was off until now)
 	iny
 
 	Accu16
@@ -696,7 +696,8 @@ ShowChipsetDMA:
 	SetTextPos 7, 17
 	PrintString "DMA : "
 
-	lda	dontUseDMA
+	lda	DP_UserSettings
+	and	#%00000001						; check for DMA flag
 	bne	@DMAOff
 
 	PrintString "on "

@@ -174,6 +174,7 @@ CONST_Zeroes:
 .INCLUDE "main_devnote.inc.asm"						; developer's note
 .INCLUDE "main_spcplayer.inc.asm"					; SPC player
 .INCLUDE "main_flasher.inc.asm"
+.INCLUDE "lib_randomnrgen.inc.asm"					; random number generator
 .INCLUDE "lib_strings.inc.asm"						; text engine
 
 .ENDS

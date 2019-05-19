@@ -23,21 +23,23 @@ GotoSettings:
 	sta	cursorY
 
 @ReturnFromMenuSection:
-	PrintSpriteText 9, 9, "Settings:", 7
-	DrawFrame 7, 8, 17, 8
-	SetCursorPos 9,  7
+	PrintSpriteText 8, 9, "Settings:", 7
+	DrawFrame 7, 7, 17, 9
+	SetTextPos 8,  7
 	PrintString "System info, hardware test"
-	SetCursorPos 10,  7
-	PrintString "Toggle DMA mode (currently"
-
-	jsr	DisplayDMASetting					; look up DMA setting to complete the line
-
-	SetCursorPos 11,  7
+	SetTextPos 9,  7
+	PrintString "Toggle DMA mode (currently"			; this is completed in a subroutine below
+	SetTextPos 10,  7
 	PrintString "Select a theme ..."
-	SetCursorPos 12,  7
+	SetTextPos 11,  7
+	PrintString "Randomize SNES RAM (exp.):"			; this is completed in a subroutine below
+	SetTextPos 12,  7
 	PrintString "View developer's note"
-	SetCursorPos 13,  7
+	SetTextPos 13,  7
 	PrintString "Check for firmware update"
+
+	jsr	DisplayDMASetting					; look up settings to complete the respective lines
+	jsr	DisplayRandSetting
 
 
 
@@ -98,8 +100,8 @@ SettingsLoop:
 	wai
 
 .IFDEF SHOWDEBUGMSGS
-	PrintNum dontUseDMA
 	SetTextPos 2, 22
+	PrintHexNum DP_UserSettings
 .ENDIF
 
 
@@ -113,7 +115,7 @@ SettingsLoop:
 	sbc	#SelLineHeight
 	cmp	#cursorYsetmenu1-SelLineHeight
 	bne	+
-	lda	#cursorYsetmenu5
+	lda	#cursorYsetmenu6
 +	sta	cursorY
 
 @DpadUpDone:
@@ -127,7 +129,7 @@ SettingsLoop:
 	lda	cursorY
 	clc
 	adc	#SelLineHeight
-	cmp	#cursorYsetmenu5+SelLineHeight
+	cmp	#cursorYsetmenu6+SelLineHeight
 	bne	+
 	lda	#cursorYsetmenu1
 +	sta	cursorY
@@ -138,7 +140,8 @@ SettingsLoop:
 
 ; -------------------------- check for A button = make a selection
 	lda	Joy1New
-	bmi	CheckSelection
+	bpl	@AButtonDone
+	jmp	CheckSelection
 
 @AButtonDone:
 
@@ -164,13 +167,21 @@ SettingsLoop:
 
 
 
-; -------------------------- show/hide hint
+; -------------------------- show/hide hints
 	lda	cursorY
 	cmp	#cursorYsetmenu3					; cursor on "Select a theme"?
 	bne	+
 
 	SetTextPos 16, 1
 	PrintString "Please save your settings after selecting a new theme."
+
+	bra	@ShowHintDone
+
++	cmp	#cursorYsetmenu4					; cursor on "Randomize SNES RAM"?
+	bne	+
+
+	SetTextPos 16, 1
+	PrintString "Fill most RAM areas with random bytes upon game boot. "
 
 	bra	@ShowHintDone
 
@@ -189,11 +200,11 @@ CheckSelection:
 
 
 ; -------------------------- check for cursor position
-	lda	cursorY							; (cursorY RSH 2) - 24 = jump index
+	lda	cursorY							; (cursorY RSH 2) - 22 = jump index
 	lsr	a
 	lsr	a
 	sec
-	sbc	#24
+	sbc	#22
 
 	Accu16
 
@@ -208,22 +219,26 @@ CheckSelection:
 	.DW ShowSysInfo
 	.DW ToggleDMA
 	.DW InitTHMBrowser
+	.DW ToggleRandomize
 	.DW GotoDevNote
 	.DW CheckForUpdate
 
 
 
 ToggleDMA:
-	lda	dontUseDMA						; toggle DMA setting ...
-	beq	+
-	stz	dontUseDMA
-	bra	@ToggleDMADone
-
-+	lda	#$01
-	sta	dontUseDMA
-
-@ToggleDMADone:
+	lda	DP_UserSettings
+	eor	#%00000001						; toggle DMA flag ...
+	sta	DP_UserSettings
 	jsr	DisplayDMASetting
+	jmp	SettingsLoop						; ... and return
+
+
+
+ToggleRandomize:
+	lda	DP_UserSettings
+	eor	#%01000000						; toggle randomize SNES RAM flag ...
+	sta	DP_UserSettings
+	jsr	DisplayRandSetting
 	jmp	SettingsLoop						; ... and return
 
 
@@ -335,7 +350,7 @@ CheckForUpdate:
 
 	lda	#cursorXsettings					; restore cursor position
 	sta	cursorX
-	lda	#cursorYsetmenu5					; menu line: firmware update
+	lda	#cursorYsetmenu6					; menu line: firmware update
 	sta	cursorY
 	jmp	GotoSettings@ReturnFromMenuSection			; return to settings menu
 
@@ -386,12 +401,13 @@ ResetSystem:
 
 
 
-; ************************* Check DMA setting **************************
+; ************************ Check user settings *************************
 
 DisplayDMASetting:
-	SetCursorPos 10, 20
+	SetTextPos 9, 20
 
-	lda	dontUseDMA						; check for current DMA setting
+	lda	DP_UserSettings						; check for current DMA setting
+	and	#%00000001
 	bne	+
 
 	PrintString " on) "						; don't remove the trailing space
@@ -405,13 +421,30 @@ DisplayDMASetting:
 
 
 
+DisplayRandSetting:
+	SetTextPos 11, 20
+
+	bit	DP_UserSettings						; check for randomize SNES RAM flag
+	bvs	+
+
+	PrintString " no "						; don't remove the trailing space
+
+	bra	@DisplayRandSettingDone
+
++	PrintString " yes"
+
+@DisplayRandSettingDone:
+	rts
+
+
+
 ; *************************** Save settings ****************************
 
 SaveConfig:
 	FindFile "POWERPAK.CFG"						; file to save settings to
 
 	ldy	#$0000
-	lda	dontUseDMA						; save DMA setting
+	lda	DP_UserSettings						; save user settings
 	sta	sectorBuffer1, y
 	iny
 

@@ -985,7 +985,14 @@ BootGame:
 	cpx	#$000B							; regs $43x0 through $43xA initialized?
 	bne	-
 
-	lda	useBattery
+	bit	DP_UserSettings
+	bvc	+							; check for randomize SNES RAM flag
+	jsr	RandomizeCGRAM
+	jsr	RandomizeOAM
+	jsr	RandomizeVRAM
+	jsr	RandomizeWRAM
+
++	lda	useBattery
 	asl	a
 	and	#%00000010
 	ora	#%10000000
@@ -1313,6 +1320,139 @@ PrintBanks:
 	inx
 	dey
 	bne	@PrintBanks3
+	rts
+
+
+
+PickRandomNrSeed:
+	jsr	CreateRandomNr
+
+	lda	RandomNumbers+42					; set random address in SDRAM bank 0
+	sta	DMAWRITELO
+	lda	RandomNumbers+99
+	sta	DMAWRITEHI
+	lda	#$00
+	sta	DMAWRITEBANK
+	lda	DMAREADDATA						; read SDRAM value into Accu for use as initial seed for random number generator
+	rts
+
+
+
+RandomizeCGRAM:
+	stz	REG_CGADD						; reset CGRAM address
+	lda	#4							; 4 iterations
+	sta	temp
+-	jsr	PickRandomNrSeed
+	jsr	CreateRandomNr
+
+	DMA_CH0 $02, $00, RandomNumbers, <REG_CGDATA, 128
+
+	dec	temp							; 4 × 128 = 512 bytes done?
+	bne	-
+
+	rts
+
+
+
+RandomizeOAM:
+	ldx	#$0000							; reset OAM address
+	stx	REG_OAMADDL
+	lda	#4							; 4 iterations
+	sta	temp
+-	jsr	PickRandomNrSeed
+	jsr	CreateRandomNr
+
+	DMA_CH0 $02, $00, RandomNumbers, <REG_OAMDATA, 128
+
+	dec	temp							; 4 × 128 = lower 512 bytes done?
+	bne	-
+
+	jsr	PickRandomNrSeed
+	jsr	CreateRandomNr
+
+	ldx	#0
+-	lda	RandomNumbers, x					; randomize upper OAM (not using DMA due to just 32 bytes of data)
+	sta	REG_OAMDATA
+	inx
+	cpx	#32
+	bne	-
+
+	rts
+
+
+
+RandomizeVRAM:
+	lda	#$80							; VRAM address increment mode: increment address by one word after accessing the high byte ($2119)
+	sta	REG_VMAIN
+	ldx	#$0000							; reset VRAM address
+	stx	REG_VMADDL
+	ldx	#512							; 512 iterations
+	stx	temp
+-	jsr	PickRandomNrSeed
+	jsr	CreateRandomNr
+
+	DMA_CH0 $01, $00, RandomNumbers, <REG_VMDATAL, 128
+
+	ldx	temp							; 512 × 128 = 65536 bytes done?
+	dex
+	stx	temp
+	bne	-
+
+	rts
+
+
+
+RandomizeWRAM:
+	ldx	#$0100							; reset WRAM address
+	stx	REG_WMADDL
+	stz	REG_WMADDH
+	lda	#60							; 60 iterations (we skip the first 256 bytes, 128 bytes of random numbers, and 128 bytes of stack area)
+	sta	temp
+
+@RandomizeLower8K:
+	jsr	PickRandomNrSeed
+	jsr	CreateRandomNr
+
+	ldx	#0
+-	lda	RandomNumbers, x
+	sta	REG_WMDATA
+	inx
+	cpx	#128
+	bne	-
+
+	lda	temp
+	dec	a
+	cmp	#38							; 22 iterations done (i.e., [WMADDL] has reached #RandomNumbers+2)?
+	bne	+
+	ldx	#RandomNumbers+130					; yes, set WRAM address beyond random number array
+	stx	REG_WMADDL
+	stz	REG_WMADDH
++	sta	temp
+	cmp	#0
+	bne	@RandomizeLower8K					; when temp hits 0, [WMADDL] is pointing to $1F80
+
+	ldx	#$2000							; leave 128 bytes alone for stack integrity, set WRAM address beyond initial stack pointer
+	stx	REG_WMADDL
+	stz	REG_WMADDH
+	ldx	#960							; 960 iterations for rest of WRAM
+	stx	temp
+
+@Randomize120K:
+	jsr	PickRandomNrSeed
+	jsr	CreateRandomNr
+
+	ldx	#0
+-	lda	RandomNumbers, x
+	sta	REG_WMDATA
+	inx
+	cpx	#128
+	bne	-
+
+	ldx	temp
+	dex
+	stx	temp
+	bne	@Randomize120K
+
 	rts
 
 

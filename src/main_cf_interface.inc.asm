@@ -90,8 +90,8 @@ StateCardReady:								; wait until card ready, show card not ready message
 	SetTextPos 21, 1
 	PrintString "Reading CF card ..."
 
-	lda	#$01							; not using DMA
-	sta	dontUseDMA
+	lda	#%00000001						; set DMA off flag
+	tsb	DP_UserSettings
 ;	stz	sourceSector						; it's not necessary to clear sourceSector as WRAM was zero-filled upon boot
 ;	stz	sourceSector+1
 ;	stz	sourceSector+2

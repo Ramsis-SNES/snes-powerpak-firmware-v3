@@ -14,6 +14,8 @@
 
 ; ********************* String processing function *********************
 
+.INDEX 16
+
 ;PrintF -- Print a formatted, NUL-terminated string to Stdout
 ;In:   X -- points to format string
 ;      Y -- points to parameter buffer
