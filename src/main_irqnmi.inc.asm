@@ -249,9 +249,9 @@ ErrorHandlerBRK:
 	jsr	HideLogoSprites
 
 	PrintSpriteText	4, 4, "An error occurred!", 3
-	SetCursorPos	4, 2
+	SetTextPos	4, 2
 	PrintString	"Error type: BRK"
-	SetCursorPos	5, 2
+	SetTextPos	5, 2
 	PrintString	"Error addr: $"
 
 	lda	10, s
@@ -268,14 +268,14 @@ ErrorHandlerBRK:
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	7, 2
+	SetTextPos	7, 2
 	PrintString	"Status reg: $"
 
 	lda	7, s
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	9, 2
+	SetTextPos	9, 2
 	PrintString	"Accumulator: $"
 
 	lda	6, s
@@ -287,7 +287,7 @@ ErrorHandlerBRK:
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	10, 2
+	SetTextPos	10, 2
 	PrintString	"X index reg: $"
 
 	lda	4, s
@@ -299,7 +299,7 @@ ErrorHandlerBRK:
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	11, 2
+	SetTextPos	11, 2
 	PrintString	"Y index reg: $"
 
 	lda	2, s
@@ -343,9 +343,9 @@ ErrorHandlerCOP:
 	jsr	HideLogoSprites
 
 	PrintSpriteText	4, 4, "An error occurred!", 3
-	SetCursorPos	4, 2
+	SetTextPos	4, 2
 	PrintString	"Error type: COP"
-	SetCursorPos	5, 2
+	SetTextPos	5, 2
 	PrintString	"Error addr: $"
 
 	lda	10, s
@@ -362,14 +362,14 @@ ErrorHandlerCOP:
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	7, 2
+	SetTextPos	7, 2
 	PrintString	"Status reg: $"
 
 	lda	7, s
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	9, 2
+	SetTextPos	9, 2
 	PrintString	"Accumulator: $"
 
 	lda	6, s
@@ -381,7 +381,7 @@ ErrorHandlerCOP:
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	10, 2
+	SetTextPos	10, 2
 	PrintString	"X index reg: $"
 
 	lda	4, s
@@ -393,7 +393,7 @@ ErrorHandlerCOP:
 	sta	temp
 
 	PrintHexNum	temp
-	SetCursorPos	11, 2
+	SetTextPos	11, 2
 	PrintString	"Y index reg: $"
 
 	lda	2, s

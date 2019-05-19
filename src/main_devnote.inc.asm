@@ -45,7 +45,7 @@ GotoDevNote:
 
 
 ; -------------------------- wall of text
- 	SetCursorPos 1, 0						; "page" 1 in lower 32×32 tilemap
+ 	SetTextPos 1, 0						; "page" 1 in lower 32×32 tilemap
 	PrintString "Greetings, fellow SNES gamer! :-)\n\n"
 	PrintString "Thank you so much for downloading and installing my\n"
 	PrintString "unofficial firmware for the SNES PowerPak.\n\n"
@@ -60,14 +60,14 @@ GotoDevNote:
 	PrintString "From the first v2.0-beta1 release to this very day,\n"
 	PrintString "my motivation to improve both performance and usability\n"
 	PrintString "of the SNES PowerPak has never left me. So naturally ..."
-	SetCursorPos 21, 2
+	SetTextPos 21, 2
 	PrintString " Cont."
-	SetCursorPos 21, 10
+	SetTextPos 21, 10
 	PrintString "Exit"
-	SetCursorPos 23, 4
+	SetTextPos 23, 4
 	PrintString "Start/stop music"
- 	SetCursorPos 1+32, 0						; "page" 2 in upper 32×32 tilemap
 	PrintString "... I'm proud to say that v3.0X \"MUFASA\" takes your SNES\n"
+ 	SetTextPos 1+32, 0						; "page" 2 in upper 32×32 tilemap
 	PrintString "PowerPak to yet another dimension. :D Not only is this\n"
 	PrintString "a faster and more usable firmware than ever before, but\n"
 	PrintString "it also lets you customize its visuals to your very own\n"
@@ -79,14 +79,14 @@ GotoDevNote:
 	PrintString "to enjoy and share with the community of SNES gamers\n"
 	PrintString "all around the globe (for details see How To Use.txt)!\n\n"
 	PrintString "Thanks for reading. Now, pick a game and play! :-)"
-	SetCursorPos 15+32, 0
+	SetTextPos 15+32, 0
 	PrintString "Long live the SNES PowerPak!\n\n"
 	PrintString "(c) 2019 by Ramsis\nhttps://manuloewe.de/"
-	SetCursorPos 21+32, 2
+	SetTextPos 21+32, 2
 	PrintString " Back"
-	SetCursorPos 21+32, 10
+	SetTextPos 21+32, 10
 	PrintString "Exit"
-	SetCursorPos 23+32, 4
+	SetTextPos 23+32, 4
 	PrintString "Start/stop music"
 
 

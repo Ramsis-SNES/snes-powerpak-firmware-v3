@@ -70,28 +70,28 @@ FileBrowserLoop:
 	wai
 
 .IFDEF SHOWDEBUGMSGS
-	SetCursorPos 22, 24
+	SetTextPos 22, 24
 	PrintHexNum selectedEntry+1
 	PrintString "-"
 	PrintHexNum selectedEntry
 
 	stz	BGPrintMon
 
-	SetCursorPos 23, 24
+	SetTextPos 23, 24
 	PrintHexNum filesInDir+1
 	PrintString "-"
 	PrintHexNum filesInDir
 
 	stz	BGPrintMon
 
-;	SetCursorPos 0, 22
+;	SetTextPos 0, 22
 
 ;	tsx
 ;	stx	temp
 
 ;	PrintHexNum temp+1						; print stack pointer (initial value: $1FFF)
 ;	PrintHexNum temp
-;	SetCursorPos 1, 23
+;	SetTextPos 1, 23
 ;	PrintHexNum DP_SubDirCounter
 .ENDIF
 
@@ -477,7 +477,7 @@ FileBrowserCheckDirEmpty:
 	jsr	ClearSpriteText						; edge case: no files/folders in root dir, and /POWERPAK is hidden
 	jsr	SpriteMessageError
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "No files/folders to display!\n"
 	PrintString "  Press any button to return."
 
@@ -582,7 +582,7 @@ PrintPage:
 	stz	temp							; reset file counter
 	jsr	PrintClearScreen
 
-	SetCursorPos 0, 0
+	SetTextPos 0, 0
 
 @PrintPageLoop:
 	inc	temp							; increment file counter
@@ -684,12 +684,12 @@ ScrollDown:
 	asl	a
 	asl	a
 	ora	#minPrintX						; add horizontal indention
-	sta	Cursor
+	sta	DP_TextPos
 	lda	temp
 	lsr	a
 	lsr	a
 	lsr	a
-	sta	Cursor+1
+	sta	DP_TextPos+1
 	jsr	DirPrintEntry
 
 	lda	insertBottom
@@ -763,12 +763,12 @@ ScrollUp:
 	asl	a
 	asl	a
 	ora	#minPrintX						; add horizontal indention
-	sta	Cursor
+	sta	DP_TextPos
 	lda	temp
 	lsr	a
 	lsr	a
 	lsr	a
-	sta	Cursor+1
+	sta	DP_TextPos+1
 	jsr	DirPrintEntry
 
 	lda	insertBottom

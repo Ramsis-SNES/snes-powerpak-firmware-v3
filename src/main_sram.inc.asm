@@ -78,10 +78,10 @@ BattUsedInitSaveSRAM:
 	lda	#%00001000						; enable color math channel
 	tsb	DP_HDMAchannels
 
-	SetCursorPos 11, 0
+	SetTextPos 11, 0
 	PrintString "The game you've played features battery-backed SRAM\n"
 	PrintString "to save your progress. Please choose an option:"
-	SetCursorPos 14, 1
+	SetTextPos 14, 1
 
 	jsr	LoadLastGame						; load last game info
 	lda	saveName.Cluster					; if cluster=0, no file loaded previously
@@ -112,14 +112,14 @@ BattUsedInitSaveSRAM:
 	cpy	#$0038							; only copy 56 characters
 	bne	-
 
-	SetCursorPos 15, 1
+	SetTextPos 15, 1
 
 	jsr	PrintTempEntry
 
 @AutoSaveMenuNext:
-	SetCursorPos 17, 1
+	SetTextPos 17, 1
 	PrintString "Select a file ..."
-	SetCursorPos 18, 1
+	SetTextPos 18, 1
 	PrintString "Cancel and discard SRAM!"
 
 	lda	#$0D
@@ -305,7 +305,7 @@ SaveSRAMFile:
 	lda	#$F8
 	sta	DMAWRITEBANK
 
-	SetCursorPos 15, 0
+	SetTextPos 15, 0
 	PrintString "Saving SRAM file to CF card ..."
 
 	wai								; make sure the message appears on the screen
@@ -313,9 +313,9 @@ SaveSRAMFile:
 	sta	sourceType
 	jsr	CardWriteFile
 
-	SetCursorPos 15, 0
+	SetTextPos 15, 0
 	PrintString "SRAM file saved successfully!  "			; don't remove trailing spaces
-	SetCursorPos 16, 0
+	SetTextPos 16, 0
 	PrintString "Press any button to return to the titlescreen."
 
 	rts

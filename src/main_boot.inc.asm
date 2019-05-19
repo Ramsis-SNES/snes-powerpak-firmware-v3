@@ -375,7 +375,7 @@ ConfigureFPGA:
 	lda	CONFIGREADSTATUS					; open bus = $20
 ;	sta	errorCode
 
-;	SetCursorPos 14, 1
+;	SetTextPos 14, 1
 ;	PrintString "FPGA status="
 ;	PrintHexNum errorCode
 
@@ -385,7 +385,7 @@ ConfigureFPGA:
 	cmp	#$A0
 	bne	@FPGANotConfigured
 
-;	SetCursorPos 15, 1
+;	SetTextPos 15, 1
 ;	PrintString "FPGA was configured"
 
 	lda	CONFIGREADSTATUS					; battery used = D1
@@ -426,7 +426,7 @@ ConfigureFPGA:
 	jsr	CardLoadFPGA
 
 ;	ClearLine 18
-;	SetCursorPos 18, 1
+;	SetTextPos 18, 1
 ;	PrintString "FPGA just configured\n"
 
 	wai
@@ -435,7 +435,7 @@ ConfigureFPGA:
 
 ;	PrintString "unlocked sdram"
 
-	SetCursorPos 24, 0
+	SetTextPos 24, 0
 
 	jsr	FPGACheck
 	jsr	DSPCheck
@@ -480,11 +480,11 @@ GotoIntroScreen:
 
 	jsr	GameGenieClearAll					; clear out Game Genie codes
 
-	SetCursorPos 18, 19
+	SetTextPos 18, 19
 	PrintString "File browser"
-	SetCursorPos 20, 19
+	SetTextPos 20, 19
 	PrintString "Settings"
-	SetCursorPos 22, 19
+	SetTextPos 22, 19
 	PrintString "Play last game"
 
 
@@ -508,7 +508,7 @@ GotoIntroScreen:
 	Accu8
 
 .IFDEF SHOWDEBUGMSGS
-	SetCursorPos 0, 22
+	SetTextPos 0, 22
 
 	Accu16
 
@@ -551,7 +551,7 @@ IntroLoop:
 	wai
 
 ;	ClearLine 27
-;	SetCursorPos 27, 1
+;	SetTextPos 27, 1
 ;	PrintString "FPGA STATUS = "
 
 ;	lda	CONFIGREADSTATUS
@@ -632,7 +632,7 @@ FPGACheck:
 
 	ldy	#errorCode
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "FPGA check failed.\n  Error code: $%x"
 
 	jmp	Forever
@@ -660,7 +660,7 @@ SDRAMCheck:
 @SDRAMError:
 	jsr	SpriteMessageError
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "SDRAM check failed.\n  Error code: $"
 	PrintHexNum $F00000
 
@@ -669,7 +669,7 @@ SDRAMCheck:
 
 
 DSPCheck:
-	SetCursorPos 6, 17
+	SetTextPos 6, 17
 
 	lda	#$04
 	sta	CONFIGWRITEDSP						; turn on HiROM chip
@@ -693,7 +693,7 @@ DSPCheck:
 ShowChipsetDMA:
 	jsr	ShowConsoleVersion					; lines 9, 10, 11
 
-	SetCursorPos 7, 17
+	SetTextPos 7, 17
 	PrintString "DMA : "
 
 	lda	dontUseDMA
@@ -708,7 +708,7 @@ ShowChipsetDMA:
 
 @ShowChipsetDMADone:
 
-	SetCursorPos 13, 17
+	SetTextPos 13, 17
 	PrintString "Video: "						; completed in the following subroutine
 
 	jsr	CheckFrameLength
@@ -759,7 +759,7 @@ CheckFrameLength:
 ; @50Hz: $17XX (U16, PAL/1Chip, PAL/2PPUs)
 ; @60Hz: $13XX (U16, PAL/1Chip modded, SNES mini (US), US/GPM-01, PAL/2PPUs modded, 1/1/1 chipset SFC)
 
-	SetCursorPos 0, 22
+	SetTextPos 0, 22
 
 	Accu16
 
@@ -802,12 +802,12 @@ Forever:
 
 PrintRomVersion:
 	PrintSpriteText 3, 19, "SNES PowerPak", 3
-	SetCursorPos 3, 17
+	SetTextPos 3, 17
 
 	ldy	#PTR_Firmware_Version
 
 	PrintString "%s"						; --> Firmware v3.XX "MUFASA"
-	SetCursorPos 4, 17
+	SetTextPos 4, 17
 
 	ldy	#PTR_Firmware_Build
 
@@ -1086,7 +1086,7 @@ DirFindEntry:
 	jsr	HideButtonSprites
 	jsr	SpriteMessageError
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 
 	ldx	#$0000
 -	lda	findEntry, x
@@ -1190,7 +1190,7 @@ LoadLastGame:
 	jsr	PrintClearScreen
 	jsr	SpriteMessageError
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "LASTGAME.LOG appears to be empty or corrupt!\n"
 	PrintString "  Press any button to return to the titlescreen."
 
@@ -1392,17 +1392,17 @@ ShowConsoleVersion:
 
 	ldy	#temp
 
-	SetCursorPos 9, 17
+	SetTextPos 9, 17
 	PrintString "CPU : v%b"
 
 	ldy	#temp+1
 
-	SetCursorPos 10, 17
+	SetTextPos 10, 17
 	PrintString "PPU1: v%b"
 
 	ldy	#temp+2
 
-	SetCursorPos 11, 17
+	SetTextPos 11, 17
 	PrintString "PPU2: v%b"
 
 	rts
@@ -1431,7 +1431,7 @@ SpriteMessageError:
 
 
 PrintCardFS:
-	SetCursorPos 5, 17
+	SetTextPos 5, 17
 	PrintString "Card: FAT"						; completed subsequently
 
 	lda	fat32Enabled

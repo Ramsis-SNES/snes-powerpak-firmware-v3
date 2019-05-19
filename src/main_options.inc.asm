@@ -59,7 +59,7 @@ GotoGameOptions:
 
 	Accu8
 
-	SetCursorPos 2, 1
+	SetTextPos 2, 1
 
 	jsr	PrintTempEntry
 
@@ -82,17 +82,17 @@ GotoGameOptions:
 
 	Accu8
 
-	SetCursorPos 5, 1
+	SetTextPos 5, 1
 
 	jsr	PrintTempEntry
 
 	DrawFrame 2, 9, 27, 12
-	SetCursorPos 8, mainSelX
+	SetTextPos 8, mainSelX
 	PrintString "Load GameGenie code list ..."
 
 	jsr	PrintGGCodes
 
-	SetCursorPos 8, mainSelX+18
+	SetTextPos 8, mainSelX+18
 	PrintString "Clear codes!"
 
 	jsr	ShowHelpGeneral
@@ -615,27 +615,27 @@ EditGGCodeLoop:
 
 ; -------------------------- display GG codes / do misc. screen updates
 SelectPressed:								; print decoded GG codes
-	SetCursorPos GGcode1Y, GGcodesX+17
+	SetTextPos GGcode1Y, GGcodesX+17
 
 	ldy	#$0000
 	jsr	GameGenieDecode
 
-	SetCursorPos GGcode2Y, GGcodesX+17
+	SetTextPos GGcode2Y, GGcodesX+17
 
 	ldy	#$0008
 	jsr	GameGenieDecode
 
-	SetCursorPos GGcode3Y, GGcodesX+17
+	SetTextPos GGcode3Y, GGcodesX+17
 
 	ldy	#$0010
 	jsr	GameGenieDecode
 
-	SetCursorPos GGcode4Y, GGcodesX+17
+	SetTextPos GGcode4Y, GGcodesX+17
 
 	ldy	#$0018
 	jsr	GameGenieDecode
 
-	SetCursorPos GGcode5Y, GGcodesX+17
+	SetTextPos GGcode5Y, GGcodesX+17
 
 	ldy	#$0020
 	jsr	GameGenieDecode
@@ -645,23 +645,23 @@ SelectPressed:								; print decoded GG codes
 
 
 SelectReleased:
-	SetCursorPos GGcode1Y, GGcodesX+17
+	SetTextPos GGcode1Y, GGcodesX+17
 
 	jsr	SelectReleased2
 
-	SetCursorPos GGcode2Y, GGcodesX+17
+	SetTextPos GGcode2Y, GGcodesX+17
 
 	jsr	SelectReleased2
 
-	SetCursorPos GGcode3Y, GGcodesX+17
+	SetTextPos GGcode3Y, GGcodesX+17
 
 	jsr	SelectReleased2
 
-	SetCursorPos GGcode4Y, GGcodesX+17
+	SetTextPos GGcode4Y, GGcodesX+17
 
 	jsr	SelectReleased2
 
-	SetCursorPos GGcode5Y, GGcodesX+17
+	SetTextPos GGcode5Y, GGcodesX+17
 
 	jsr	SelectReleased2
 
@@ -678,27 +678,27 @@ SelectReleased2:
 
 ; -------------------------- print saved / entered / cleared out codes
 PrintGGCodes:
-	SetCursorPos GGcode1Y, GGcodesX
+	SetTextPos GGcode1Y, GGcodesX
 
 	ldy	#$0000
 	jsr	GameGeniePrint
 
-	SetCursorPos GGcode2Y, GGcodesX
+	SetTextPos GGcode2Y, GGcodesX
 
 	ldy	#$0008
 	jsr	GameGeniePrint
 
-	SetCursorPos GGcode3Y, GGcodesX
+	SetTextPos GGcode3Y, GGcodesX
 
 	ldy	#$0010
 	jsr	GameGeniePrint
 
-	SetCursorPos GGcode4Y, GGcodesX
+	SetTextPos GGcode4Y, GGcodesX
 
 	ldy	#$0018
 	jsr	GameGeniePrint
 
-	SetCursorPos GGcode5Y, GGcodesX
+	SetTextPos GGcode5Y, GGcodesX
 
 	ldy	#$0020
 	jsr	GameGeniePrint
@@ -745,7 +745,7 @@ GGCodeIncChar:
 	cmp	#cursorYGGcode1
 	bne	+
 
-	SetCursorPos GGcode1Y, GGcodesX
+	SetTextPos GGcode1Y, GGcodesX
 
 	ldy	#$0000							; store code 1 char
 	bra	@GGCodeIncCharDone
@@ -753,7 +753,7 @@ GGCodeIncChar:
 +	cmp	#cursorYGGcode2
 	bne	+
 
-	SetCursorPos GGcode2Y, GGcodesX
+	SetTextPos GGcode2Y, GGcodesX
 
 	ldy	#$0008							; store code 2 char
 	bra	@GGCodeIncCharDone
@@ -761,7 +761,7 @@ GGCodeIncChar:
 +	cmp	#cursorYGGcode3
 	bne	+
 
-	SetCursorPos GGcode3Y, GGcodesX
+	SetTextPos GGcode3Y, GGcodesX
 
 	ldy	#$0010							; store code 3 char
 	bra	@GGCodeIncCharDone
@@ -769,7 +769,7 @@ GGCodeIncChar:
 +	cmp	#cursorYGGcode4
 	bne	+
 
-	SetCursorPos GGcode4Y, GGcodesX
+	SetTextPos GGcode4Y, GGcodesX
 
 	ldy	#$0018							; store code 4 char
 	bra	@GGCodeIncCharDone
@@ -777,7 +777,7 @@ GGCodeIncChar:
 +	; cmp	#cursorYGGcode5
 ;	bne	+
 
-	SetCursorPos GGcode5Y, GGcodesX
+	SetTextPos GGcode5Y, GGcodesX
 
 	ldy	#$0020							; store code 5 char
 
@@ -794,7 +794,7 @@ GGCodeDecChar:
 	cmp	#cursorYGGcode1
 	bne	+
 
-	SetCursorPos GGcode1Y, GGcodesX
+	SetTextPos GGcode1Y, GGcodesX
 
 	ldy	#$0000							; store code 1 char
 	bra	@GGCodeDecCharDone
@@ -802,7 +802,7 @@ GGCodeDecChar:
 +	cmp	#cursorYGGcode2
 	bne	+
 
-	SetCursorPos GGcode2Y, GGcodesX
+	SetTextPos GGcode2Y, GGcodesX
 
 	ldy	#$0008							; store code 2 char
 	bra	@GGCodeDecCharDone
@@ -810,7 +810,7 @@ GGCodeDecChar:
 +	cmp	#cursorYGGcode3
 	bne	+
 
-	SetCursorPos GGcode3Y, GGcodesX
+	SetTextPos GGcode3Y, GGcodesX
 
 	ldy	#$0010							; store code 3 char
 	bra	@GGCodeDecCharDone
@@ -818,7 +818,7 @@ GGCodeDecChar:
 +	cmp	#cursorYGGcode4
 	bne	+
 
-	SetCursorPos GGcode4Y, GGcodesX
+	SetTextPos GGcode4Y, GGcodesX
 
 	ldy	#$0018							; store code 4 char
 	bra	@GGCodeDecCharDone
@@ -826,7 +826,7 @@ GGCodeDecChar:
 +	; cmp	#cursorYGGcode5
 ;	bne	+
 
-	SetCursorPos GGcode5Y, GGcodesX
+	SetTextPos GGcode5Y, GGcodesX
 
 	ldy	#$0020							; store code 5 char
 
@@ -880,9 +880,9 @@ BackToIntro:
 
 ShowHelpGeneral:
 	ClearLine 21
-	SetCursorPos 21, 2
+	SetTextPos 21, 2
 	PrintString " Accept\t\tBack"
-	SetCursorPos 23, 6
+	SetTextPos 23, 6
 	PrintString " Launch game\t      Decode GG codes"
 
 
@@ -923,7 +923,7 @@ ShowHelpGeneral:
 
 ShowHelpGGcodeEdit:
 	ClearLine 21
-	SetCursorPos 21, 4
+	SetTextPos 21, 4
 	PrintString "+Digit\t   -Digit     L+R: Clear this code"
 
 	Accu16

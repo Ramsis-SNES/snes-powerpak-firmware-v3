@@ -70,12 +70,12 @@ _cn:	bne	_ct
 
 	AccuIndex16
 
-	lda	Cursor							; get current position
+	lda	DP_TextPos						; get current position
 	CLC
 	adc	#$0020							; move to the next line
 	and	#$FFE0
 	ora	#minPrintX						; add horizontal indention
-	sta	Cursor							; save new position
+	sta	DP_TextPos						; save new position
 
 	Accu8
 
@@ -86,7 +86,7 @@ _ct:	cmp	#'t'
 
 	AccuIndex16
 
-	lda	Cursor							; get current position
+	lda	DP_TextPos						; get current position
 	CLC
 ;	adc	#$0008							; move to the next tab
 ;	and	#$FFF8
@@ -94,7 +94,7 @@ _ct:	cmp	#'t'
 	and	#$fffc
 ;	adc	#$0002							; use this instead for even smaller tabs
 ;	and	#$fffe
-	sta	Cursor							; save new position
+	sta	DP_TextPos						; save new position
 
 	Accu8
 
@@ -154,10 +154,10 @@ __PrintSubstringDone:
 ; the BGPrintMon variable (start = $00 = BG1, $01 = BG2).
 
 ; The ASCII values need to be doubled because both fonts have empty 8x8
-; tiles before or after each character. By not advancing the text cursor
-; position when using BG1, all of this makes it possible to work around
-; Mode 5's 16×8 tile size limitation, with the main drawback that the
-; text engine uses up both available BG layers.
+; tiles before or after each character. By not advancing the text "cur-
+; sor" position when using BG1, all of this makes it possible to work
+; around Mode 5's 16×8 tile size limitation, with the main drawback that
+; the text engine uses up both available BG layers.
 
 ; In: A -- ASCII code to print
 ; Out: none
@@ -174,7 +174,7 @@ __FillTextBufferBG1:
 	inc	BGPrintMon						; otherwise, change value and use BG1
 	pla
 	phx
-	ldx	Cursor
+	ldx	DP_TextPos
 	asl	a							; character code * 2 so it matches hi-res font tile location
 	sta	TextBuffer.BG1, x					; write it to the BG1 text buffer
 	bra	__FillTextBufferDone					; ... and done
@@ -183,11 +183,11 @@ __FillTextBufferBG2:
 	stz	BGPrintMon						; reset BG monitor value
 	pla
 	phx
-	ldx	Cursor
+	ldx	DP_TextPos
 	asl	a							; character code * 2
 	sta	TextBuffer.BG2, x					; write it to the BG2 text buffer
-	inx								; ... and advance text cursor position
-	stx	Cursor
+	inx								; ... and advance text "cursor" position
+	stx	DP_TextPos
 
 __FillTextBufferDone:
 	plx
@@ -229,13 +229,13 @@ __PrintSpriteTextLoop:
 
 	Accu8
 
-	lda	Cursor
+	lda	DP_TextPos
 	sta	SpriteBuf1.Text, y					; X position
 	clc
-	adc.l	SpriteFWT, x						; advance cursor position as per font width table entry
-	sta	Cursor
+	adc.l	SpriteFWT, x						; advance text "cursor" position as per font width table entry
+	sta	DP_TextPos
 	iny
-	lda	Cursor+1
+	lda	DP_TextPos+1
 	sta	SpriteBuf1.Text, y					; Y position
 	iny
 	pla								; restore ASCII value
@@ -388,13 +388,13 @@ PrintClearLine:
 	asl	a
 	asl	a
 	asl	a
-	sta	Cursor
+	sta	DP_TextPos
 	pla
 	lsr	a
 	lsr	a
 	lsr	a
-	sta	Cursor+1
-	ldx	Cursor
+	sta	DP_TextPos+1
+	ldx	DP_TextPos
 	ldy	#$0000
 	lda	#$40							; space (hi-res tile number)
 -	sta	TextBuffer.BG1, x					; clear BG1 text buffer

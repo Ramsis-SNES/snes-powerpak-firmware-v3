@@ -25,7 +25,7 @@ GotoFlashUpdater:
 	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "SNES PowerPak Flash Updater", 4
-	SetCursorPos 2, 0
+	SetTextPos 2, 0
 	PrintString "v3.01, (c) 2019 by https://manuloewe.de\n\n"
 	PrintString "Detected flash ROM chip ID: "
 
@@ -60,7 +60,7 @@ GotoFlashUpdater:
 	jmp	FlashUpdateWarning
 
 +	PrintString "unknown"
-	SetCursorPos 6, 0
+	SetTextPos 6, 0
 	PrintString "ERROR!\n\n"
 	PrintString "The in-system flash upgrade isn't available for\n"
 	PrintString "your SNES PowerPak. Please revert to a previous\n"
@@ -72,7 +72,7 @@ GotoFlashUpdater:
 
 
 FlashUpdateWarning:
-	SetCursorPos 6, 0
+	SetTextPos 6, 0
 	PrintString "WARNING!\n\n"
 	PrintString "This update is performed AT YOUR OWN RISK!\n\n"
 	PrintString "Don't switch off or reset the SNES while flashing.\n"
@@ -94,7 +94,7 @@ FlashUpdateWarning:
 	bit	Joy1New							; wait for A button (MSB)
 	bpl	-
 
-	SetCursorPos 17, 0						; overwrite "Press the (A) button ..." message
+	SetTextPos 17, 0						; overwrite "Press the (A) button ..." message
 	PrintString "FLASHING IN PROGRESS, PLEASE WAIT ..."
 
 	wai								; wait for the message to appear on the screen
@@ -138,7 +138,7 @@ FlashUpdateWarning:
 
 ; -------------------------- WRAM (at the least) has been compromised --> cancel flashing
 +	ClearLine 19
-	SetCursorPos 19, 0
+	SetTextPos 19, 0
 	PrintString "ERROR!\n\n"
 	PrintString "Unknown chip ID error."
 
@@ -499,7 +499,7 @@ VerifyUpdateFile:
 	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 3, 2, "Error!", 4
-	SetCursorPos 3, 0
+	SetTextPos 3, 0
 	PrintString "UPDATE.ROM appears to be a corrupt file.\n\n"
 	PrintString "Please perform the following steps before trying\n"
 	PrintString "again:\n\n"

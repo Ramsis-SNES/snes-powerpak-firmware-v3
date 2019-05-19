@@ -18,7 +18,7 @@ StartGame:
 	jsr	SpriteInit						; purge OAM
 	jsr	PrintClearScreen
 
-;	SetCursorPos 27, 1
+;	SetTextPos 27, 1
 ;	PrintString "FPGA STATUS = "
 
 ;	lda	CONFIGREADSTATUS
@@ -46,7 +46,7 @@ StartGame:
 
 
 ; -------------------------- ROM loading
-	SetCursorPos 1, 0
+	SetTextPos 1, 0
 
 	lda	gameName.Flags						; load copier header/ROM mapping flags
 	and	#%10000011						; mask off unused bits just in case
@@ -423,9 +423,9 @@ NoInternalHeader:
 	lda	#%00001000						; enable color math channel
 	tsb	DP_HDMAchannels
 
-	SetCursorPos 11, 0
+	SetTextPos 11, 0
 	PrintString "No internal header found, please select ROM mapping\nmanually:"
-	SetCursorPos 14, 1
+	SetTextPos 14, 1
 	PrintString "LoROM/ExLoROM\n  HiROM\n  ExHiROM"
 
 	lda	#cursorXmapping						; put cursor on first selection line
@@ -488,7 +488,7 @@ MappingSelectionMade:
 	trb	DP_HDMAchannels
 	jsr	PrintClearScreen
 
-	SetCursorPos 1, 0
+	SetTextPos 1, 0
 
 	lda	DP_cursorY_BAK						; (cursorY / 8) - 16 = mapping flags (%01, %10, or %11)
 	lsr	a
@@ -949,7 +949,7 @@ BootGame:
 	beq	@BootGameNow
 	jsr	LogScreenMessage
 
-;	SetCursorPos 27, 1
+;	SetTextPos 27, 1
 ;	PrintString "FPGA STATUS = "
 
 ;	lda	CONFIGREADSTATUS

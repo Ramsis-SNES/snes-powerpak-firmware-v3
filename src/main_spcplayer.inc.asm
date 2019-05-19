@@ -103,16 +103,16 @@ GotoSPCplayer:
 	lda	#%11101000						; (re)enable color math, windowing, and scroll offset "patch" channels
 	tsb	DP_HDMAchannels
 
-;	SetCursorPos 5+32, 10
+;	SetTextPos 5+32, 10
 ;	PrintString " ~ SPC PLAYER ~"
 	PrintSpriteText 7, 10, "~ SPC PLAYER ~", 3
-;	SetCursorPos 7+32, 12
+;	SetTextPos 7+32, 12
 ;	PrintString "XX:XX:XX"						; placeholder for the timer
 
 	stz	tempEntry+58						; NUL-terminate entry string after 58 characters
 	ldy	#PTR_tempEntry						; tempEntry holds name of SPC file currently playing
 
-	SetCursorPos 9+32, 0
+	SetTextPos 9+32, 0
 	PrintString "File name:\n%s"
 
 	lda	#$90							; next, read and display tag info
@@ -133,7 +133,7 @@ CopySongTitle:								; song title
 	stz	tempEntry, x						; NUL-terminate song title string
 	ldy	#PTR_tempEntry
 
-	SetCursorPos 12+32, 0
+	SetTextPos 12+32, 0
 	PrintString "Song title: %s"
 
 	ldx	#$0000
@@ -148,7 +148,7 @@ CopyGameTitle:								; game title
 	stz	tempEntry, x						; NUL-terminate game title string
 	ldy	#PTR_tempEntry
 
-	SetCursorPos 13+32, 0
+	SetTextPos 13+32, 0
 	PrintString "Game title: %s"
 
 	lda	#$B1							; jump to position of artist's name
@@ -165,7 +165,7 @@ CopyArtist:								; artist
 	stz	tempEntry, x						; NUL-terminate artist string
 	ldy	#PTR_tempEntry
 
-	SetCursorPos 14+32, 0
+	SetTextPos 14+32, 0
 	PrintString "Artist(s) : %s"
 
 	lda	#$6E							; jump to position of dumper ID
@@ -182,7 +182,7 @@ CopyDumper:								; name of dumper
 	stz	tempEntry, x						; NUL-terminate dumper string
 	ldy	#PTR_tempEntry
 
-	SetCursorPos 15+32, 0
+	SetTextPos 15+32, 0
 	PrintString "Dumped by : %s"
 
 	ldx	#$0000
@@ -197,7 +197,7 @@ CopyComments:								; comments
 	stz	tempEntry, x						; NUL-terminate comments string
 	ldy	#PTR_tempEntry
 
-	SetCursorPos 16+32, 0
+	SetTextPos 16+32, 0
 	PrintString "Comment(s): %s"
 
 	ldx	#$0000
@@ -212,7 +212,7 @@ CopyDate:								; date
 	stz	tempEntry, x						; NUL-terminate date string
 	ldy	#PTR_tempEntry
 
-	SetCursorPos 17+32, 0
+	SetTextPos 17+32, 0
 	PrintString "Datestamp : %s"
 
 
@@ -231,15 +231,15 @@ CopyDate:								; date
 
 	Accu8
 
-	SetCursorPos 19+32, 3
+	SetTextPos 19+32, 3
 	PrintString "Autoplay: "
 	PrintSpriteText 21, 14, "L", 3
-	SetCursorPos 19+32, 13
+	SetTextPos 19+32, 13
 	PrintString "prev"
 	PrintSpriteText 21, 19, "R", 3
-	SetCursorPos 19+32, 18
+	SetTextPos 19+32, 18
 	PrintString "next"
-	SetCursorPos 19+32, 24
+	SetTextPos 19+32, 24
 	PrintString "Back"
 
 	dec	SpriteBuf1.Text+56					; move the "L" a bit more to the left
@@ -263,14 +263,14 @@ CopyDate:								; date
 
 ; -------------------------- player loop
 SPCPlayerLoop:
-	SetCursorPos 7+32, 12						; timer position
+	SetTextPos 7+32, 12						; timer position
 	PrintHexNum spcTimer+2
 	PrintString ":"
 	PrintHexNum spcTimer+1
 	PrintString ":"
 	PrintHexNum spcTimer
 
-	SetCursorPos 19+32, 8						; position of auto-play setting
+	SetTextPos 19+32, 8						; position of auto-play setting
 
 	lda	DP_SPCPlayerFlags
 ;	and	#%00000111						; mask off reserved bits (not necessary for now)

@@ -55,9 +55,9 @@
 .ACCU 8
 .INDEX 16
 
-.MACRO SetCursorPos							; SetCursorPos  y, x
+.MACRO SetTextPos							; SetTextPos y, x
 	ldx	#32*\1+32*minPrintY + \2+minPrintX			; add values of indention constants
-	stx	Cursor
+	stx	DP_TextPos
 	stz	BGPrintMon						; reset BG monitor value to zero (start on BG1)
 .ENDM
 
@@ -234,11 +234,11 @@
 ; Macro PrintSpriteText by ManuLöwe (added for v3.00)
 ;
 ; Usage: PrintSpriteText <y_coordinate>, <x_coordinate>, "Lorem ipsum ...", <font_color>
-; Effect: Prints a sprite-based 8*8 VWF text string (max length: 32 characters). Coordinate values work as with SetCursorPos, but no indention is added (0, 0 = upper left screen corner). Valid font colors are palette numbers 3 (white), 4 (red), 5 (green), 6 (blue), or 7 (yellow).
+; Effect: Prints a sprite-based 8*8 VWF text string (max length: 32 characters). Coordinate values work as with SetTextPos, but no indention is added (0, 0 = upper left screen corner). Valid font colors are palette numbers 3 (white), 4 (red), 5 (green), 6 (blue), or 7 (yellow).
 
 .MACRO PrintSpriteText
 	ldx	#((8*\1)-2)<<8 + 8*\2
-	stx	Cursor
+	stx	DP_TextPos
 	lda	#\4
 	sta	DP_SprTextPalette
 	jsr	PrintSpriteText

@@ -430,7 +430,7 @@
 	baseDirCluster		dsb 4					; "baseDir" = "POWERPAK" directory
 	sectorCounter		db
 
-	Cursor			dw					; 75 bytes and counting
+	DP_TextPos		dw
 
 	Joy1			dw					; Current button state of joypad1, bit0=0 if it is a valid joypad
 	Joy2			dw					; same thing for all pads...

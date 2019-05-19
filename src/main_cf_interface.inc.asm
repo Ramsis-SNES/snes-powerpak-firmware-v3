@@ -39,7 +39,7 @@ StateCardNotInserted:							; wait until card inserted, show no card message
 	cmp	#$A0
 	bne	@StateCardInserted
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "CF card not found.\n  Error code: $"
 	PrintHexNum errorCode
 
@@ -58,7 +58,7 @@ StateCardBusy:								; wait until card not busy, show card busy message
 	bpl	@StateCardBusyDone					; MSB clear --> card not busy
 	wai
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "CF card busy.     \n  Error code: $"
 	PrintHexNum errorCode
 
@@ -76,7 +76,7 @@ StateCardReady:								; wait until card ready, show card not ready message
 	beq	@StateCardReadyDone
 	wai
 
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "CF card not ready.\n  Error code: $"
 	PrintHexNum errorCode
 
@@ -87,7 +87,7 @@ StateCardReady:								; wait until card ready, show card not ready message
 
 
 ; -------------------------- read card, check format
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "Reading CF card ..."
 
 	lda	#$01							; not using DMA
@@ -335,7 +335,7 @@ CardFormatError:
 
 	ClearLine 21
 	ClearLine 22
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 	PrintString "Card format error: FAT16/FAT32 expected!"
 	PrintString "\n  Type code: $"
 	PrintHexNum sectorBuffer1+$1C2					; partition type code
@@ -354,7 +354,7 @@ CardWaitNotBusy:
 ;	sta	errorCode
 	bpl	@CardWaitNotBusyDone					; MSB = card busy flag
 
-;	SetCursorPos 12, 0
+;	SetTextPos 12, 0
 ;	PrintString "    Error $"
 ;	PrintHexNum errorCode
 ;	PrintString " - CF card busy    "
@@ -375,7 +375,7 @@ CardWaitReady:
 	cmp	#%01010000
 	beq	@CardWaitReadyDone
 
-;	SetCursorPos 12, 0
+;	SetTextPos 12, 0
 ;	PrintString "    Error $"
 ;	PrintHexNum errorCode
 ;	PrintString " - CF not ready    "
@@ -396,7 +396,7 @@ CardWaitDataReq:							; wait for not busy, ready, datareq, no error
 	cmp	#%01011000
 	beq	@CardWaitDataReqDone
 
-;	SetCursorPos 12, 0
+;	SetTextPos 12, 0
 ;	PrintString "    Error $"
 ;	PrintHexNum errorCode
 ;	PrintString " - CF no data req    "
@@ -410,7 +410,7 @@ CardWaitDataReq:							; wait for not busy, ready, datareq, no error
 
 /*
 CardTESTCheckError:
-	SetCursorPos 22, 0
+	SetTextPos 22, 0
 	PrintString "  "
 
 	wai
@@ -427,7 +427,7 @@ CardTESTCheckError:
 	sta	REG_NMITIMEN						; re-enable VBlank NMI
 	cli
 
-	SetCursorPos 22, 0
+	SetTextPos 22, 0
 	PrintString "OK"
 
 	rts
@@ -448,7 +448,7 @@ CardError:
 	ClearLine 21
 	ClearLine 22
 	ClearLine 23
-	SetCursorPos 21, 1
+	SetTextPos 21, 1
 
 	ldy	#errorCode
 
@@ -647,10 +647,10 @@ CardReadSector:
 ;CardReadSectorFailed:
 ;	ClearLine 19
 ;	ClearLine 20
-;	SetCursorPos 19, 1
+;	SetTextPos 19, 1
 ;	PrintString "Error CF sectors left = "
 ;	PrintHexNum errorCode
-;	SetCursorPos 20, 1
+;	SetTextPos 20, 1
 
 ;	lda	CARDERROR
 ;	sta	errorCode
@@ -1585,7 +1585,7 @@ GotoSRMTest:
 	jsr	HideLogoSprites
 	jsr	PrintClearScreen
 
-	SetCursorPos 0, 0
+	SetTextPos 0, 0
 	PrintString "sectorsPerFat $"
 	PrintHexNum sectorsPerFat+3
 	PrintHexNum sectorsPerFat+2
@@ -1612,7 +1612,7 @@ FindFreeSector:
 	lda	#$E0							; mask off upper 3 bits (set in CardLoadLBA, reason unknown ??)
 	trb	sourceSector+3
 
-	SetCursorPos 4, 6
+	SetTextPos 4, 6
 	PrintHexNum sourceSector+3
 	PrintHexNum sourceSector+2
 	PrintHexNum sourceSector+1

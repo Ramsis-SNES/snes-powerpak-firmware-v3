@@ -59,15 +59,15 @@ GotoSettings:
 
 	Accu8
 
-	SetCursorPos 18, 19
+	SetTextPos 18, 19
 	PrintString "Accept"
-	SetCursorPos 20, 19
+	SetTextPos 20, 19
 	PrintString "Back"
-	SetCursorPos 22, 19
+	SetTextPos 22, 19
 	PrintString "Save settings"
 
 .IFDEF SHOWDEBUGMSGS
-	SetCursorPos 0, 22
+	SetTextPos 0, 22
 	Accu16
 
 	tsc								; print stack pointer (initial value: $1FFF)
@@ -98,8 +98,8 @@ SettingsLoop:
 	wai
 
 .IFDEF SHOWDEBUGMSGS
-	SetCursorPos 2, 22
 	PrintNum dontUseDMA
+	SetTextPos 2, 22
 .ENDIF
 
 
@@ -169,7 +169,7 @@ SettingsLoop:
 	cmp	#cursorYsetmenu3					; cursor on "Select a theme"?
 	bne	+
 
-	SetCursorPos 16, 1
+	SetTextPos 16, 1
 	PrintString "Please save your settings after selecting a new theme."
 
 	bra	@ShowHintDone
@@ -274,7 +274,7 @@ CheckForUpdate:
 	jsr	ClearSpriteText						; remove "Loading ..." message
 	jsr	SpriteMessageError
 
-	SetCursorPos 20, 1
+	SetTextPos 20, 1
 	PrintString "UPDATE.ROM is not a valid \"MUFASA\" firmware file.\n"
 	PrintString "  Press any button ..."
 
@@ -322,7 +322,7 @@ CheckForUpdate:
 	jsr	ClearSpriteText						; remove "Loading ..." message
 
 	PrintSpriteText 21, 3, "Firmware is up to date!", 5
-	SetCursorPos 20, 1
+	SetTextPos 20, 1
 	PrintString "Press any button ..."
 
 @WaitBeforeReturn:
@@ -451,7 +451,7 @@ SaveConfig:
 ; **************************** SDRAM check *****************************
 
 SDRAMCheckFull:
-	SetCursorPos 17, 1
+	SetTextPos 17, 1
 	PrintString "SDRAM check:"
 
 	Accu16
@@ -463,7 +463,7 @@ SDRAMCheckFull:
 
 	Accu8
 
-	SetCursorPos 18, 19
+	SetTextPos 18, 19
 	PrintString "Cancel"
 
 	wai
@@ -476,7 +476,7 @@ SDRAMCheckFull:
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 
-	SetCursorPos 18, 1
+	SetTextPos 18, 1
 	PrintString "Writing bank $  \n  Please hold on ..."
 
 @WriteLoop:
@@ -485,7 +485,7 @@ SDRAMCheckFull:
 	beq	+
 
 	ClearLine 18
-	SetCursorPos 17, 6
+	SetTextPos 17, 6
 	PrintString "k cancelled!"					; "SDRAM check cancelled!"
 
 	jmp	@MemCheckDone
@@ -526,7 +526,7 @@ SDRAMCheckFull:
 	sta	DMAWRITELO
 	sta	DMAWRITEHI
 
-	SetCursorPos 18, 1
+	SetTextPos 18, 1
 	PrintString "Read"						; "Reading bank"
 
 @ReadLoop:
@@ -535,7 +535,7 @@ SDRAMCheckFull:
 	beq	+
 
 	ClearLine 18
-	SetCursorPos 17, 6
+	SetTextPos 17, 6
 	PrintString "k cancelled!"					; "SDRAM check cancelled!"
 
 	bra	@MemCheckDone
@@ -578,7 +578,7 @@ SDRAMCheckFull:
 @MemCheckDone:
 	jsr	HideButtonSprites
 
-	SetCursorPos 18, 1
+	SetTextPos 18, 1
 	PrintString "Press any button ..."
 	ClearLine 19							; remove "Please hold on ..."
 
@@ -590,23 +590,23 @@ SDRAMCheckFull:
 
 MemCheckError:
 	ClearLine 17							; hide "SDRAM check:"
-	SetCursorPos 18, 19
+	SetTextPos 18, 19
 	PrintString "      "						; hide cancel message
 
 	jsr	HideButtonSprites
 
 	PrintSpriteText 19, 3, "SDRAM error!", 4
-	SetCursorPos 18, 9
+	SetTextPos 18, 9
 	PrintString ", read byte value: $"
 	PrintHexNum temp+4
-	SetCursorPos 19, 1
+	SetTextPos 19, 1
 	PrintString "Expected byte value: $"
 	PrintHexNum errorCode
 	PrintString " at address $"
 	PrintHexNum temp+2
 	PrintHexNum temp+1
 	PrintHexNum temp
-	SetCursorPos 20, 1
+	SetTextPos 20, 1
 	PrintString "Trying again 4 times:"
 
 	ldy	#$0004							; 4 retries, the exact amount doesn't really matter ;-)
@@ -627,7 +627,7 @@ MemCheckError:
 	dey
 	bne	-
 
-	SetCursorPos 22, 1
+	SetTextPos 22, 1
 	PrintString "CRITICAL HARDWARE ERROR! PLEASE CHECK ERROR.LOG!"
 
 	jsr	LogScreen						; save to ERROR.LOG for later review
@@ -636,7 +636,7 @@ MemCheckError:
 
 
 MemCheckUpdateBank:
-	SetCursorPos 18, 8
+	SetTextPos 18, 8
 	PrintHexNum temp+2						; show bank no. while writing/reading SDRAM
 
 	rts
