@@ -99,8 +99,8 @@ StateCardReady:								; wait until card ready, show card not ready message
 	ldx	#sectorBuffer1
 	stx	destLo
 	stz	destBank
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; read sector 0
 
 	Accu16
@@ -171,8 +171,8 @@ CardCopyPartitionLBABegin:						; copy partitionLBABegin from offset 454
 	ldx	#sectorBuffer1
 	stx	destLo
 	stz	destBank
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; read FAT16/FAT32 Volume ID sector (partition boot record)
 
 	lda	sectorBuffer1+$0D					; copy FAT16/FAT32 sectorsPerCluster from offset 13
@@ -536,11 +536,7 @@ CardReadSector:
 	sei								; disable NMI & IRQ
 	stz	REG_NMITIMEN
 	jsr	CardLoadLBA
-	ldx	#$0200							; read 512 bytes at a time
-	stx	sourceBytes16
-;	jsr	CardWaitNotBusy
-;	jsr	CardWaitReady
-;	jsr	CardCheckError
+
 	lda	#$20
 	sta	CARDCOMMAND						; send card read sector command
 	jsr	CardWaitNotBusy
@@ -548,12 +544,12 @@ CardReadSector:
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
 
-	lda	destType						; read data destination
+	lda	DP_DestOrSrcType					; read data destination
 
 	Accu16
 
 	and	#$00FF							; remove garbage in Accu B
-	asl	a							; use destType as a jump table index
+	asl	a							; use DP_DestOrSrcType as a jump table index
 	tax
 
 	Accu8
@@ -561,48 +557,30 @@ CardReadSector:
 	jmp	(@PTR_kDest, x)
 
 @PTR_kDest:
-	.DW	@CRS_toWRAMnoDMA
-	.DW	@CRS_toWRAM
 	.DW	@CRS_toFPGA
 	.DW	@CRS_toSDRAM
 	.DW	@CRS_toSDRAMnoDMA
-
-
-
-@CRS_toWRAM:
-	lda	dontUseDMA
-	bne	@CRS_toWRAMnoDMA					; if dontUseDMA != 0, then don't use DMA
-	ldx	destLo
-	stx	REG_WMADDL						; set WRAM destination address
-	lda	destBank
-	sta	REG_WMADDH
-
-	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, $80, sourceBytes16
-
-	bra	@CRS_Done
+	.DW	@CRS_toWRAM
+	.DW	@CRS_toWRAMnoDMA
 
 
 
 @CRS_toFPGA:
-	ldx	sourceBytes16
+	ldx	#512							; transfer 512 bytes
 -	lda	CARDDATAREAD						; read data byte
 	sta	FPGADATAWRITE						; write to FPGA
 	dex
 	bne	-
 
-	bra	@CRS_Done
-
-
+	jmp	@CRS_Done
 
 @CRS_toSDRAM:
-	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, DMAPORT, sourceBytes16
+	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, DMAPORT, 512
 
 	bra	@CRS_Done
 
-
-
 @CRS_toSDRAMnoDMA:
-	ldx	sourceBytes16
+	ldx	#512							; transfer 512 bytes
 -	lda	CARDDATAREAD						; read data byte
 	sta	DMAREADDATA						; write to SDRAM
 	dex
@@ -610,10 +588,21 @@ CardReadSector:
 
 	bra	@CRS_Done
 
+@CRS_toWRAM:
+	lda	DP_UserSettings
+	and	#%00000001						; check for DMA flag
+	bne	@CRS_toWRAMnoDMA					; flag set --> don't use DMA
+	ldx	destLo
+	stx	REG_WMADDL						; set WRAM destination address
+	lda	destBank
+	sta	REG_WMADDH
 
+	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, $80, 512
 
-@CRS_toWRAMnoDMA:							; read source256*sourceBytes bytes into WRAM
-	ldx	sourceBytes16
+	bra	@CRS_Done
+
+@CRS_toWRAMnoDMA:							; read 512 bytes into WRAM
+	ldx	#512
 	ldy	#$0000
 -	lda	CARDDATAREAD
 	sta	[destLo], y
@@ -698,8 +687,8 @@ CardReadGameFill:
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 @ReadSector:
-	lda	#kDestSDRAM						; read sectors to SDRAM (self-reminder: this needs to be declared every iteration as destType is destroyed in a sub-sub routine of IncrementSectorNum [namely NextCluster])
-	sta	destType
+	lda	#kSDRAM							; read sectors to SDRAM (self-reminder: this needs to be declared every iteration as DP_DestOrSrcType is destroyed in a sub-sub routine of IncrementSectorNum [namely NextCluster])
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector
 
 	Accu16
@@ -747,8 +736,8 @@ CardReadFile:								; sourceCluster already set
 
 	Accu8
 
-	lda	#kDestSDRAM
-	sta	destType
+	lda	#kSDRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector
 
 	IncrementSectorNum
@@ -765,8 +754,8 @@ __	rts
 CardWriteFile:								; sourceCluster already set
 	stz	sectorCounter
 	stz	bankCounter
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 @CardWriteFileLoop:
@@ -790,9 +779,6 @@ CardWriteSector:
 	jsr	CardWaitReady
 	jsr	CardCheckError
 	jsr	CardLoadLBA
-
-	ldx	#$0200							; write 512 bytes at a time
-	stx	sourceBytes16
 	jsr	CardWaitNotBusy
 	jsr	CardWaitReady
 	jsr	CardCheckError
@@ -804,12 +790,12 @@ CardWriteSector:
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
 
-	lda	sourceType						; read data source
+	lda	DP_DestOrSrcType					; read data source
 
 	Accu16
 
 	and	#$00FF							; remove garbage in Accu B
-	asl	a							; use sourceType as a jump table index
+	asl	a							; use DP_DestOrSrcType as a jump table index
 	tax
 
 	Accu8
@@ -817,32 +803,25 @@ CardWriteSector:
 	jmp	(@PTR_kSource, x)
 
 @PTR_kSource:
-	.DW	@CWS_fromWRAM
+	.DW	$0000							; dummy bytes (no transfers from FPGA)
 	.DW	@CWS_fromSDRAM
+	.DW	@CWS_fromSDRAM
+	.DW	@CWS_fromWRAM
+	.DW	@CWS_fromWRAM
 
 
 
-@CWS_fromSDRAM:							; write source256*sourceBytes bytes onto CF card
-	ldx	sourceBytes16
+@CWS_fromSDRAM:								; write 512 bytes onto CF card
+	ldx	#512
 -	lda	DMAREADDATA
 	sta	CARDDATAWRITE
 	dex
 	bne	-
 
-;	DMA_WaitHblank $88, CARDDATAWRITEbank, CARDDATAWRITEhigh, CARDDATAWRITElow, DMAPORT, sourceBytes16
-
-; N.B. The above B --> A bus DMA (replacing the loop) is tested working,
-; but despite the wait-for-Hblank causes visible flickering on the screen
-; whilst offering zero speed increase (possibly due to the CARDDATAWRITE
-; bottleneck on the hardware side). Tested with Dezaemon (J).srm, which
-; is 1 Mbit in size.
-
 	bra	@CWS_Done
 
-
-
-@CWS_fromWRAM:								; write source256*sourceBytes bytes onto CF card
-	ldx	sourceBytes16
+@CWS_fromWRAM:								; write 512 bytes onto CF card
+	ldx	#512
 	ldy	#$0000
 -	lda	[sourceLo], y
 	sta	CARDDATAWRITE
@@ -973,8 +952,8 @@ CardLoadDir:
 @CLD_ReadSector:
 	Accu8
 
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; put into dest
 	jsr	CLD_ClearEntryName					; clear tempEntry, reset lfnFound
 
@@ -1339,8 +1318,8 @@ CardLoadDirLoop:
 	stx	sourceEntryLo						; reset entry source
 	stz	destBank
 	stz	sourceEntryBank
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector
 	jmp	CardLoadDirLoop
 
@@ -1482,8 +1461,8 @@ NextCluster:
 	ldx	#sectorBuffer1						; load FAT sector
 	stx	destLo
 	stz	destBank
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector
 
 ; offset = offset % 512 -- offset of FAT entry within loaded sector 0-511
@@ -1618,8 +1597,8 @@ FindFreeSector:
 	PrintHexNum sourceSector+1
 	PrintHexNum sourceSector+0
 
-	lda	#kDestWRAM						; set WRAM as destination
-	sta	destType
+	lda	#kWRAM							; set WRAM as destination
+	sta	DP_DestOrSrcType
 	ldx	#sectorBuffer1
 	stx	destLo
 	stz	destBank

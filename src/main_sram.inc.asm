@@ -309,8 +309,8 @@ SaveSRAMFile:
 	PrintString "Saving SRAM file to CF card ..."
 
 	wai								; make sure the message appears on the screen
-	lda	#kSourceSDRAM
-	sta	sourceType
+	lda	#kSDRAM
+	sta	DP_DestOrSrcType
 	jsr	CardWriteFile
 
 	SetTextPos 15, 0

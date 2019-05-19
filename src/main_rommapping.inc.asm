@@ -122,8 +122,8 @@ LoadSave:
 	sta	DMAWRITEHI
 	stz	sectorCounter
 	stz	bankCounter
-	lda	#kDestSDRAM
-	sta	destType
+	lda	#kSDRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadFile
 
 	ldy	#gameSize						; print SRAM sectors in decimal

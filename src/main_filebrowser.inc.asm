@@ -506,8 +506,8 @@ FileBrowserCheckSPCFile:
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; sector -> WRAM
 
 	plx								; restore jump table value

@@ -74,8 +74,8 @@ GGCodeListSelected:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; sector -> WRAM
 	ldx	#$0000
 	ldy	#$0000

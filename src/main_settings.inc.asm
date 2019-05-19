@@ -260,8 +260,9 @@ CheckForUpdate:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
-	lda	#kDestWRAM
-	sta	destType
+
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; sector -> WRAM
 
 	Accu16
@@ -473,8 +474,8 @@ SaveConfig:
 	ldx	#sectorBuffer1
 	stx	sourceLo
 	stz	sourceBank
-	lda	#kSourceWRAM
-	sta	sourceType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardWriteFile
 
 	rts

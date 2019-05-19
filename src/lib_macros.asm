@@ -288,7 +288,7 @@
 
 ; DMA (with wait-for-Hblank) macro by ManuLöwe (added for v2.01)
 ;
-; Usage: DMA_WaitHblank mode[8bit], A_bus_bank[8bit], A_bus_src_hi[8bit], A_bus_src_lo[8bit], B_bus_register[8bit], length[16bit variable]
+; Usage: DMA_WaitHblank mode[8bit], A_bus_bank[8bit], A_bus_src_hi[8bit], A_bus_src_lo[8bit], B_bus_register[8bit], length[16bit]
 ;
 ; Effect: Waits for Hblank, then transfers data via DMA channel 1.
 ; For use during active display, with a standard data length of 512 bytes.
@@ -313,7 +313,7 @@
 	sta	$4313
 	lda	#\2							; data bank (8 bit)
 	sta	$4314
-	ldx	\6							; data length (sourceBytes16 variable, 512 bytes)
+	ldx	#\6							; data length (16 bit), should always be 512 bytes
 	stx	$4315
 	lda	#%00000010						; initiate DMA transfer (channel 1)
 	sta	$420B

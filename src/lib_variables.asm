@@ -361,23 +361,13 @@
 
 
 
-; -------------------------- CF interface constants
+; -------------------------- CF I/O constants
 .ENUM $00
-	kDestWRAMNoDMA		db
-	kDestWRAM		db
-	kDestFPGA		db
-	kDestSDRAM		db
-	kDestSDRAMNoDMA		db
-.ENDE
-
-
-
-.ENUM $00
-;	kSourceWRAMNoDMA	db
-	kSourceWRAM		db
-;	kSourceFPGA		db
-	kSourceSDRAM		db
-;	kSourceSDRAMNoDMA	db
+	kFPGA			db
+	kSDRAM			db
+	kSDRAMNoDMA		db
+	kWRAM			db
+	kWRAMNoDMA		db
 .ENDE
 
 
@@ -389,17 +379,14 @@
 	errorCode		dw
 	fat32Enabled		db
 
-	sourceBytes		db
+	DP_DestOrSrcType	db
 	source256		db
-	sourceBytes16		dw
-
 	sourceLo		db
 	sourceHi		db
 	sourceBank		db
-	sourceType		db
 	sourceEntryLo		db
 	sourceEntryHi		db
-	sourceEntryBank		db					; 15 bytes and counting
+	sourceEntryBank		db
 
 	destEntryLo		db
 	destEntryHi		db
@@ -408,12 +395,11 @@
 	destLo			db
 	destHi			db
 	destBank		db
-	destType		db
 
-	filesInDir		dw
+	filesInDir		dw					; 20 bytes
 	temp			dsb 8
 	selectedEntry		dw
-	lfnFound		db					; 35 bytes and counting
+	lfnFound		db
 
 	sourceSector		dsb 4
 	sourceCluster		dsb 4
@@ -422,7 +408,7 @@
 	sectorsPerCluster	db
 	reservedSectors		dw
 	sectorsPerFat		dsb 4
-	fatBeginLBA		dsb 4
+	fatBeginLBA		dsb 4					; 58 bytes
 
 	DP_ColdBootCheck2	db
 
@@ -444,7 +430,7 @@
 	Joy2New			dw
 
 	Joy1Old			dw
-	Joy2Old			dw					; 91 bytes and counting
+	Joy2Old			dw					; 87 bytes
 
 	findEntry		dsb 9					; 8 bytes at most for short file names + NUL-terminator
 
@@ -456,7 +442,7 @@
 	scrollY			db
 	scrollYCounter		db
 	scrollYUp		db
-	scrollYDown		db					; 139 bytes and counting
+	scrollYDown		db					; 135 bytes
 
 	cursorX			db					; cursorX/cursorY must be kept in consecutive order due to occasional 16-bit writes
 	cursorY			db
@@ -473,7 +459,7 @@
 	saveSize		db
 	useBattery		db
 
-	DP_ColdBootCheck3	db					; 151 bytes and counting
+	DP_ColdBootCheck3	db					; 147 bytes
 
 	gameSize		dw
 	gameResetVector		dw
@@ -484,7 +470,7 @@
 	gameROMMbits		db
 	sramSizeByte		db
 
-	ggcode			dsb 4					; 196 bytes and counting
+	ggcode			dsb 4					; 192 bytes
 
 	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set, b = use SDRAM buffer if set, WRAM buffer if clear]
 									; The h flag is checked (& reset) in CardLoadDir only.
@@ -507,7 +493,7 @@
 	audioY			db
 	audioPSW		db
 	audioSP			db
-	spcTimer		dsb 4					; 215 bytes and counting
+	spcTimer		dsb 4					; 211 bytes
 
 	BGPrintMon		db					; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
 	DP_SelectionFlags	db					; rrrrrrrf [r = Reserved, f = file was chosen if set]
@@ -520,11 +506,11 @@
 	DP_cursorX_BAK		db					; backup variables for warm boot and/or file browser
 	DP_cursorY_BAK		db
 	DP_sourceCluster_BAK	dsb 4
-	DP_StackPointer_BAK	dw					; 229 bytes and counting
+	DP_StackPointer_BAK	dw
 	DP_SubDirCounter	dw					; used in the file browser
 
 	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
-	DP_ThemeFileClusterHi	dw
+	DP_ThemeFileClusterHi	dw					; 231 bytes
 
 	DP_SPCPlayerFlags	db					; rrrrrnnn [nnn = minutes of auto-play time (000 = auto-play off), r = Reserved]
 	DP_WarmBootFlags	db					; srrrrrrr [r = Reserved, s = go to SPC player]
@@ -538,14 +524,10 @@
 	spc_fwrite		db
 	spc_pr			dsb 4					; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE									; 255 of 256 bytes used
+.ENDE									; 251 of 256 bytes used
 
-
-
-.ENUM 24								; "temp" variable area
-	digi_src		dsb 3
-	digi_src2		dsb 3
-.ENDE
+	.DEFINE digi_src	temp					; some more SNESMod variables in the temp area
+	.DEFINE digi_src2	temp+3
 
 
 

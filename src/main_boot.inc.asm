@@ -297,8 +297,8 @@ LoadConfig:
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
-	lda	#kDestWRAM
-	sta	destType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; sector -> WRAM
 
 	ldy	#$0000
@@ -1132,8 +1132,9 @@ LoadLastGame:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
-	lda	#kDestWRAM
-	sta	destType
+
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; sector -> WRAM
 
 	Accu16
@@ -1255,8 +1256,8 @@ SaveLastGame:
 
 	ldx	#sectorBuffer1
 	stx	sourceLo
-	lda	#kSourceWRAM
-	sta	sourceType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardWriteFile
 	rts
 
@@ -1281,8 +1282,8 @@ CardLoadFPGA:
 	sta	REG_INIDISP						; turn screen off
 
 @CardLoadFPGALoop:
-	lda	#kDestFPGA
-	sta	destType
+	lda	#kFPGA
+	sta	DP_DestOrSrcType
 	jsr	CardReadSector						; sector -> FPGA
 	jsr	LoadNextSectorNum
 
@@ -1369,8 +1370,8 @@ LogScreen:
 	stx	sourceLo
 	lda	#$7E
 	sta	sourceBank
-	lda	#kSourceWRAM
-	sta	sourceType
+	lda	#kWRAM
+	sta	DP_DestOrSrcType
 	jsr	CardWriteFile
 	rts
 
