@@ -1451,27 +1451,4 @@ PrintCardFS:
 
 
 
-; *********************** Music loading routines ***********************
-
-LoadDevMusic:
-	sei								; disable NMI & IRQ before loading music
-	stz	REG_NMITIMEN
-	jsl	spcBoot							; boot SNESMOD
-
-	lda	#:SOUNDBANK						; give soundbank
-	sta	spc_bank
-	ldx	#(SOUNDBANK & $7FFF)					; mask off SNES LoROM address gap ($8000)
-	jsl	spcLoad							; load module into SPC
-
-	lda	#39							; allocate around 10K of sound ram (39 256-byte blocks)
-	jsl	spcAllocateSoundRegion
-
-	lda	REG_RDNMI						; done, acknowledge NMI flag
-	lda	#$81							; re-enable Vblank NMI + Auto Joypad Read
-	sta	REG_NMITIMEN
-	cli
-	rts
-
-
-
 ; ******************************** EOF *********************************
