@@ -1,7 +1,7 @@
 ===========================================================================================
 |
-|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-|   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.10 (CODENAME: "MUFASA")
+|   (c) 2019 by ManuLöwe (https://manuloewe.de/)
 |
 |	*** KNOWN ISSUES ***
 |
@@ -9,17 +9,24 @@
 
 
 
-   KNOWN ISSUES IN V3.00:
+   KNOWN ISSUES EXCLUSIVE TO (OR NOT DISCOVERED UNTIL) V3.XX:
 ______________________________________________________________________
 
-- The game "Pilotwings" doesn't work even with a DSP1 chip installed in your PowerPak. This bug has been known since v1.0X. It's most likely related to there being different hardware revisions of the chip and/or the PowerPak hardware not supporting LoROM DSP1 games properly. Note that you might get the game to run using a very small CF card (<500 MB), but in effect, this is a pure matter of luck.
+- On SNES consoles with CPU v02/PPU1 v01/PPU2 v01 (in short, 2/1/1) chipset, the SDRAM check may report errors although loading and playing ROMs works just fine (i.e. hardware-wise, SDRAM is most likely OK). This may be caused by a hardware design flaw of the PowerPak, but this is pure speculation. In any case, there is no known fix/workaround on the SNES software side. Consoles with 1/1/1, 2/1/2, or 2/1/3 chipsets don't seem to be affected.
 
-- The game "Star Ocean" (uncompressed 96 Mbit version) doesn't offer you to save your SRAM after playing. This can be fixed by patching your ROM's internal header. Check the posting by shadowkn55 in the nesdev forum thread (http://forums.nesdev.com/viewtopic.php?p=53414#p53414) or contact me for details.
+- When playing an SPC file (esp. songs from later SquareSoft games), audio artifacts/glitches may occur. Rarely, a file might even seem to load okay but no sound will be played at all. The exact cause of this issue is unknown and subject to ongoing investigations. Don't expect a fix anytime soon, though.
 
-- When playing an SPC file (esp. tunes from later SquareSoft games), audio artifacts/glitches may occur. The exact cause of this issue is unknown and subject to current investigations.
 
-- On SNES consoles with CPU v02/PPU1 v01/PPU2 v01 (in short, 2/1/1) chipset, the SDRAM check may report errors although loading and playing ROMs works just fine (i.e. hardware-wise, SDRAM is OK). This is most likely caused by a PowerPak hardware design flaw -- in any case, there is no known fix or workaround on the software side. Consoles with 1/1/1, 2/1/2, or 2/1/3 chipsets don't seem to be affected though.
+
+   KNOWN ISSUES SINCE V1.0X:
+______________________________________________________________________
 
 - The SPC player neither reads nor displays extended ID666 tags.
 
 - The file browser doesn't display entries in alphabetical order, but instead the way the filesystem organizes files on the CF card. If it really bothers you, please consider using drive-sorting software after loading your card with ROMs and savegames (although this is neither recommended nor tested).
+
+- ChimeraHardline's fan translation of the game "Fire Emblem Thracia 776" doesn't work. The translation expands the ROM to 64 Mbits and uses a special ExLoROM mapping, which the original SNES PowerPak creator implemented but never actually bothered to test (and it doesn't work). Unfortunately, SNES PowerPak hardware register documentation is pretty much non-existent (as is the original Verilog/VHDL source for the FPGA file), so there's currently no hope of getting this game to run on the PowerPak, ever.
+
+- The game "Pilotwings" might not work even with a DSP1 chip installed in your PowerPak. This is most likely related to there being different hardware revisions of the chip and/or the PowerPak hardware not supporting LoROM DSP1 games properly. Note that I have actually gotten the game to run in the past using a very small CF card (<500 MB), but in practice, getting it to boot at all seems to be a pure matter of luck.
+
+- The game "Star Ocean" (uncompressed 96 Mbit version) doesn't offer you to save your SRAM after playing. This can be fixed by patching/editing the ROM's internal header. Check the posting by shadowkn55 in the appropriate nesdev forum thread (http://forums.nesdev.com/viewtopic.php?p=53414#p53414) for details.

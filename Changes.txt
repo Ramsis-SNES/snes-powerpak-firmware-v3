@@ -1,11 +1,27 @@
 ===========================================================================================
 |
-|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-|   (c) 2012-2016 by ManuLöwe (http://www.manuloewe.de/)
+|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.10 (CODENAME: "MUFASA")
+|   (c) 2019 by ManuLöwe (https://manuloewe.de/)
 |
 |	*** CHANGES LIST ***
 |
 ===========================================================================================
+
+
+
+CHANGES IN V3.10 "MUFASA" BUILD #11XXX (RELEASED XXX, 2019):
+______________________________________________________________________
+
+- added feature: In the SPC player, you can now skip to the next/previous song using the L/R shoulder buttons
+- added feature: Also in the SPC player, you can enable auto-play (1-7 minutes), which will automatically switch to the next song in the same directory as soon as the given time has elapsed. Also, the current setting will be saved along with your configuration when pressing Start in the settings menu :-)
+- added feature: The settings menu now offers an option to randomize most of SNES RAM before booting a game (for development purposes)
+- added IRQ-based error handlers for debugging, this helps detecting unwanted BRK/COP executions e.g. due to improper Accumulator size
+- replaced the all-too-clumsy copier header check with a proper ROM file size check to determine whether a 512-byte header is present or not, which is both faster and more reliable
+- replaced the equally clumsy internal ROM header detection with a checksum-based approach, and added a manual selection for ROMs with corrupt/missing internal headers to force LoROM/HiROM/ExHiROM mapping. No more manual header fixing required e.g. for beta/prototype ROMs! :-)
+- optimized ROM loading a bit
+- fixed broken printing of ROM file size for good
+- many more minor optimizations
+- improved code readability quite a bit
 
 
 

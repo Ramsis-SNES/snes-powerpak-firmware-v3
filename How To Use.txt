@@ -1,7 +1,7 @@
 ===========================================================================================
 |
-|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.00 (CODENAME: "MUFASA")
-|   (c) 2012-2015 by ManuLöwe (http://www.manuloewe.de/)
+|   UNOFFICIAL SNES POWERPAK FIRMWARE V3.10 (CODENAME: "MUFASA")
+|   (c) 2019 by ManuLöwe (https://manuloewe.de/)
 |
 |	*** INSTALLATION & USAGE ***
 |
@@ -9,7 +9,24 @@
 
 
 
-   A WORD OF WARNING !!!
+   CONTENTS
+______________________________________________________________________
+
+   A WORD OF WARNING
+   OVERVIEW
+   INSTALLATION
+     Option 1: The Safe Way
+     Option 2: The Easy Way
+   USAGE & BUTTON MAPPING
+   CONFIGURATION & THEME FILE FORMAT
+   UNINSTALLATION
+   ASSEMBLING THE SOURCE
+   CREDITS & THANKS
+   DISCLAIMER
+
+
+
+   A WORD OF WARNING
 ______________________________________________________________________
 
 Despite thorough testing, this software is NOT guaranteed to be bug-free. There are likely even critical issues in this software which might at worst corrupt data on your CF card and/or render your SNES PowerPak useless and/or damage your SNES control deck, as well as any accessory connected to it (like joypads, your TV set, etc.).
@@ -23,16 +40,17 @@ Most importantly, this being unofficial software, you will definitely void the f
    OVERVIEW
 ______________________________________________________________________
 
-Okay, as you probably already know what this is all about, I'll keep this short. ;-)
+With this unofficial v3.XX firmware for the SNES PowerPak, you can enjoy the following advantages over the stock v1.0X firmware:
 
-With this unofficial firmware for the SNES PowerPak, you can enjoy the following advantages over the stock v1.0X software:
-- Up to 56 characters per filename are displayed on the screen thanks to the SNES's horizontal hi-res mode.
-- A settings menu lets you change the PowerPak's configuration at any time.
-- The SPC player actually works. ;-)
-- A more stable user interface with more intuitive joypad button mapping.
-- Full theme support, i.e. with a bit of skill, you can customize the UI to your own liking. Or, just use any of the themes supplied within this release. :D
-- Better performance thanks to a unified software design that takes advantage of the SNES's 16-bit capabilities.
+- A more stable user interface with more intuitive joypad button mapping, on-screen button hints, and (where appropriate) context-sensitive help.
+- Better performance thanks to a unified software design that takes advantage of the SNES CPU's 16-bit capabilities.
+- Up to 56 characters per file name are displayed in the file browser thanks to the SNES's horizontal hi-res mode. (Up to 123 file name characters are actually compared when trying to auto-match an SRM file to a chosen ROM, and stored into the LASTGAME.LOG file.)
+- ROM mapping is more interactive in special cases. This allows you to load and play most beta/prototype ROMs without having to hex-edit their -- often non-existent -- internal headers first.
+- The SPC player actually works. ;-) It presents itself to you as a "window" overlay onto the file browser, has a timer-based auto-play feature for convenience, and takes you right back to where you were once you decide to quit listening.
+- A settings menu allows you to reconfigure your PowerPak at any time, completely without the hassle of editing files on the CF card using a computer.
+- Full theme support, i.e. with a bit of skill and effort, you can easily customize the UI to your very own liking. Or, just resort to using any of the themes bundled within this release package. :D
 - In-system update flashing.
+- Tons of bugs and glitches found in the stock firmware have been fixed or worked around for the most stable, reliable, and convenient user experience possible.
 - ... and more! :-)
 
 
@@ -40,7 +58,7 @@ With this unofficial firmware for the SNES PowerPak, you can enjoy the following
    INSTALLATION
 ______________________________________________________________________
 
-To install this firmware, you have two alternatives. Choose one, depending on your PowerPak's hardware revision and/or your technical knowledge and equipment. The first option is recommended because it is basically fail-safe -- but it only works with earlier carts. The second is fast, convenient, and should work with any cart revision -- but it involves a higher risk as well.
+To install this firmware, you have two options. Choose one, depending on your PowerPak's hardware revision and/or your technical knowledge and equipment. The first option is recommended because it is basically fail-safe -- but it only works with earlier carts. The second is fast, convenient, and should work with any cart revision, but it involves a higher risk as well.
 
 
 
@@ -48,20 +66,22 @@ Option 1: The Safe Way
 ----------------------
 
 Prerequisites:
+
    - A SNES PowerPak with a socketed flash boot ROM chip, e.g. PCB revD or revE. The hardware revision can be determined without opening up the cartridge by looking at the printing on the PCB in the CF card slot.
    - An external PLCC32 programmer, e.g. a parallel Willem device.
 
 Steps necessary:
-   1. Reprogram your PowerPak's boot ROM chip with <this release's archive root>/src/out/bootrom.sfc
-   2. Delete all files in the POWERPAK directory on your CF card (including the TXT files) except for the SAVES subdirectory. Then, copy over the contents of <this release's archive root>/src/out/POWERPAK (sans the SAVES subdirectory).
 
-The first step is likely the more difficult one. First of all, you have to open up your SNES PowerPak and remove the sticker (if there is one) from the boot ROM chip. My own cart is a revD with an ATMEL AT29C010A type of chip. If you have a revE, you'll likely find an SST39SF010A chip in there. Next, remove the chip. Be very careful! It's likely not glued in, but I still had an incredibly hard time getting it out of the socket at first. This should be done with extreme care in order to avoid damage to you, the PowerPak, and/or any equipment you might be using. PLCC32 tweezers are recommended, though even these might cause damage to the socket if you aren't especially careful.
+   1. Reprogram your PowerPak's boot ROM chip with <this release's archive root>/src/out/bootrom.sfc
+   2. Delete all files in the /POWERPAK folder on your CF card (including the TXT files) except for the SAVES subdirectory. Then, copy over the contents of <this release's archive root>/src/out/POWERPAK (sans the SAVES subdirectory).
+
+The first step is likely the more difficult one. First of all, you have to open up your SNES PowerPak and remove the sticker (if there is one) from the boot ROM chip. My own cart is a revD with an ATMEL AT29C010A type of chip. If you have a revE or newer board, you'll likely find an SST39SF010A chip in there. Next, remove the chip itself. Be very careful! It's likely not glued in, but I still had an incredibly hard time getting it out for the first time. Again, use extreme care in order to avoid damage to you, the PowerPak, and/or any equipment you might be using. PLCC32 tweezers are recommended, though even these might cause damage to the socket if you aren't especially careful.
 
 Programming the chip is a matter of its own and thus not covered here. Just note that an AT29C010A type of chip can be simply "overwritten" whereas the SST39SF010A needs to be erased first (use the appropriate function of your programmer's software).
 
-After reflashing the chip, put it back into place - again, with care, despite the fact that some gentle force might be required to avoid connection problems. Finally, insert the PowerPak WITHOUT A CF CARD (!) into your SNES and fire it up. If it shows the logo and gives you a "CF card not found" error, then good, please proceed. :-) If not, you've probably made a mistake at some point and have to start over.
+After reflashing the chip, put it back into place -- again, with care, despite the fact that some gentle force might be required to avoid connection problems. Finally, insert the PowerPak WITHOUT A CF CARD (!) into your SNES and fire it up. If it shows the logo and gives you a "CF card not found" error, then good, please proceed. :-) If not, you've probably made a mistake at some point and have to start over.
 
-Once you've prepared your CF card as described above (step 2), put it into your SNES PowerPak ... and play! :D
+Once you've successfully reinstalled the chip, prepare your CF card as described above (step 2), put it into your SNES PowerPak ... and play! :D
 
 
 
@@ -69,54 +89,78 @@ Option 2: The Easy Way
 ----------------------
 
 Prerequisites:
+
    - A SNES PowerPak of any hardware revision, as long as its flash boot ROM chip is either an AT29C010A or an SST39SF010A.
-   - A previous boot ROM version of v1.0X (stock firmware) or v2.0X "SIMBA". (In the unlikely event that you still have a beta version of my "SIMBA" firmware installed, then you must upgrade to v2.00 first.)
-   - Nerves of steel. ;-) If anything goes wrong during the upgrade process and your chip isn't socketed, you end up not with an updated PowerPak, but with a rather expensive paperweight (unless you find someone with the skill to fix it for you, which would involve desoldering of the flash ROM chip). Please keep in mind that just so much as a power failure is enough to permanently ruin your cart (unless your ROM chip is socketed, of course)!
+   - A previous boot ROM version of v1.0X (stock firmware) or v2.0X "SIMBA". (In the unlikely event that you still have a beta version of the "SIMBA" firmware installed, then you must upgrade to v2.00 first.)
+   - Nerves of steel. ;-) If anything goes wrong during the upgrade process and your chip isn't socketed, you end up not with an updated PowerPak, but with a rather expensive paperweight (unless you find someone with the skill to fix it for you, which would involve desoldering of the flash ROM chip). Please keep in mind that any kind of power failure during flashing, caused e.g. by your loved one wanting to get to you and tripping over the power cord, will be enough to permanently ruin your cart (unless your ROM chip is socketed, of course)!
 
 Steps necessary:
-   1. Determine the current version of your firmware. You'll see the version number once you power up your SNES PowerPak. If it says, "Boot ROM v1.0X" (where X can be any number), then you have a version 1 firmware. If you spot the word "SIMBA" anywhere on the screen, then you have a version 2 firmware.
-   2. Copy the contents of <this release's archive root>/src/out/POWERPAK (sans the SAVES subfolder) to the POWERPAK directory on your CF card, replacing any existing file(s) (i.e., TOPLEVEL.BIT).
-   3. Browse to <your CF card root>/POWERPAK. Delete SI.MAP. Then, rename the SIvX.MAP file that matches your installed firmware number from step 1 (i.e., SIv1.MAP for a version 1 firmware, and SIv2.MAP for a version 2 firmware) to SI.MAP.
-   4. Power on your SNES PowerPak, and follow the on-screen instructions.
-   5. After the upgrade procedure has completed successfully, you can safely delete all *.TXT and *.MAP files from <your CF card root>/POWERPAK. :-)
+
+   1. Determine the current version of your firmware. You'll see the version number once you power up your SNES PowerPak. If it says, "Boot ROM v1.0X" (where X can be any number), then you have a version 1 firmware. If you spot the word "SIMBA" anywhere on the screen, then you have a version 2 firmware. Likewise, "MUFASA" denotes a version 3.
+   2. Copy the contents of <this release's archive root>/src/out/POWERPAK (sans the SAVES subfolder) to the POWERPAK directory on your CF card, replacing any existing file(s) (e.g., TOPLEVEL.BIT).
+   3. If you already have an older "MUFASA" build installed, go to step 4b. Otherwise, browse to the /POWERPAK folder on your CF card, and delete SI.MAP. Then, rename the SIvX.MAP file that matches your installed firmware number from step 1 (i.e., SIv1.MAP for a version 1 firmware, and SIv2.MAP for a version 2 firmware) to SI.MAP. Proceed with step 4a.
+   4a. Power on your SNES PowerPak, and follow the on-screen instructions. Then, go to step 5.
+   4b. Power on your SNES PowerPak, go to the settings menu, and choose "Check for firmware update." From there, follow the on-screen instructions
+   5. After the upgrade procedure has completed successfully, power-cycle your SNES for good measure. Also, you can now safely delete all *.TXT and *.MAP files from the /POWERPAK folder on your CF card.
 
 Good luck ... and have fun! :D
 
 
 
-   BUTTON MAPPING
+   USAGE & BUTTON MAPPING
 ______________________________________________________________________
 
-I'll limit this to anything not in the on-screen help. ;-)
+Using the PowerPak with any version of the "MUFASA" firmware is just as easy as, and perhaps even more intuitive, than with the stock firmware. Generally speaking, A is the "confirm/next" button, whereas B is the "cancel/back" button. There are on-screen hints regarding other joypad button functions around almost every corner for convenience. The button mapping in the file browser is a tad different from how things worked with the stock firmware, but you should be able to figure it all out quickly and easily by yourself. Still, you'll find the full documentation of button functions further down below in this section for reference.
 
-Titlescreen:
-- B, Y, and the directional pad are ignored.
+One of the completely new features over the stock firmware is the settings menu, which is accessed by pressing X on the start screen. Using it, you can change the configuration of your PowerPak on the fly, i.e. without having to manually edit configuration files on your CF card with the help of a computer. Most of the menu items are self-explanatory, but here are some brief details about each one of them as a general guidance, anyway:
 
-Filebrowser:
-- Up/down moves the cursor "digitally" from entry to entry. Hold for fast and convenient short-distance navigation
-- Left/right (directional pad) scrolls the cursor twice as fast as the L/R shoulder buttons used to in v1.0X (left = up, right = down)
-- L/R (shoulder buttons) skip entire "pages" (L = previous page, R = next page). To avoid confusion, there is a built-in "stop" both at the beginning and end of a directory
-- A (or Start) selects a file/directory
-- B allows you to go up one directory at any time. If you are in the root directory, B will take you back to the previous screen instead
-- X, Y are ignored
+   - "System info, hardware test": This is basically the same thing (although more detailed and with several improvements) as the SDRAM test screen you used to get when pressing Select on the start screen of the stock firmware.
 
-Options screen (this is where you add SRAM and/or GameGenie codes):
-- Hold left/right on the directional pad for fast horizontal GG code digit navigation
-- Hold A/X (increase value) or B/Y (decrease value) when editing GG codes for fast cycling through available characters (0-F)
+   - "Toggle DMA mode (currently on/off)": This should normally be "on", however some CF cards might require DMA to be permanently off for data I/O stability. Note that the setting only affects DMA transfers from/to CF card _after_ the card file system has been determined, and the PowerPak has loaded important stuff from its system directory (namely, POWERPAK.CFG) as for these initial tasks, DMA is not used regardless of the setting for compatibility reasons. The DMA setting is acknowledged from the point on when the FPGA bit file and current theme file are loaded (i.e., after the boot process has completed), as well as on any subsequent card accesses.
+
+   - "Select a theme ...": This launches the theme file browser, starting off in the POWERPAK/THEMES subfolder for convenience.
+
+   - "Randomize SNES RAM (exp.): no/yes": When switched to "yes," this new feature (introduced in v3.10) makes the PowerPak overwrite most SNES RAM areas with (pseudo-)random numbers just before booting a game, simulating an "unknown" or uninitialized RAM state. RAM areas overwritten include CGRAM, OAM, VRAM, and WRAM areas $7E0100-$7E1F80 as well as $7E2000-$7FFFFF. The first 256 ($100) bytes of WRAM are the PowerPak firmware's Direct Page, which contains more or less "random" data (i.e., non-patternized data irrelevant to another SNES program, such as a game ROM), while the 128 bytes just before $7E2000 are reserved for the firmware's stack.
+
+   - "View developer's note": Read about my motivation to make this firmware, accompanied by a cool self-composed medley based on some of my favorite tunes from underrated games. Can you guess them all correctly? :-)
+
+   - "Check for firmware update": If an update is available, and you've put it onto your CF card beforehand, this will launch the in-system update flasher, so you have full control over if and when a new PowerPak firmware is installed.
+
+One thing to keep in mind is that after a new theme file has been selected, it is necessary to return to the settings menu and press Start in order to save the current configuration -- including the new theme -- to the CF card. The reason for this might not seem immediately obvious, but it actually very much is: Let's say you've just completed your first attempt at creating your own fancy new theme for the PowerPak. You confidently select it from the theme browser -- only to be abruptly presented with a completely black screen (due to, say, accidentally missing/zeroed-out palette data in your theme file). Here's the thing: If the new theme was saved onto the CF card the moment you selected it, you'd now have no other choice but to remove the CF card from your PowerPak, connect it to a computer and mess with the POWERPAK.CFG file in order to return to the standard settings (i.e., the MUFASA theme). Granted, with a corrupt theme file, you'd need to use a computer and fix it anyway, but manually editing/replacing the configuration file would still involve more work than just the two (!) joypad button presses (namely, X and Start) it takes to get back to the settings menu, and save your settings. ;-)
+
+Another user-selectable item saved along with your general configuration (via pressing Start in the settings menu) is the auto-play setting in the SPC player. Whether you set it to "off" or one of the seven duration values, in order to preserve that setting for your next SNES soundtrack session, don't forget to back out of the file browser and save your settings via the menu.
+
+As of v3.10, there's yet another new feature, even though it won't likely catch your eye at first glance: The way how the PowerPak determines a game's "mapping" (short version of a long story: There are "LoROM" and "HiROM" mappings, and some special cases) has been altered significantly. While v3.00 and earlier firmwares simply gave up on loading a game under certain conditions -- such as when your super-rare special prototype dump didn't have a so-called "internal header" -- and left it up to you to either fix things (a.k.a., edit/create the internal ROM header) or find someone knowledgeable to do the job for you, the PowerPak will now take a step back, take a deep breath, and ask you for help. ;-) You will be able to make a "mapping" selection, see if it works, and try another option if it doesn't. Please bear in mind that your selection will be saved along with the game you last played, so if you're getting nothing but garbage or a black screen, restart your PowerPak, load up a known-good game temporarily in order to clear LASTGAME.LOG, then retry loading the ROM that gave you trouble, making sure to try out all available "mapping" options one by one. I've had great success with this with previously unplayable (unless modified) games like the Buck Rogers prototype or some rather obscure SNES test cart dumps. (Hint: Most of the time, "LoROM/ExLoROM" does the trick.) :D
+
+Lastly, here's an exhaustive list of joypad button functions that aren't already illustrated in the on-screen help:
+
+File browser:
+
+   - Up/down move the cursor "digitally" from entry to entry. Hold either button for fast and convenient short-distance navigation.
+   - Left/right (directional pad) scroll the cursor twice as fast as the L/R shoulder buttons used to in v1.0X (left = up, right = down).
+   - L/R (shoulder buttons) skip entire "pages" (L = previous page, R = next page). To avoid confusion, this only works if there are more files in a directory than can be displayed on the screen at once.
+   - A (or Start) selects a file/directory.
+   - B allows you to go up one directory at any time. If you are in the root directory, B will take you back to the previous screen instead.
+   
+Options screen (the place where you add SRAM and/or GameGenie codes):
+
+   - Hold left/right on the directional pad for fast horizontal GG code digit navigation.
+   - Hold A/X (increase value) or B/Y (decrease value) when editing GG codes for fast cycling through available characters (0-F).
 
 Game loading:
-- Hold Select while a ROM is being loaded to have its mapping logged to ERROR.LOG, and pause on the mapping screen. Press Start to actually launch the game (otherwise, only failed ROM loading attempts will be logged)
+
+   - Hold Select while a ROM is being loaded to have its mapping logged to ERROR.LOG, and pause on the mapping screen. Press Start to actually launch the game (otherwise, only failed ROM loading attempts will be logged).
+
+Settings menu:
+
+   - Hold L, R, and X when pressing A on the "Check for firmware update" entry in order to force launching of the update flasher. This is useful e.g. for downgrading to a previous firmware version.
 
 
 
    CONFIGURATION & THEME FILE FORMAT
 ______________________________________________________________________
 
-At the current time, POWERPAK.CFG only contains the DMA setting (1 byte) and the cluster number of the current theme file (4 bytes). It should not be necessary to ever manually adjust these values, however in case you really need to switch the saved DMA setting before power-up, you can safely edit the very first byte of the file.
-
-Possible values are:
-- $00 (DMA enabled)
-- $01 (DMA disabled)
+At the current time, POWERPAK.CFG only contains DP_UserSettings (1 byte), the cluster number of the current theme file (4 bytes), and DP_SPCPlayerFlags (1 byte). It should not be necessary to ever manually adjust these values, however in case you really need to switch the saved DMA setting before power-up, you can safely edit the very first byte of the file. Please check the description of the DP_UserSettings variable in lib_variables.asm for details (short version: in order e.g. to disable DMA, you need to set bit 0).
 
 Next, here is a desription of the theme (*.THM) file format introduced in v3.00:
 
@@ -144,32 +188,50 @@ Further notes on theme data:
 
 #02: The sprite font is an 8×8 variable-width font (VWF), so characters should be aligned left within their 8×8 tiles (unless you want the sprite font to mimic an FWF, as I did in the "Retrousb" theme). When choosing or designing your sprite font, keep in mind that string positions are hard-coded (i.e., not affected by theme data), so an especially bold/broad font might result in an awkward screen layout. BTW, the font width table is theme data part #10.
 
-#03-04: Nothing special here. Check the theme data files in the firmware package for examples (the D-pad graphics are unused at this time).
-
-#05-07: Ditto.
+#03-07: Nothing special here. Check the theme data files in the firmware package for examples.
 
 #08: The sprite font is used for various types of info messages, and each of the five palettes represents an info "category". The order of palettes/categories is this: 1. Heading (normally white), 2. Error/Warning (normally red), 3. Alright/Success (normally green), 4. Special (normally blue), 5. General (normally yellow). If you don't want your sprite font to appear in different colors, simply use the same palette 5 times (as I did in the "Fourdots" theme).
 
 #09: The background color gradient consists of 16-bit color entries only. If you use Ersanio's HDMA Gradient Ripper (like myself), you have to set it up to output an uncompressed (!) table for register $2121/$2122, remove all scanline numbers (.DB 1) and color indices (the first 16-bit value after each .DW) from the table, and then convert it to binary.
 
-#10: The offset of each 8-bit value corresponds to a font tile number. The value itself represents the width of a character in pixels. Check the sourcecode (lib_strings.inc.asm and static_font_width_table.inc.asm) for details.
+#10: The offset of each 8-bit value corresponds to a font tile number. The value itself represents the width of a character in pixels. Check the sourcecode (lib_strings.inc.asm and data_font_width_table.inc.asm) for details.
 
 #11: The subscreen color for filling "windows" like the SPC player or SRAM info boxes. Unlike palette and BG gradient color entries, these two bytes each hold an 8-bit value like this: BGRiiiii, where (B)lue, (G)reen, (R)ed and (i)ntensity (5 bits). Check nocash's Fullsnes document for details (register 2132h/COLDATA). If you don't want your "window" boxes to be color-filled, set these bytes to $E0, $E0. Simple, eh?
+
+
+
+   UNINSTALLATION
+______________________________________________________________________
+
+Uninstalling this unofficial firmware, i.e. downgrading to any previous version (including the stock firmware, older "MUFASA", or even "SIMBA" versions) from an installed working v3.XX version is possible at any time. Please be sure to read through the following instructions at least once to make sure you understand them completely before performing an actual downgrade.
+
+   1. Unzip your desired firmware package (e.g. http://www.retrousb.com/downloads/POWERPAK134105.zip for the stock firmware) and merge the contents of the POWERPAK subfolder into the /POWERPAK folder on your CF card. In case there are file name clashes, instead of merging folders, simply proceed with the next steps, and re-add the necessary files to your /POWERPAK folder after step 7.
+   2. Locate the actual boot ROM (a 128 KiB binary file), rename it to UPDATE.ROM, and copy it to the /POWERPAK folder on your CF card, overwriting the existing UPDATE.ROM file. (In the case of the stock firmware, the boot ROM is named snespowerpakboot102.bin, and hides in yet another ZIP file named snespowerpakboot102.zip.)
+   3. Power up your SNES PowerPak, go to the settings menu and place the cursor on "Check for firmware update" (but don't press A just yet).
+   4. Press and hold L+R+X, then press A (while still holding the three other buttons).
+   5. The v3.XX update flasher should launch. If it shows a warning about the reflashing procedure, it will have successfully validated your boot ROM file. In case of an error message, you should recheck and ensure that you grabbed the correct file, and renamed it to UPDATE.ROM.
+   6. Press A to proceed.
+   7. After reflashing, the PowerPak will start up with the firmware you picked in step 1.
+   8. Just for good measure (and because you likely want to clean up the /POWERPAK folder on your CF card), power-cycle your SNES.
+
+Please keep in mind that I cannot, and will not, provide support for the stock firmware in any way, so use that at your own risk. :-P
 
 
 
    ASSEMBLING THE SOURCE
 ______________________________________________________________________
 
-The sourcecode is best worked on using e.g. Programmer's Notepad with a tabulator size of 8 (comments usually sit on column 73). If you want to reassemble the source, you must obtain these tools used by the make script:
+The sourcecode is best worked on using e.g. Sublime Text with a tabulator size of 8 (comments usually sit on column 73) and assembled under a Unix-style operating system. If you want to reassemble the source from scratch, you must obtain these tools used by the Makefile and graphics conversion scripts:
 
-- WLA DX v9.6 Windows binaries (available here: http://forums.nesdev.com/viewtopic.php?f=12&t=12334 )
-- gfx2snes.exe and smconv.exe from Alekmaul's DevkitSnes v1.0.0 release
+- WLA DX v9.8 binaries (available from https://github.com/vhelin/wla-dx )
+- gfx2snes and smconv binaries from Alekmaul's DevkitSnes v1.0.0 release
 - pcx2snes by Neviksti (for some 2bpp graphics)
-- head.exe from the GNU utilities' Win32 port
-- zerofill.exe from Neill Corlett's command line pack v1.03
 
-Feel free to have a look at the assembler switches in lib_variables.asm to customize your binaries if you want. :-)
+Note that the graphics conversion scripts are outdated and the tools I used essentially need to be replaced with more modern alternatives at some point. But, since all graphics elements are provided in binary form as well, you can get away with using just WLA DX and makeall.sh.
+
+In order to use the included makeall.bat script under Windows, you need all of the tools mentioned above (except for the graphics converters if you don't need them), plus zerofill.exe from Neill Corlett's command line pack v1.03.
+
+Feel free to have a look at the assembler switches in bootrom.asm to customize your ROM if you want. :-)
 
 
 
@@ -183,6 +245,7 @@ Thanks go out to the following people (in no particular order):
 - ikari_01 (the Great) for tips and hints on HDMA and pseudo hi-res mode
 - blargg for his amazing SPC uploading routines
 - Alekmaul for PVSnesLib/DevkitSnes
+- gammy for a cool new theme
 - bunnyboy for creating the SNES PowerPak, and for silently releasing the firmware sourcecode upon my persistent request! :D
 
 
