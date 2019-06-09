@@ -311,7 +311,7 @@ SaveSRAMFile:
 
 	wai								; make sure the message appears on the screen
 	lda	#kSDRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataSource
 	jsr	CardWriteFile
 
 	SetTextPos 15, 0

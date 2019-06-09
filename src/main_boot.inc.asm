@@ -298,7 +298,7 @@ LoadConfig:
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector						; sector -> WRAM
 
 	ldy	#$0000
@@ -1137,7 +1137,7 @@ LoadLastGame:
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector						; sector -> WRAM
 
 	Accu16
@@ -1260,7 +1260,7 @@ SaveLastGame:
 	ldx	#sectorBuffer1
 	stx	sourceLo
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataSource
 	jsr	CardWriteFile
 
 	rts
@@ -1287,7 +1287,7 @@ CardLoadFPGA:
 
 @CardLoadFPGALoop:
 	lda	#kFPGA
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector						; sector -> FPGA
 	jsr	LoadNextSectorNum
 
@@ -1375,7 +1375,7 @@ LogScreen:
 	lda	#$7E
 	sta	sourceBank
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataSource
 	jsr	CardWriteFile
 
 	rts

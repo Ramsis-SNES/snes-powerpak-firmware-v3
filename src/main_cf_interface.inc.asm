@@ -100,7 +100,7 @@ StateCardReady:								; wait until card ready, show card not ready message
 	stx	destLo
 	stz	destBank
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector						; read sector 0
 
 	Accu16
@@ -172,7 +172,7 @@ CardCopyPartitionLBABegin:						; copy partitionLBABegin from offset 454
 	stx	destLo
 	stz	destBank
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector						; read FAT16/FAT32 Volume ID sector (partition boot record)
 
 	lda	sectorBuffer1+$0D					; copy FAT16/FAT32 sectorsPerCluster from offset 13
@@ -550,12 +550,12 @@ CardReadSector:
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
 
-	lda	DP_DestOrSrcType					; read data destination
+	lda	DP_DataDestination					; read data destination
 
 	Accu16
 
 	and	#$00FF							; remove garbage in Accu B
-	asl	a							; use DP_DestOrSrcType as a jump table index
+	asl	a							; use DP_DataDestination as a jump table index
 	tax
 
 	Accu8
@@ -695,8 +695,8 @@ CardReadGameFill:
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 @ReadSector:
-	lda	#kSDRAM							; read sectors to SDRAM (self-reminder: this needs to be declared every iteration as DP_DestOrSrcType is destroyed in a sub-sub routine of IncrementSectorNum [namely NextCluster])
-	sta	DP_DestOrSrcType
+	lda	#kSDRAM							; read sectors to SDRAM (self-reminder: this needs to be declared every iteration as DP_DataDestination is destroyed in a sub-sub routine of IncrementSectorNum [namely NextCluster])
+	sta	DP_DataDestination
 	jsr	CardReadSector
 
 	Accu16
@@ -745,7 +745,7 @@ CardReadFile:								; sourceCluster already set
 	Accu8
 
 	lda	#kSDRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector
 
 	IncrementSectorNum
@@ -762,8 +762,6 @@ __	rts
 CardWriteFile:								; sourceCluster already set
 	stz	sectorCounter
 	stz	bankCounter
-	lda	#kWRAM
-	sta	DP_DestOrSrcType
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
 
 @CardWriteFileLoop:
@@ -798,12 +796,12 @@ CardWriteSector:
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
 
-	lda	DP_DestOrSrcType					; read data source
+	lda	DP_DataSource						; read data source
 
 	Accu16
 
 	and	#$00FF							; remove garbage in Accu B
-	asl	a							; use DP_DestOrSrcType as a jump table index
+	asl	a							; use DP_DataSource as a jump table index
 	tax
 
 	Accu8
@@ -962,7 +960,7 @@ CardLoadDir:
 	Accu8
 
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector						; put into dest
 	jsr	CLD_ClearEntryName					; clear tempEntry, reset lfnFound
 
@@ -1328,7 +1326,7 @@ CardLoadDirLoop:
 	stz	destBank
 	stz	sourceEntryBank
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector
 	jmp	CardLoadDirLoop
 
@@ -1471,7 +1469,7 @@ NextCluster:
 	stx	destLo
 	stz	destBank
 	lda	#kWRAM
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	jsr	CardReadSector
 
 ; offset = offset % 512 -- offset of FAT entry within loaded sector 0-511
@@ -1607,7 +1605,7 @@ FindFreeSector:
 	PrintHexNum sourceSector+0
 
 	lda	#kWRAM							; set WRAM as destination
-	sta	DP_DestOrSrcType
+	sta	DP_DataDestination
 	ldx	#sectorBuffer1
 	stx	destLo
 	stz	destBank

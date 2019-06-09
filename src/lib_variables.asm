@@ -377,7 +377,8 @@
 	errorCode		dw
 	fat32Enabled		db
 
-	DP_DestOrSrcType	db
+	DP_DataDestination	db					; holds constant determining where to put data read from CF card
+	DP_DataSource		db					; holds constant determining the source of data to be written onto CF card
 	source256		db
 	sourceLo		db
 	sourceHi		db
@@ -394,7 +395,7 @@
 	destHi			db
 	destBank		db
 
-	filesInDir		dw					; 20 bytes
+	filesInDir		dw					; 21 bytes
 	temp			dsb 8
 	selectedEntry		dw
 	lfnFound		db
@@ -406,7 +407,7 @@
 	sectorsPerCluster	db
 	reservedSectors		dw
 	sectorsPerFat		dsb 4
-	fatBeginLBA		dsb 4					; 58 bytes
+	fatBeginLBA		dsb 4					; 59 bytes
 
 	DP_ColdBootCheck2	db
 
@@ -428,7 +429,7 @@
 	Joy2New			dw
 
 	Joy1Old			dw
-	Joy2Old			dw					; 87 bytes
+	Joy2Old			dw					; 88 bytes
 
 	findEntry		dsb 9					; 8 bytes at most for short file names + NUL-terminator
 
@@ -440,7 +441,7 @@
 	scrollY			db
 	scrollYCounter		db
 	scrollYUp		db
-	scrollYDown		db					; 135 bytes
+	scrollYDown		db					; 136 bytes
 
 	cursorX			db					; sprite cursor coordinates (cursorX/cursorY must be kept in consecutive order due to occasional 16-bit writes)
 	cursorY			db
@@ -457,7 +458,7 @@
 	saveSize		db
 	useBattery		db
 
-	DP_ColdBootCheck3	db					; 147 bytes
+	DP_ColdBootCheck3	db					; 148 bytes
 
 	gameSize		dw
 	gameResetVector		dw
@@ -468,7 +469,7 @@
 	gameROMMbits		db
 	sramSizeByte		db
 
-	ggcode			dsb 4					; 192 bytes
+	ggcode			dsb 4					; 193 bytes
 
 	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set, b = use SDRAM buffer if set, WRAM buffer if clear]
 									; The h flag is checked (& reset) in CardLoadDir only.
@@ -480,7 +481,6 @@
 	DP_UserSettings		db					; rzrrrrrd [z = randomize SNES RAM upon game boot, d = don't use DMA when loading files, r = reserved]
 
 	bankCounter		db
-	bankOffset		dw
 	partitionIndex		dw
 
 	fixheader		db					; crrrrrmm [c = assume copier header, m = force ROM mapping (%00 = don't, %01 = LoROM, %10 = HiROM, %11 = ExHiROM), r = reserved]
@@ -491,7 +491,7 @@
 	audioY			db
 	audioPSW		db
 	audioSP			db
-	spcTimer		dsb 4					; 211 bytes
+	spcTimer		dsb 4					; 210 bytes
 
 	BGPrintMon		db					; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
 	DP_SelectionFlags	db					; rrrrrrrf [r = Reserved, f = file was chosen if set]
@@ -508,7 +508,7 @@
 	DP_SubDirCounter	dw					; used in the file browser
 
 	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
-	DP_ThemeFileClusterHi	dw					; 231 bytes
+	DP_ThemeFileClusterHi	dw					; 230 bytes
 
 	DP_SPCPlayerFlags	db					; rrrrrnnn [nnn = minutes of auto-play time (000 = auto-play off), r = Reserved]
 	DP_WarmBootFlags	db					; srrrrrrr [r = Reserved, s = go to SPC player]
@@ -522,7 +522,7 @@
 	spc_fwrite		db
 	spc_pr			dsb 4					; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE									; 251 of 256 bytes used
+.ENDE									; 250 of 256 bytes used
 
 	.DEFINE digi_src	temp					; some more SNESMod variables in the temp area
 	.DEFINE digi_src2	temp+3
