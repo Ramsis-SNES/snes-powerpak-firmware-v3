@@ -474,8 +474,8 @@ GotoIntroScreen:
 	stz	gameName.Cluster+2
 	stz	saveName.Cluster
 	stz	saveName.Cluster+2
-	stz	Joy1New							; reset input buttons
-	stz	Joy1Press
+;	stz	Joy1New							; reset input buttons
+;	stz	Joy1Press
 
 	Accu8
 

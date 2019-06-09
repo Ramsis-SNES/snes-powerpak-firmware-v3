@@ -60,8 +60,8 @@ FileBrowser:
 
 	lda	#(cursorYmin << 8) + cursorXfilebrowser
 	sta	cursorX							; initial cursor position
-	stz	Joy1New							; reset input buttons
-	stz	Joy1Press
+;	stz	Joy1New							; reset input buttons
+;	stz	Joy1Press
 
 	Accu8
 

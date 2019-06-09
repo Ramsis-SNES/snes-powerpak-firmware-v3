@@ -87,10 +87,10 @@ GotoSettings:
 	PrintHexNum temp
 .ENDIF
 
-	stz	Joy1New							; reset input buttons
-	stz	Joy1New+1
-	stz	Joy1Press
-	stz	Joy1Press+1
+;	stz	Joy1New							; reset input buttons
+;	stz	Joy1New+1
+;	stz	Joy1Press
+;	stz	Joy1Press+1
 
 
 

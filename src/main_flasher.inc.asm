@@ -82,10 +82,10 @@ FlashUpdateWarning:
 	PrintString "after which your SNES will reset automatically.\n\n"
 	PrintString "Press the (A) button to proceed ..."
 
-	stz	Joy1Press						; reset input buttons
-	stz	Joy1Press+1
-	stz	Joy1New
-	stz	Joy1New+1
+;	stz	Joy1Press						; reset input buttons
+;	stz	Joy1Press+1
+;	stz	Joy1New
+;	stz	Joy1New+1
 
 
 

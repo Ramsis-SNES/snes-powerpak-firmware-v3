@@ -254,8 +254,8 @@ CopyDate:								; date
 
 	stz	spcTimer						; frame counter / timer seconds
 	stz	spcTimer+2						; timer minutes / unused
-	stz	Joy1New							; reset input buttons
-	stz	Joy1Press
+;	stz	Joy1New							; reset input buttons
+;	stz	Joy1Press
 
 	Accu8
 
