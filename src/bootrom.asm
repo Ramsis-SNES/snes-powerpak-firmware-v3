@@ -1,7 +1,7 @@
 ;==========================================================================================
 ;
-;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.01 (CODENAME: "MUFASA")
-;   (c) 2018 by ManuLöwe (https://manuloewe.de/)
+;   UNOFFICIAL SNES POWERPAK FIRMWARE V3.10 (CODENAME: "MUFASA")
+;   (c) 2019 by ManuLöwe (https://manuloewe.de/)
 ;
 ;	*** MAIN BOOTLOADER ROM LAYOUT ***
 ;
@@ -114,7 +114,7 @@ STR_Firmware_Version:
 	.DB "Firmware v"
 
 STR_Firmware_VerNum:
-	.DB "3.01"
+	.DB "3.10"
 
 STR_Firmware_VerNum_End:
 	.DB " "
@@ -126,7 +126,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11430"
+	.DB "11438"
 
 STR_Firmware_BuildNum_End:
 	.DB 0
