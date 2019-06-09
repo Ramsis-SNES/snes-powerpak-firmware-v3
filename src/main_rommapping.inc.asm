@@ -208,14 +208,15 @@ CheckInternalHeader:
 	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
+	lda	gameROMMapper
+	and	#$F0							; discard mapping bits
+	ora	#$05							; force ExHiROM mapping (lower nibble = 5)
+	sta	gameROMMapper
+
 	PrintString "\n$40FFC0 header forced"
 
 +	lda	#%00000011						; set ExHiROM mapping flags
 	tsb	fixheader
-	lda	gameROMMapper
-	and	#$F0							; discard mapping bits
-	ora	#$05							; set ExHiROM mapping (lower nibble = 5)
-	sta	gameROMMapper
 	jmp	InternalHeaderDone
 
 @NotExHiROM:
@@ -293,6 +294,11 @@ CheckInternalHeader:
 	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
+	lda	gameROMMapper
+	and	#$F0							; discard mapping bits
+	ora	#$01							; force HiROM mapping (lower nibble = 1)
+	sta	gameROMMapper
+
 	PrintString "\n$FFC0 header forced"
 
 	bra	+
@@ -302,10 +308,6 @@ CheckInternalHeader:
 
 +	lda	#%00000010						; make sure HiROM mapping flag is set
 	tsb	fixheader
-	lda	gameROMMapper
-	and	#$F0							; discard mapping bits
-	ora	#$01							; set HiROM mapping (lower nibble = 1)
-	sta	gameROMMapper
 	jmp	InternalHeaderDone
 
 @NotHiROM:
@@ -348,22 +350,26 @@ CheckInternalHeader:
 
 	PrintString "\n$7FC0 header found, checking sanity ..."		; for good measure
 
-	lda	gameROMMbits
-	cmp	#$60							; check for 96 Mbit ROM first
-	beq	@96MbitLoROM
-
 	lda	gameROMMapper
 	and	#$0F							; mask off upper nibble (ROM speed)
-	beq	+							; lower nibble must be zero for LoROM
-	jmp	@NotLoROM
+	beq	++							; lower nibble must be zero for LoROM
+	cmp	#$01							; check for special case: Star Ocean 96 Mbit with shadowkn55's PowerPak header fix (D5: $31, D6: $02)
+	bne	+
+	lda	gameROMMbits
+	cmp	#96							; check for 96 Mbit ROM
+	bne	+
+	lda	#$0F							; clear lower nibble --> treat SO as LoROM
+	trb	gameROMMapper
+	bra	++
++	jmp	@NotLoROM
 
-+	lda	gameROMType
+++	lda	gameROMType
 	cmp	#$06							; ROM type must be <= 5
 	bcs	@NotLoROM
 
-	lda	#$20
-	cmp	gameROMMbits						; ROM size <= 32Mbits
-	bcc	@NotLoROM
+;	lda	#$20
+;	cmp	gameROMMbits						; ROM size <= 32Mbits
+;	bcc	@NotLoROM
 
 	lda	#$08
 	cmp	saveSize						; SRAM size <= 8d
@@ -383,6 +389,9 @@ CheckInternalHeader:
 	sta	DMAWRITEBANK
 	jsr	CopyROMInfo
 
+	lda	#$0F
+	trb	gameROMMapper						; force LoROM mapping (lower nibble = 0)
+
 	PrintString "\n$7FC0 header forced"
 
 	bra	+
@@ -392,14 +401,6 @@ CheckInternalHeader:
 
 +	lda	#%00000001						; make sure LoROM mapping flag is set
 	tsb	fixheader
-	lda	gameROMMapper
-	and	#$F0							; discard mapping bits
-	sta	gameROMMapper						; set LoROM mapping (lower nibble = 0)
-	jmp	InternalHeaderDone
-
-@96MbitLoROM:
-	PrintString "\n96 Mbit ROM"
-
 	jmp	InternalHeaderDone
 
 @NotLoROM:
@@ -572,41 +573,91 @@ InternalHeaderDone:
 
 
 
-; -------------------------- set ROM/SRAM banking
-	stz	bankOffset
-	stz	bankOffset+1
-	lda	gameROMMbits
-	cmp	#$60							; check for 96 Mbit
-	bne	+
-	jmp	ExHiROMBanking
-
-+	lda	gameROMMapper						; check for LoROM
+; -------------------------- branch to ROM banking according to determined ROM mapping
+	lda	gameROMMapper						; check for LoROM
 	and	#$0F							; mask off upper nibble (SlowROM/FastROM)
 	beq	LoROMBanking						; 0 = LoROM
 	cmp	#$01							; check for HiROM
 	bne	+
 	jmp	HiROMBanking
 
-+	cmp	#$02							; check for ExLoROM // CHECKME, does this even work at all?
-	bne	+
-	jmp	ExLoROMBanking
-
 +	cmp	#$05							; check for ExHiROM
-	bne	+
+	bne	+							; N. B. gameROMMapper contains a defined value at this point ($00, $01, or $05), so this branch-on-condition is only left in for possible future ROM mapping extensions
 	jmp	ExHiROMBanking
 
-+	PrintString "\nROM mapping $"
-	PrintHexNum gameROMMapper
-	PrintString " unsupported!"
++	ldy	#gameROMMapper
+
+	PrintString "\nROM mapping $%x unsupported!"
 
 	jmp	FatalError
 
 
 
 LoROMBanking:
-	PrintString "\nLoROM "
-	PrintNum gameROMMbits
-	PrintString " Mbit"
+	lda	#$20
+	cmp	gameROMMbits						; ROM size <= 32Mbits --> normal LoROM
+	bcs	+
+	bra	@ExLoROM
++	jmp	@LoROM
+
+@ExLoROM:
+	PrintString "\nExLoROM "
+
+	lda	gameROMMbits
+	cmp	#$30
+	bne	+
+
+	PrintString "48 Mbit"
+
+	ldx	#ExLoRom48Mbit
+	stx	destLo
+	jsr	CopyBanks
+
+	jmp	@LoROMSRAM
+
++	cmp	#$40
+	bne	+
+
+	PrintString "64 Mbit"
+
+	ldx	#ExLoRom64Mbit
+	stx	destLo
+	jsr	CopyBanks
+
+	jmp	@LoROMSRAM
+
++	cmp	#$60
+	bne	+
+
+	PrintString "96 Mbit"
+
+	ldx	#ExLoRom96Mbit
+	stx	destLo
+	lda	saveSize
+	beq	@ExLoROMBankingDone
+
+	PrintString "\nSRAM in 20-3F/A0-BF:$6000-7FFF"			; special case: 96 Mbit ExLoROM uses ExHiROM-style SRAM mapping
+
+	lda	#$0C
+	sta	CONFIGWRITESRAMLO					; SRAM in $6000-$7fff = 0C 0C
+	sta	CONFIGWRITESRAMHI
+
+@ExLoROMBankingDone:
+	jsr	CopyBanks
+	jmp	SetROMBankingDone
+
++	ldy	#gameROMMbits
+
+	PrintString "%b Mbit unsupported"
+
+	jmp	FatalError
+
+
+
+@LoROM:
+	ldy	#gameROMMbits
+
+	PrintString "\nLoROM %b Mbit"
 
 	lda	gameROMMbits
 	lsr	a
@@ -660,40 +711,10 @@ LoROMBanking:
 
 
 
-ExLoROMBanking:
-	PrintString "\nExLoROM "
-
-	lda	gameROMMbits
-	cmp	#$30
-	bne	+
-
-	PrintString "48Mbit"
-
-	ldx	#ExLoRom48Mbit
-	stx	destLo
-	jsr	CopyBanks
-	jmp	LoROMBanking@LoROMSRAM
-
-+	cmp	#$40
-	bne	+
-
-	PrintString "64Mbit"
-
-	ldx	#ExLoRom64Mbit
-	stx	destLo
-	jsr	CopyBanks
-	jmp	LoROMBanking@LoROMSRAM
-
-+	PrintString "Unsupported ExLoROM size!"
-
-	jmp	FatalError
-
-
-
 HiROMBanking:
-	PrintString "\nHiROM "
-	PrintNum gameROMMbits
-	PrintString " Mbit"
+	ldy	#gameROMMbits
+
+	PrintString "\nHiROM %b Mbit"
 
 	lda	gameROMMbits
 	lsr	a
@@ -771,7 +792,7 @@ ExHiROMBanking:
 	cmp	#$30
 	bne	+
 
-	PrintString "48Mbit"
+	PrintString "48 Mbit"
 
 	ldx	#ExHiRom48Mbit
 	stx	destLo
@@ -780,23 +801,26 @@ ExHiROMBanking:
 +	cmp	#$40
 	bne	+
 
-	PrintString "64Mbit"
+	PrintString "64 Mbit"
 
 	ldx	#ExHiRom64Mbit
 	stx	destLo
 	bra	@ExHiROMSRAM
 
-+	cmp	#$60
-	bne	+
+;+	cmp	#$60							; there is no known 96 Mbit ExHiROM game as of yet
+;	bne	+
 
-	PrintString "96Mbit"
+;	PrintString "96 Mbit"
 
-	ldx	#ExHiRom96Mbit
-	stx	destLo
-	bra	@ExHiROMSRAM
+;	ldx	#ExHiRom96Mbit
+;	stx	destLo
+;	bra	@ExHiROMSRAM
 
-+	PrintNum gameROMMbits
-	PrintString "Mbit unsupported"
++	ldy	#gameROMMbits
+
+	PrintString "%b Mbit unsupported"
+
+	jmp	FatalError
 
 @ExHiROMSRAM:
 	lda	saveSize
@@ -1493,6 +1517,10 @@ ExLoRom64Mbit:								; UNTESTED
 	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $2C, $2D, $2E, $2F, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
 
+ExLoRom96Mbit:
+	.DB $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F
+	.DB $00, $00, $00, $00, $30, $31, $32, $33, $00, $00, $00, $00, $34, $35, $36, $37
+
 
 
 ;	     00   10   20   30   40   50   60   70   80   90   A0   B0   C0   D0   E0   F0
@@ -1528,21 +1556,21 @@ HiRom32Mbit:
 	.DB $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A0, $A2, $A4, $A6, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom36Mbit:								; UNTESTED
-	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
-	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
+;HiRom36Mbit:								; UNTESTED
+;	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
+;	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom40Mbit:								; UNTESTED
-	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
-	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
+;HiRom40Mbit:								; UNTESTED
+;	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
+;	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom44Mbit:								; UNTESTED
-	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
-	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
+;HiRom44Mbit:								; UNTESTED
+;	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
+;	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
-HiRom48Mbit:
-	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
-	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
+;HiRom48Mbit:
+;	.DB $A1, $A3, $A5, $A7, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
+;	.DB $00, $00, $00, $00, $A8, $AA, $A8, $AA, $00, $00, $00, $00, $A0, $A2, $A4, $A6
 
 ExHiRom48Mbit:
 	.DB $A9, $AB, $A9, $AB, $A9, $AB, $A9, $AB, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
@@ -1551,10 +1579,6 @@ ExHiRom48Mbit:
 ExHiRom64Mbit:
 	.DB $A9, $AB, $AD, $AF, $A9, $AB, $AD, $AF, $A1, $A3, $A5, $A7, $A1, $A3, $A5, $A7
 	.DB $00, $00, $00, $00, $A8, $AA, $AC, $AE, $00, $00, $00, $00, $A0, $A2, $A4, $A6
-
-ExHiRom96Mbit:
-	.DB $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F
-	.DB $00, $00, $00, $00, $30, $31, $32, $33, $00, $00, $00, $00, $34, $35, $36, $37
 
 SRAMSizes:
 	.DB %11111111, %11111111, %11111110, %11111100, %11111000, %11110000, %11100000, %11000000, %10000000, %00000000
