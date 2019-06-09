@@ -510,7 +510,6 @@ GotoIntroScreen:
 
 .IFDEF SHOWDEBUGMSGS
 	SetTextPos 0, 22
-
 	Accu16
 
 	tsc								; print stack pointer (initial value: $1FFF)

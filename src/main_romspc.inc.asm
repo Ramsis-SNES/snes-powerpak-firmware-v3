@@ -76,6 +76,7 @@ InitROMBrowser:
 	lda	#'N'
 	sta	extMatch3+5
 	jsr	FileBrowser
+
 	lda	DP_SelectionFlags					; check if selection was made
 	and	#%00000001
 	bne	@ROMselected						; yes, process file
@@ -128,6 +129,7 @@ InitROMBrowser:
 	lda	#%00000001						; use SDRAM buffer, don't skip hidden files
 	sta	CLDConfigFlags
 	jsr	CardLoadDir						; load save dir (.SRM files)
+
 	ldy	#$0000
 
 @GetROMExtPosition:							; check where ROM extension starts
@@ -203,6 +205,7 @@ InitROMBrowser:
 	iny								; to get rid of the "+1"
 	sty	temp							; save Y value
 	jsr	DirFindEntryLong					; start searching, back here means matching save file found
+
 	ldy	temp
 
 @CopySaveName:
@@ -239,6 +242,7 @@ DirFindEntryLong:
 	lda	#%00000001						; use SDRAM buffer (h flag not relevant in this case)
 	sta	CLDConfigFlags
 	jsr	DirGetEntry						; put entry into tempEntry
+
 	ldy	temp							; load index position of last extension character
 	lda	tempEntry, y						; check if entry matches, working backwards for efficiency :-)
 	cmp	#'m'

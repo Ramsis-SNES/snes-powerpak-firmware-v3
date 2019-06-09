@@ -234,6 +234,7 @@ SRAMSelectionMade:
 	lda	#126
 	sta	HDMAtable.ColorMath+3
 	jsr	PrintClearScreen
+
 	rts
 
 

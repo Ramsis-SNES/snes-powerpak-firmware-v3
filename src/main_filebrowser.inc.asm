@@ -57,6 +57,7 @@ FileBrowser:
 
 	stz	selectedEntry						; reset entry index
 	jsr	PrintPage
+
 	lda	#(cursorYmin << 8) + cursorXfilebrowser
 	sta	cursorX							; initial cursor position
 	stz	Joy1New							; reset input buttons
@@ -112,6 +113,7 @@ FileBrowserLoop:
 	lda	#$01
 	sta	speedCounter
 	jsr	ScrollUp
+
 	lda	Joy1Old+1
 	and	#%00001000
 	bne	@UpHeld
@@ -159,6 +161,7 @@ FileBrowserLoop:
 	lda	#$01
 	sta	speedCounter
 	jsr	ScrollDown
+
 	lda	Joy1Old+1
 	and	#%00000100
 	bne	@DownHeld
@@ -238,9 +241,9 @@ FileBrowserLoop:
 
 	Accu16
 
-	lda	filesInDir						; if filesInDir <= maxFiles (i.e., there's only one "page"),
-	cmp	#maxFiles+1
-	bcc	@PgUpDone						; then do nothing at all
+	lda	#maxFiles						; if filesInDir <= maxFiles (i.e., there's only one "page"),
+	cmp	filesInDir
+	bcs	@PgUpDone						; then do nothing at all
 	pei	(selectedEntry)						; preserve selectedEntry (16 bit)
 	jsr	SyncPage						; make selectedEntry = entry no. of file at top of screen
 	jsr	SelEntryDecPage
@@ -264,13 +267,14 @@ FileBrowserLoop:
 
 	Accu16
 
-	lda	filesInDir						; if filesInDir <= maxFiles (i.e., there's only one "page"),
-	cmp	#maxFiles+1
-	bcc	@PgDnDone						; then do nothing at all
+	lda	#maxFiles						; if filesInDir <= maxFiles (i.e., there's only one "page"),
+	cmp	filesInDir
+	bcs	@PgDnDone						; then do nothing at all
 	pei	(selectedEntry)						; preserve selectedEntry (16 bit)
 	jsr	SyncPage						; make selectedEntry = entry no. of file at top of screen
 	jsr	SelEntryIncPage
 	jsr	PrintPage						; new parameters set, print next page
+
 	pla								; restore selectedEntry (16 bit)
 	sta	selectedEntry
 	jsr	SelEntryIncPage
@@ -290,6 +294,7 @@ FileBrowserLoop:
 	lda	#%00000011						; use SDRAM buffer, skip hidden files in next dir
 	sta	CLDConfigFlags
 	jsr	DirGetEntry						; get selected entry
+
 	lda	tempEntry.Flags						; check for "dir" flag
 	and	#$01
 	bne	+
@@ -329,6 +334,7 @@ FileBrowserLoop:
 
 	stz	selectedEntry						; reset entry index
 	jsr	PrintPage
+
 	lda	#(cursorYmin << 8) + cursorXfilebrowser
 	sta	cursorX							; initial cursor position
 
@@ -410,6 +416,7 @@ FileBrowserLoop:
 	sbc	temp
 +	sta	selectedEntry
 	jsr	PrintPage						; new (old) parameters set, print page
+
 	pla								; restore selectedEntry
 	sta	selectedEntry
 	lda	DP_cursorX_BAK						; make cursor appear on the screen
@@ -594,9 +601,9 @@ PrintPage:
 	lda	selectedEntry
 	cmp	filesInDir						; check if last file reached
 	bcc	+
-	lda	filesInDir						; yes, check if dir contains less files than can be put on the screen
-	cmp	#maxFiles+1
-	bcc	@PrintPageLoopDone
+	lda	#maxFiles						; yes, check if dir contains less files than can be put on the screen
+	cmp	filesInDir
+	bcs	@PrintPageLoopDone
 	stz	selectedEntry						; there are more files, reset selectedEntry so that it "wraps around" 
 
 +	Accu8
@@ -626,6 +633,7 @@ DirPrintEntry:
 	lda	#%00000001						; use SDRAM buffer
 	sta	CLDConfigFlags
 	jsr	DirGetEntry
+
 	stz	tempEntry+56						; NUL-terminate entry string after 56 characters
 	ldy	#PTR_tempEntry
 	lda	tempEntry.Flags						; if "dir" flag is set, then print a slash in front of entry name
@@ -652,9 +660,9 @@ ScrollDown:
 	cmp	filesInDir
 	bcc	@CheckBottom
 	stz	selectedEntry						; yes, overflow --> reset selectedEntry
-	lda	filesInDir						; check if filesInDir > maxFiles
-	cmp	#maxFiles+1
-	bcs	@CheckBottom
+	lda	#maxFiles						; check if filesInDir > maxFiles
+	cmp	filesInDir
+	bcc	@CheckBottom
 
 	Accu8
 
@@ -726,9 +734,9 @@ ScrollUp:
 	lda	filesInDir						; underflow, set selectedEntry = filesInDir - 1
 	dec	a
 	sta	selectedEntry
-	lda	filesInDir						; check if filesInDir > maxFiles, which the cursor is restricted to, too
-	cmp	#maxFiles+1						; reminder: "+1" needed due to the way CMP affects the carry bit
-	bcs	@CheckTop
+	lda	#maxFiles						; check if filesInDir > maxFiles, which the cursor is restricted to, too
+	cmp	filesInDir
+	bcc	@CheckTop
 
 	Accu8
 

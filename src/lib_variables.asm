@@ -15,7 +15,6 @@
 
 ; Label prefixes:
 
-; __		= sub-label
 ; ADDR_		= address value, as defined in this file
 ; CONST_	= arbitrary constant, stored in ROM
 ; DP_		= Direct Page variable

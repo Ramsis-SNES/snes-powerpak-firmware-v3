@@ -24,9 +24,9 @@
 ;Notes:
 ;     Supported Format characters:
 ;       %s -- sub-string (reads 16-bit pointer from Y data)
-;       %d -- 16-bit Integer (reads 16-bit data from Y data)
-;       %b -- 8-bit Integer (reads 8-bit data from Y data)
-;       %x -- 8-bit hex Integer (reads 8-bit data from Y data)
+;       %d -- 16-bit Integer (reads 16-bit pointer from Y data)
+;       %b -- 8-bit Integer (reads 16-bit pointer from Y data)
+;       %x -- 8-bit hex Integer (reads 16-bit pointer from Y data)
 ;       %% -- normal %
 ;       \n -- Newline
 ;       \t -- Tab
@@ -102,6 +102,7 @@ _ct:	cmp	#'t'
 
 	stz	BGPrintMon						; reset BG monitor value
 	bra	PrintFLoop
+
 _defaultC:
 	lda	#'\'							; normal backslash
 	bra	NormalPrint
@@ -117,20 +118,25 @@ _sf:	cmp	#'s'
 	INY
 	INY
 	jsr	PrintSubstring						; print sub-string
+
 	PLX
 	bra	PrintFLoop
+
 _df:	cmp	#'d'
 	bne	_bf
 	jsr	PrintInt16						; print 16-bit integer
 	bra	PrintFLoop
+
 _bf:	cmp	#'b'
 	bne	_xf
 	jsr	PrintInt8						; print 8-bit integer
 	bra	PrintFLoop
+
 _xf:	cmp	#'x'
 	bne	_defaultF
 	jsr	PrintHex8						; print 8-bit hex integer
 	bra	PrintFLoop
+
 _defaultF:
 	lda	#'%'
 	bra	NormalPrint
@@ -170,18 +176,18 @@ __PrintSubstringDone:
 FillTextBuffer:								; expectations: A = 8 bit, X/Y = 16 bit
 	pha
 	lda	BGPrintMon
-	bne	__FillTextBufferBG2					; if BG monitor value is not zero, use BG2
+	bne	@FillTextBufferBG2					; if BG monitor value is not zero, use BG2
 
-__FillTextBufferBG1:
+@FillTextBufferBG1:
 	inc	BGPrintMon						; otherwise, change value and use BG1
 	pla
 	phx
 	ldx	DP_TextPos
 	asl	a							; character code * 2 so it matches hi-res font tile location
 	sta	TextBuffer.BG1, x					; write it to the BG1 text buffer
-	bra	__FillTextBufferDone					; ... and done
+	bra	@FillTextBufferDone					; ... and done
 
-__FillTextBufferBG2:
+@FillTextBufferBG2:
 	stz	BGPrintMon						; reset BG monitor value
 	pla
 	phx
@@ -191,7 +197,7 @@ __FillTextBufferBG2:
 	inx								; ... and advance text "cursor" position
 	stx	DP_TextPos
 
-__FillTextBufferDone:
+@FillTextBufferDone:
 	plx
 	rts
 
@@ -217,9 +223,9 @@ PrintSpriteText:
 
 	ldy	DP_SprTextMon						; start where there is some unused sprite text buffer
 
-__PrintSpriteTextLoop:
+@PrintSpriteTextLoop:
 	lda	$0000,X							; read next string character
-	beq	__PrintSpriteTextDone					; check for NUL terminator
+	beq	@PrintSpriteTextDone					; check for NUL terminator
 	INX								; increment input pointer
 	phx								; preserve input pointer
 	pha								; preserve ASCII value
@@ -255,9 +261,9 @@ __PrintSpriteTextLoop:
 	bcc	+
 	ldy	#$0000
 +	sty	DP_SprTextMon						; keep track of sprite text buffer filling level
-	bra	__PrintSpriteTextLoop
+	bra	@PrintSpriteTextLoop
 
-__PrintSpriteTextDone:
+@PrintSpriteTextDone:
 	plp								; restore processor status
 	phx								; push return address onto stack (X now points to end of string)
 	rts
@@ -276,15 +282,15 @@ PrintInt16:								; assumes 8b mem, 16b index
 	lda	#$00
 	PHA								; push $00
 	lda	$0000,Y
-	sta	$4204							; DIVC.l
+	sta	REG_WRDIVL						; DIVC.l
 	lda	$0001,Y
-	sta	$4205							; DIVC.h  ... DIVC = [Y]
+	sta	REG_WRDIVH						; DIVC.h  ... DIVC = [Y]
 	INY
 	INY
 
 DivLoop:
 	lda	#$0A	
-	sta	$4206							; DIVB = 10 --- division starts here (need to wait 16 cycles)
+	sta	REG_WRDIVB						; DIVB = 10 --- division starts here (need to wait 16 cycles)
 	NOP								; 2 cycles
 	NOP								; 2 cycles
 	NOP								; 2 cycles
@@ -292,28 +298,28 @@ DivLoop:
 	PLA								; 4 cycles
 	lda	#'0'							; 2 cycles
 	CLC								; 2 cycles
-	adc	$4216							; A = '0' + DIVC % DIVB
+	adc	REG_RDMPYL						; A = '0' + DIVC % DIVB
 	PHA								; push character
-	lda	$4214							; Result.l -> DIVC.l
-	sta	$4204
-	beq	_Low_0
-	lda	$4215							; Result.h -> DIVC.h
-	sta	$4205
+	lda	REG_RDDIVL						; Result.l -> DIVC.l
+	sta	REG_WRDIVL
+	beq	@Low_0
+	lda	REG_RDDIVH						; Result.h -> DIVC.h
+	sta	REG_WRDIVH
 	bra	DivLoop
 
-_Low_0:
-	lda	$4215							; Result.h -> DIVC.h
-	sta	$4205
+@Low_0:
+	lda	REG_RDDIVH						; Result.h -> DIVC.h
+	sta	REG_WRDIVH
 	beq	IntPrintLoop						; if ((Result.l==$00) and (Result.h==$00)) then we're done, so print
 	bra	DivLoop
 
 IntPrintLoop:								; until we get to the end of the string...
 	PLA								; keep pulling characters and printing them
-	beq	_EndOfInt
+	beq	@EndOfInt
 	jsr	FillTextBuffer						; write them to the text buffer
 	bra	IntPrintLoop
 
-_EndOfInt:
+@EndOfInt:
 	rts
 
 
@@ -329,16 +335,16 @@ PrintInt8:								; assumes 8b mem, 16b index
 	INY
 
 PrintInt8_noload:
-	sta	$4204
+	sta	REG_WRDIVL
 	lda	#$00
-	sta	$4205
+	sta	REG_WRDIVH
 	PHA
 	bra	DivLoop
 
 PrintInt16_noload:							; assumes 8b mem, 16b index
 	lda	#$00
 	PHA								; push $00
-	stx	$4204							; DIVC = X
+	stx	REG_WRDIVL						; DIVC = X
 	jsr	DivLoop
 
 
@@ -360,9 +366,11 @@ PrintHex8_noload:
 	lsr	a
 	lsr	a
 	jsr	PrintHexNibble
+
 	pla
 	and	#$0F
 	jsr	PrintHexNibble
+
 	rts	
 
 PrintHexNibble:								; assumes 8b mem, 16b index
@@ -371,12 +379,14 @@ PrintHexNibble:								; assumes 8b mem, 16b index
 	clc
 	adc	#'0'
 	jsr	FillTextBuffer						; write it to the text buffer
+
 	rts
 
 _nletter: 	
 	clc
 	adc	#'A'-10		
 	jsr	FillTextBuffer						; write it to the text buffer
+
 	rts
 
 

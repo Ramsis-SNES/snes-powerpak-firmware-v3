@@ -9,7 +9,7 @@
 
 
 
-# This requires the WLA DX assembler (v9.7b or newer).
+# This requires the WLA DX assembler (v9.8 or newer).
 # Also, you need to download and compile smconv from the tools folder of PVSnesLib
 # (https://github.com/alekmaul/pvsneslib).
 # Graphics conversion (not supported yet) will require the Foxen snes-tile-tool.py

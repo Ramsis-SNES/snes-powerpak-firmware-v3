@@ -181,7 +181,7 @@ SettingsLoop:
 	bne	+
 
 	SetTextPos 16, 1
-	PrintString "Fill most RAM areas with random bytes upon game boot. "
+	PrintString "Fill most RAM areas with random bytes upon game boot. "	; don't remove the trailing space
 
 	bra	@ShowHintDone
 

@@ -51,7 +51,7 @@ InitTXTBrowser:
 	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
 ;	bne	GGCodeListSelected					; yes, process file
-	beq	__GGBrowserEnd						; no, jump out
+	beq	GGBrowserEnd						; no, jump out
 
 
 
@@ -74,9 +74,11 @@ GGCodeListSelected:
 	stz	sectorCounter
 	stz	bankCounter
 	jsr	ClusterToLBA						; sourceCluster -> first sourceSector
+
 	lda	#kWRAM
 	sta	DP_DataDestination
 	jsr	CardReadSector						; sector -> WRAM
+
 	ldx	#$0000
 	ldy	#$0000
 
@@ -122,7 +124,7 @@ ReadLine:
 ;	bra	ReadLine
 	bne	ReadLine
 
-__GGBrowserEnd:
+GGBrowserEnd:
 	rts
 
 
@@ -228,6 +230,7 @@ GameGenieClearAll:							; clears out all GG codes at once
 GameGeniePrint:								; code to print already set to Y
 	phy
 	jsr	CLD_ClearEntryName					; clear out tempEntry
+
 	ply
 	stz	GameGenie.CharOffset+1
 	ldx	#$0000
@@ -376,6 +379,7 @@ GameGenieNextChar:
 	bne	+
 	stz	GameGenie.Codes, x
 +	jsr	GameGeniePrint
+
 	rts
 
 
@@ -390,6 +394,7 @@ GameGeniePrevChar:
 	lda	#$10
 	sta	GameGenie.Codes, x
 +	jsr	GameGeniePrint
+
 	rts
 
 
@@ -398,6 +403,7 @@ GameGenieWriteCode:
 	PrintString "GG-> "
 
 	jsr	GameGenieDecode
+
 	lda	GameGenie.Codes, y
 	cmp	#16
 	beq	GameGenieWriteCodeSkip
