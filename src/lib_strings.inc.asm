@@ -317,6 +317,7 @@ IntPrintLoop:								; until we get to the end of the string...
 	PLA								; keep pulling characters and printing them
 	beq	@EndOfInt
 	jsr	FillTextBuffer						; write them to the text buffer
+
 	bra	IntPrintLoop
 
 @EndOfInt:

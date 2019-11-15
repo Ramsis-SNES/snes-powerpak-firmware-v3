@@ -9,7 +9,7 @@
 
 
 
-CHANGES IN V3.10 "MUFASA" BUILD #11XXX (RELEASED XXX, 2019):
+CHANGES IN V3.10 "MUFASA" BUILD #11438 (RELEASED NOVEMBER 15, 2019):
 ______________________________________________________________________
 
 - added feature: In the SPC player, you can now skip to the next/previous song using the L/R shoulder buttons

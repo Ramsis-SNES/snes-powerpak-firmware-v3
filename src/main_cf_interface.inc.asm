@@ -441,10 +441,10 @@ CardCheckError:
 	and	#%00000001
 ;	bne	CardError						; CAVEAT: THIS MYSTERIOUSLY DOES NOT WORK!!!
 	cmp	#%00000001
-	beq	CardError
+	beq	@CardError
 	rts
 
-CardError:
+@CardError:
 	ClearLine 21
 	ClearLine 22
 	ClearLine 23

@@ -51,6 +51,7 @@ With this unofficial v3.XX firmware for the SNES PowerPak, you can enjoy the fol
 - Full theme support, i.e. with a bit of skill and effort, you can easily customize the UI to your very own liking. Or, just resort to using any of the themes bundled within this release package. :D
 - In-system update flashing.
 - Tons of bugs and glitches found in the stock firmware have been fixed or worked around for the most stable, reliable, and convenient user experience possible.
+- Optionally randomize all SNES RAM content before booting a game ROM (an especially handy feature for SNES homebrew developers).
 - ... and more! :-)
 
 
@@ -130,7 +131,7 @@ One thing to keep in mind is that after a new theme file has been selected, it i
 
 Another user-selectable item saved along with your general configuration (via pressing Start in the settings menu) is the auto-play setting in the SPC player. Whether you set it to "off" or one of the seven duration values, in order to preserve that setting for your next SNES soundtrack session, don't forget to back out of the file browser and save your settings via the menu.
 
-As of v3.10, there's yet another new feature, even though it won't likely catch your eye at first glance: The way how the PowerPak determines a game's "mapping" (short version of a long story: There are "LoROM" and "HiROM" mappings, and some special cases) has been altered significantly. While v3.00 and earlier firmwares simply gave up on loading a game under certain conditions -- such as when your super-rare special prototype dump didn't have a so-called "internal header" -- and left it up to you to either fix things (a.k.a., edit/create the internal ROM header) or find someone knowledgeable to do the job for you, the PowerPak will now take a step back, take a deep breath, and ask you for help. ;-) You will be able to make a "mapping" selection, see if it works, and try another option if it doesn't. Please bear in mind that your selection will be saved along with the game you last played, so if you're getting nothing but garbage or a black screen, restart your PowerPak, load up a known-good game temporarily in order to clear LASTGAME.LOG, then retry loading the ROM that gave you trouble, making sure to try out all available "mapping" options one by one. I've had great success with this with previously unplayable (unless modified) games like the Buck Rogers prototype or some rather obscure SNES test cart dumps. (Hint: Most of the time, "LoROM/ExLoROM" does the trick.) :D
+As of v3.10, there's yet another new feature, even though it won't likely catch your eye at first glance: The way how the PowerPak determines a game's "mapping" (short version of a long story: There are "LoROM" and "HiROM" mappings, and some special cases) has been altered significantly. While v3.00 and earlier firmwares simply gave up on loading a game under certain conditions -- such as when your super-rare special prototype dump didn't have a so-called "internal header" -- and left it up to you to either fix things (a.k.a., edit/create the internal ROM header) or find someone knowledgeable to do the job for you, the PowerPak will now take a step back, take a deep breath, and ask you for help. ;-) You will be able to make a "mapping" selection, see if it works, and try another option if it doesn't. Please bear in mind that your selection will be saved in LASTGAME.LOG for convenience, so if you're getting a black screen or pixel garbage, simply restart your PowerPak and try loading the ROM in question again from the file browser (i.e., not via pressing Start on the start screen). Repeat this procedure with all available "mapping" options until you find the one that works. I've had great success with many previously unplayable (unless modified) games like the Buck Rogers prototype or some rather obscure SNES test cart dumps. (Hint: Most of the time, "LoROM/ExLoROM" does the trick.) :D
 
 Lastly, here's an exhaustive list of joypad button functions that aren't already illustrated in the on-screen help:
 
@@ -221,7 +222,7 @@ Please keep in mind that I cannot, and will not, provide support for the stock f
    ASSEMBLING THE SOURCE
 ______________________________________________________________________
 
-The sourcecode is best worked on using e.g. Sublime Text with a tabulator size of 8 (comments usually sit on column 73) and assembled under a Unix-style operating system. If you want to reassemble the source from scratch, you must obtain these tools used by the Makefile and graphics conversion scripts:
+The sourcecode is best worked on using e.g. Sublime Text with a tabulator size of 8 (comment designators usually sit on column 73) and assembled under a Unix-style operating system. If you want to reassemble the source from scratch, you must obtain these tools used by the Makefile and graphics conversion scripts:
 
 - WLA DX v9.8 binaries (available from https://github.com/vhelin/wla-dx )
 - gfx2snes and smconv binaries from Alekmaul's DevkitSnes v1.0.0 release
