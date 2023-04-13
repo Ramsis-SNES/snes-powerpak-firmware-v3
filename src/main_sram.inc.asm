@@ -47,7 +47,7 @@ InitSRMBrowser:
 	jsr	FileBrowser
 	lda	DP_SelectionFlags					; check if file was selected
 	and	#%00000001
-	beq	@SRAMBrowserEnd					; no, jump out
+	beq	@SRAMBrowserEnd						; no, jump out
 
 	Accu16								; SRM file selected
 
@@ -79,7 +79,7 @@ BattUsedInitSaveSRAM:
 	tsb	DP_HDMAchannels
 
 	SetTextPos 11, 0
-	PrintString "The game you've played features battery-backed SRAM\n"
+	PrintString "The game you've played features battery-backed SRAM\\n"
 	PrintString "to save your progress. Please choose an option:"
 	SetTextPos 14, 1
 

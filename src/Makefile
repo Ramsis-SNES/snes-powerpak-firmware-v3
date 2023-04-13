@@ -9,11 +9,12 @@
 
 
 
-# This requires the WLA DX assembler (v9.8 or newer).
+# This requires Linux (on Windows, use the provided *.bat scripts instead), and the
+# WLA DX cross assembler (v10.4).
 # Also, you need to download and compile smconv from the tools folder of PVSnesLib
-# (https://github.com/alekmaul/pvsneslib).
-# Graphics conversion (not supported yet) will require the Foxen snes-tile-tool.py
-# (https://github.com/fo-fo/snes-tile-tool) and Python2.
+# (https://github.com/alekmaul/pvsneslib), I use v0.1.0 (newer versions untested).
+# Graphics conversion (not implemented yet) will require superfamiconv
+# (https://github.com/Optiroc/SuperFamiconv).
 
 AS=wla-65816
 ASFLAGS=-x -o
@@ -21,7 +22,6 @@ LD=wlalink
 LDFLAGS=-r -s
 
 itsource=music/parforceritt_b2_downsampled.it
-pyscript_gfx=snes-tile-tool.py
 target=bootrom
 
 lnk=$(target).lnk
@@ -30,23 +30,28 @@ sfc=$(target).sfc
 src=$(target).asm
 sym=$(target).sym
 
-.PHONY: clean
+.PHONY: all clean gfx soundbank
 
-all: soundbank $(sfc)
+all:	$(sfc)
+	dd if=/dev/zero of=out/POWERPAK/POWERPAK.CFG bs=512 count=1; \
+	dd if=/dev/zero of=out/POWERPAK/LASTGAME.LOG bs=512 count=1; \
+	dd if=/dev/zero of=out/POWERPAK/ERROR.LOG bs=2K count=1; \
+	cp -u bootrom.sfc out/bootrom.sfc; \
+	cp -u bootrom.sfc out/POWERPAK/UPDATE.ROM
 
-$(sfc): $(obj)
-	printf %b "[objects]\n$<\n" > $(lnk)
-	$(LD) $(LDFLAGS) $(lnk) $@
-
-$(obj): $(src)
+$(obj): $(src) soundbank
 	$(AS) $(ASFLAGS) $@ $<
 
-clean:
-	-rm $(lnk) $(obj) $(sfc) $(sym) soundbnk.* Valid.Ext
+$(sfc): $(obj)
+	echo '[objects]\n$<' > $(lnk)
+	$(LD) $(LDFLAGS) $(lnk) $@
 
-graphics:
-	cd gfx && \
-	python $(pyscript_gfx)
+clean:
+	-rm -f $(lnk) $(obj) $(sfc) $(sym) soundbnk.*
+
+gfx:
+	cd gfx-rom; \
+#	superfamiconv
 
 soundbank:
 	smconv -s -o soundbnk $(itsource)

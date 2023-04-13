@@ -9,6 +9,15 @@
 
 
 
+   CONSOLE HARDWARE ISSUES
+______________________________________________________________________
+
+- Analogue Super Nt users beware: DO NOT ATTEMPT TO UPGRADE YOUR POWERPAK'S FIRMWARE ON A SUPER NT WITH FIRMWARE V5.0/JB7.0 INSTALLED, even though it might appear to start up fine. You *will* brick your PowerPak otherwise. Downgrade your Super Nt firmware to v4.9/jb6.9 first, make sure ROM loading with the PowerPak works reliably, then proceed to upgrading your PowerPak.
+  Background: Due to a critical regression in Super Nt firmware v5.0/JB7.0, the SNES PowerPak isn't compatible with the Super Nt any more. For unknown reasons, data loaded from the CF card (i.e., games, theme data, and, in this case, UPDATE.ROM) gets corrupted. This means that with SNES PowerPak stock firmware, the cart boots up fine but won't load and play any ROMs; with firmware v3.XX, it won't even start up properly, instead leading to a garbled or completely white screen as all graphics/theme data is loaded from the CF card. The only way to use the PowerPak with the Super Nt is by sticking with Super Nt firmware v4.9/JB6.9. (Obviously, "Launch System Timing" must be enabled in Super Nt's System --> Hardware sub-menu for the PowerPak to work at all.) Again, make sure ROMs load and play fine on your PowerPak before even attempting a cart firmware upgrade.
+  I contacted Analogue support back in May of 2021 about the issue, and they were unable to provide any help whatsoever. A GitHub issue I opened in the Super Nt "jailbreak" firmware repository was given the "wontfix" label and closed immediately, also without any help offered, reasons given, or even the slightest interest shown in the matter at all (cf. https://github.com/SmokeMonsterPacks/Super-NT-Jailbreak/issues/187). As the Super Nt GUI/OS is closed-source, there is unfortunately zero chance that anyone except Analogue developers themselves will ever be able to fix this issue.
+
+
+
    KNOWN ISSUES EXCLUSIVE TO (OR NOT DISCOVERED UNTIL) V3.XX:
 ______________________________________________________________________
 
@@ -29,4 +38,4 @@ ______________________________________________________________________
 
 - The game "Pilotwings" might not work even with a DSP1 chip installed in your PowerPak. This is most likely related to there being different hardware revisions of the chip and/or the PowerPak hardware not supporting LoROM DSP1 games properly. Note that I have actually gotten the game to run in the past using a very small CF card (<500 MB), but in practice, getting it to boot at all seems to be a pure matter of luck.
 
-- The game "Star Ocean" (uncompressed 96 Mbit version) doesn't offer you to save your SRAM after playing. This can be fixed by patching/editing the ROM's internal header. Check the posting by shadowkn55 in the appropriate nesdev forum thread (http://forums.nesdev.com/viewtopic.php?p=53414#p53414) for details.
+- The game "Star Ocean" (uncompressed 96 Mbit version) doesn't offer you to save your SRAM after playing. This can be fixed by patching/editing the ROM's internal header. Check the posting by shadowkn55 in the appropriate nesdev forum thread (http://forums.nesdev.com/viewtopic.php?p=53414#p53414 or https://archive.nes.science/nesdev-forums/f12/t5708.xhtml#p53414 as the nesdev forums seem to be gone for good) for details.

@@ -80,7 +80,7 @@ VBlank:
 	; B bus register: $2104 (OAM data write)
 	; number of bytes to transfer: 512 + 32 (OAM size)
 
-	DMA_CH0 $00, $00, SpriteBuf1, <REG_OAMDATA, 544
+	DMA_CH0 $00, SpriteBuf1, <REG_OAMDATA, 544
 
 
 
@@ -96,7 +96,7 @@ VBlank:
 	; B bus register: $2118 (VRAM low byte)
 	; number of bytes to transfer: 2048 (tile map size)
 
-	DMA_CH0 $00, $7E, (TextBuffer.BG1 & $FFFF), <REG_VMDATAL, 2048
+	DMA_CH0 $00, TextBuffer.BG1, <REG_VMDATAL, 2048
 
 
 
@@ -111,7 +111,7 @@ VBlank:
 	; B bus register: $2118 (VRAM low byte)
 	; number of bytes to transfer: 2048 (tile map size)
 
-	DMA_CH0 $00, $7E, (TextBuffer.BG2 & $FFFF), <REG_VMDATAL, 2048
+	DMA_CH0 $00, TextBuffer.BG2, <REG_VMDATAL, 2048
 
 
 
@@ -247,71 +247,8 @@ ErrorHandlerBRK:
 	PrintSpriteText	4, 4, "An error occurred!", 3
 	SetTextPos	4, 2
 	PrintString	"Error type: BRK"
-	SetTextPos	5, 2
-	PrintString	"Error addr: $"
 
-	lda	10, s
-	sta	temp
-
-	PrintHexNum	temp
-
-	lda	9, s
-	sta	temp
-
-	PrintHexNum	temp
-
-	lda	8, s
-	sta	temp
-
-	PrintHexNum	temp
-	SetTextPos	7, 2
-	PrintString	"Status reg: $"
-
-	lda	7, s
-	sta	temp
-
-	PrintHexNum	temp
-	SetTextPos	9, 2
-	PrintString	"Accumulator: $"
-
-	lda	6, s
-	sta	temp
-
-	PrintHexNum	temp
-
-	lda	5, s
-	sta	temp
-
-	PrintHexNum	temp
-	SetTextPos	10, 2
-	PrintString	"X index reg: $"
-
-	lda	4, s
-	sta	temp
-
-	PrintHexNum	temp
-
-	lda	3, s
-	sta	temp
-
-	PrintHexNum	temp
-	SetTextPos	11, 2
-	PrintString	"Y index reg: $"
-
-	lda	2, s
-	sta	temp
-
-	PrintHexNum	temp
-
-	lda	1, s
-	sta	temp
-
-	PrintHexNum	temp
-
-	lda	#%00100000						; activate HDMA channel 5 (windowing)
-	sta	DP_HDMAchannels
-	lda	REG_RDNMI						; clear NMI flag
-	jmp	Forever+4						; go to trap loop instead of RTI (omitting HDMA stuff)
+	bra	ErrorHandlerCOP@PrintDebugInfo				; rest is the same as in COP error handling
 
 
 
@@ -341,31 +278,43 @@ ErrorHandlerCOP:
 	PrintSpriteText	4, 4, "An error occurred!", 3
 	SetTextPos	4, 2
 	PrintString	"Error type: COP"
+
+@PrintDebugInfo:
 	SetTextPos	5, 2
 	PrintString	"Error addr: $"
 
 	lda	10, s
-	sta	temp
+	sta	temp+2							; put address in temp+2/temp+1/temp
 
-	PrintHexNum	temp
+	PrintHexNum	temp+2
 
 	lda	9, s
-	sta	temp
+	sta	temp+1
 
-	PrintHexNum	temp
+	PrintHexNum	temp+1
 
 	lda	8, s
+	dec	a							; make up for automatic program counter increment
+	dec	a
 	sta	temp
 
 	PrintHexNum	temp
+
+	inc	temp							; advance low byte to address of BRK/COP signature byte
+	lda	[temp]							; load signature byte from [temp]
+	sta	temp+4
+
 	SetTextPos	7, 2
+	PrintString	"BRK/COP signature byte: $"
+	PrintHexNum	temp+4
+	SetTextPos	9, 2
 	PrintString	"Status reg: $"
 
 	lda	7, s
 	sta	temp
 
 	PrintHexNum	temp
-	SetTextPos	9, 2
+	SetTextPos	11, 2
 	PrintString	"Accumulator: $"
 
 	lda	6, s
@@ -377,7 +326,7 @@ ErrorHandlerCOP:
 	sta	temp
 
 	PrintHexNum	temp
-	SetTextPos	10, 2
+	SetTextPos	12, 2
 	PrintString	"X index reg: $"
 
 	lda	4, s
@@ -389,7 +338,7 @@ ErrorHandlerCOP:
 	sta	temp
 
 	PrintHexNum	temp
-	SetTextPos	11, 2
+	SetTextPos	13, 2
 	PrintString	"Y index reg: $"
 
 	lda	2, s
@@ -405,7 +354,7 @@ ErrorHandlerCOP:
 	lda	#%00100000						; activate HDMA channel 5 (windowing)
 	sta	DP_HDMAchannels
 	lda	REG_RDNMI						; clear NMI flag
-	jmp	Forever+4						; go to trap loop instead of RTI (omitting HDMA stuff)
+	jmp	Forever@SkipHDMA					; go to trap loop instead of RTI (omitting HDMA stuff)
 
 
 

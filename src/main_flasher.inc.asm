@@ -26,7 +26,7 @@ GotoFlashUpdater:
 
 	PrintSpriteText 3, 2, "SNES PowerPak Flash Updater", 4
 	SetTextPos 2, 0
-	PrintString "v3.10, (c) 2019 by https://manuloewe.de\n\n"
+	PrintString "v3.10, (c) 2019 by https://manuloewe.de\\n\\n"
 	PrintString "Detected flash ROM chip ID: "
 
 	ldx	#$0000
@@ -61,10 +61,10 @@ GotoFlashUpdater:
 
 +	PrintString "unknown"
 	SetTextPos 6, 0
-	PrintString "ERROR!\n\n"
-	PrintString "The in-system flash upgrade isn't available for\n"
-	PrintString "your SNES PowerPak. Please revert to a previous\n"
-	PrintString "firmware package, or reflash your ROM chip\n"
+	PrintString "ERROR!\\n\\n"
+	PrintString "The in-system flash upgrade isn't available for\\n"
+	PrintString "your SNES PowerPak. Please revert to a previous\\n"
+	PrintString "firmware package, or reflash your ROM chip\\n"
 	PrintString "manually."
 
 	jmp	Forever
@@ -73,13 +73,13 @@ GotoFlashUpdater:
 
 FlashUpdateWarning:
 	SetTextPos 6, 0
-	PrintString "WARNING!\n\n"
-	PrintString "This update is performed AT YOUR OWN RISK!\n\n"
-	PrintString "Don't switch off or reset the SNES while flashing.\n"
-	PrintString "Any kind of power failure may permanently brick\n"
-	PrintString "your SNES PowerPak!\n\n"
-	PrintString "Reflashing takes about five seconds to complete,\n"
-	PrintString "after which your SNES will reset automatically.\n\n"
+	PrintString "WARNING!\\n\\n"
+	PrintString "This update is performed AT YOUR OWN RISK!\\n\\n"
+	PrintString "Don't switch off or reset the SNES while flashing.\\n"
+	PrintString "Any kind of power failure may permanently brick\\n"
+	PrintString "your SNES PowerPak!\\n\\n"
+	PrintString "Reflashing takes about five seconds to complete,\\n"
+	PrintString "after which your SNES will reset automatically.\\n\\n"
 	PrintString "Press the (A) button to proceed ..."
 
 ;	stz	Joy1Press						; reset input buttons
@@ -139,7 +139,7 @@ FlashUpdateWarning:
 ; -------------------------- WRAM (at the least) has been compromised --> cancel flashing
 +	ClearLine 19
 	SetTextPos 19, 0
-	PrintString "ERROR!\n\n"
+	PrintString "ERROR!\\n\\n"
 	PrintString "Unknown chip ID error."
 
 	jmp	Forever
@@ -500,15 +500,15 @@ VerifyUpdateFile:
 
 	PrintSpriteText 3, 2, "Error!", 4
 	SetTextPos 3, 0
-	PrintString "UPDATE.ROM appears to be a corrupt file.\n\n"
-	PrintString "Please perform the following steps before trying\n"
-	PrintString "again:\n\n"
-	PrintString "- Redownload the firmware update package.\n"
-	PrintString "- Ensure your CF card works flawlessly with the\n"
-	PrintString "  SNES PowerPak.\n"
-	PrintString "- Reformat the card with FAT32, and copy nothing\n"
-	PrintString "  but the /POWERPAK folder onto it.\n"
-	PrintString "- If you have another SNES console available,\n"
+	PrintString "UPDATE.ROM appears to be a corrupt file.\\n\\n"
+	PrintString "Please perform the following steps before trying\\n"
+	PrintString "again:\\n\\n"
+	PrintString "- Redownload the firmware update package.\\n"
+	PrintString "- Ensure your CF card works flawlessly with the\\n"
+	PrintString "  SNES PowerPak.\\n"
+	PrintString "- Reformat the card with FAT32, and copy nothing\\n"
+	PrintString "  but the /POWERPAK folder onto it.\\n"
+	PrintString "- If you have another SNES console available,\\n"
 	PrintString "  switch to that."
 
 	jmp	Forever

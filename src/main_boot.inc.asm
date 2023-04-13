@@ -226,10 +226,10 @@ ColdBoot:
 
 	Accu8
 
-	DMA_CH0 $09, :CONST_Zeroes, CONST_Zeroes, $18, 0		; VRAM (length 0 = 65536 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $22, 512		; CGRAM (512 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $04, 512+32		; OAM (low+high OAM tables = 512+32 bytes)
-	DMA_CH0 $08, :CONST_Zeroes, CONST_Zeroes, $80, 0		; WRAM (length 0 = 65536 bytes = lower 64K of WRAM)
+	DMA_CH0 $09, SRC_Zeroes, <REG_VMDATAL, 0			; VRAM (length 0 = 65,536 bytes)
+	DMA_CH0 $08, SRC_Zeroes, <REG_CGDATA, 512			; CGRAM (512 bytes)
+	DMA_CH0 $08, SRC_Zeroes, <REG_OAMDATA, 512+32			; OAM (low+high OAM tables = 512+32 bytes)
+	DMA_CH0 $08, SRC_Zeroes, <REG_WMDATA, 0				; WRAM (length 0 = 65,536 bytes = lower 64K of WRAM)
 
 ;	lda	#%00000001						; never mind, Accu still contains this value
 	sta	REG_MDMAEN						; WRAM address in $2181-$2183 has reached $10000 now, re-initiate DMA transfer for the upper 64K of WRAM
@@ -257,13 +257,14 @@ LoadConfig:
 
 	Accu16
 
-	lda	#'O'<<8+'P'						; look for "POWERPAK" dir entry
+	lda	#('O'<<8)+'P'						; look for "POWERPAK" dir entry
+;	lda	#'OP'
 	sta	findEntry
-	lda	#'E'<<8+'W'
+	lda	#('E'<<8)+'W'
 	sta	findEntry+2
-	lda	#'P'<<8+'R'
+	lda	#('P'<<8)+'R'
 	sta	findEntry+4
-	lda	#'K'<<8+'A'
+	lda	#('K'<<8)+'A'
 	sta	findEntry+6
 
 	Accu8
@@ -285,7 +286,7 @@ LoadConfig:
 	PrintHexNum baseDirCluster+2
 	PrintHexNum baseDirCluster+1
 	PrintHexNum baseDirCluster+0
-	PrintString "\n"
+	PrintString "\\n"
 .ENDIF
 
 	FindFile "POWERPAK.CFG"						; attempt to load configuration file
@@ -346,11 +347,11 @@ LoadConfig:
 
 	Accu16
 
-	lda	#'U'<<8+'M'						; look for "MUFASA.THM"
+	lda	#('U'<<8)+'M'						; look for "MUFASA.THM"
 	sta	findEntry
-	lda	#'A'<<8+'F'
+	lda	#('A'<<8)+'F'
 	sta	findEntry+2
-	lda	#'A'<<8+'S'
+	lda	#('A'<<8)+'S'
 	sta	findEntry+4
 
 	Accu8
@@ -427,7 +428,7 @@ ConfigureFPGA:
 
 ;	ClearLine 18
 ;	SetTextPos 18, 1
-;	PrintString "FPGA just configured\n"
+;	PrintString "FPGA just configured\\n"
 
 	wai
 	lda	#%00000001
@@ -633,7 +634,7 @@ FPGACheck:
 	ldy	#errorCode
 
 	SetTextPos 21, 1
-	PrintString "FPGA check failed.\n  Error code: $%x"
+	PrintString "FPGA check failed.\\n  Error code: $%x"
 
 	jmp	Forever
 
@@ -661,7 +662,7 @@ SDRAMCheck:
 	jsr	SpriteMessageError
 
 	SetTextPos 21, 1
-	PrintString "SDRAM check failed.\n  Error code: $"
+	PrintString "SDRAM check failed.\\n  Error code: $"
 	PrintHexNum $F00000
 
 	jmp	Forever
@@ -790,15 +791,17 @@ CheckFrameLength:
 Forever:
 	lda	#%00110000						; activate HDMA channels 4 and 5 (BG color gradient, windowing)
 	sta	DP_HDMAchannels
+
+@SkipHDMA:
 	lda	#$0F							; turn on the screen in case we're still in forced blank
 	sta	REG_INIDISP
 	lda	#$81							; enable Vblank NMI + automatic joypad reading
 	sta	REG_NMITIMEN
 	cli
 
-@ForeverLoop:
+@Loop:
 	wai								; wait for next frame
-	bra	@ForeverLoop
+	bra	@Loop
 
 
 
@@ -1195,7 +1198,7 @@ LoadLastGame:
 	jsr	SpriteMessageError
 
 	SetTextPos 21, 1
-	PrintString "LASTGAME.LOG appears to be empty or corrupt!\n"
+	PrintString "LASTGAME.LOG appears to be empty or corrupt!\\n"
 	PrintString "  Press any button to return to the titlescreen."
 
 	WaitForUserInput
@@ -1354,7 +1357,7 @@ ClearFindEntry:
 
 LogScreen:
 	stz	REG_WMADDH						; set WRAM address to log buffer for writing (expected in bank $7E)
-	ldx	#(LogBuffer & $FFFF)					; get low word
+	ldx	#loword(LogBuffer)
 	stx	REG_WMADDL
 	ldx	#$0000							; next, "deinterleave" hi-res text buffer
 -	lda	TextBuffer.BG1, x
@@ -1369,7 +1372,7 @@ LogScreen:
 
 	FindFile "ERROR.LOG"						; save to file
 
-	ldx	#(LogBuffer & $FFFF)
+	ldx	#loword(LogBuffer)
 	stx	sourceLo
 	lda	#$7E
 	sta	sourceBank

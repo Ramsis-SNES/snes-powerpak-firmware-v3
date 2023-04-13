@@ -93,6 +93,7 @@ Prerequisites:
 
    - A SNES PowerPak of any hardware revision, as long as its flash boot ROM chip is either an AT29C010A or an SST39SF010A.
    - A previous boot ROM version of v1.0X (stock firmware) or v2.0X "SIMBA". (In the unlikely event that you still have a beta version of the "SIMBA" firmware installed, then you must upgrade to v2.00 first.)
+   - A real SNES, or a Super Nt running an older firmware version. DO NOT ATTEMPT TO UPGRADE YOUR POWERPAK'S FIRMWARE ON A SUPER NT WITH FIRMWARE V5.0/JB7.0 INSTALLED, even though it might appear to start up fine. You *will* brick your PowerPak otherwise. Downgrade your Super Nt firmware to v4.9/jb6.9 first, make sure ROM loading with the PowerPak works reliably, then proceed to upgrading your PowerPak.
    - Nerves of steel. ;-) If anything goes wrong during the upgrade process and your chip isn't socketed, you end up not with an updated PowerPak, but with a rather expensive paperweight (unless you find someone with the skill to fix it for you, which would involve desoldering of the flash ROM chip). Please keep in mind that any kind of power failure during flashing, caused e.g. by your loved one wanting to get to you and tripping over the power cord, will be enough to permanently ruin your cart (unless your ROM chip is socketed, of course)!
 
 Steps necessary:
@@ -224,7 +225,7 @@ ______________________________________________________________________
 
 The sourcecode is best worked on using e.g. Sublime Text with a tabulator size of 8 (comment designators usually sit on column 73) and assembled under a Unix-style operating system. If you want to reassemble the source from scratch, you must obtain these tools used by the Makefile and graphics conversion scripts:
 
-- WLA DX v9.8 binaries (available from https://github.com/vhelin/wla-dx )
+- WLA DX v10.4 binaries (available from https://github.com/vhelin/wla-dx )
 - gfx2snes and smconv binaries from Alekmaul's DevkitSnes v1.0.0 release
 - pcx2snes by Neviksti (for some 2bpp graphics)
 

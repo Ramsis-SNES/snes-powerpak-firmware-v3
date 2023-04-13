@@ -18,7 +18,7 @@ GFXsetup:
 
 
 ; -------------------------- HDMA tables --> WRAM
-	ldx	#(HDMAtable.BG & $FFFF)					; set WRAM address = HDMA backdrop color gradient buffer, get lower word
+	ldx	#loword(HDMAtable.BG)					; set WRAM address = HDMA backdrop color gradient buffer
 	stx	REG_WMADDL
 	stz	REG_WMADDH
 	ldx	#0
@@ -69,7 +69,7 @@ GFXsetup:
 	lda	#ADDR_CGRAM_MAIN_GFX					; set CGRAM address for sprite palettes (main GFX palette = $80)
 	sta	REG_CGADD
 
-	DMA_CH0 $02, :Sprite_Palettes, Sprite_Palettes, <REG_CGDATA, 256
+	DMA_CH0 $02, Sprite_Palettes, <REG_CGDATA, 256
 
 
 
@@ -133,16 +133,16 @@ GFXsetup:
 	ldx	#ADDR_VRAM_SPR_TILES					; set VRAM address for sprite tiles
 	stx	REG_VMADDL
 
-	DMA_CH0 $01, :SpriteTiles, SpriteTiles, <REG_VMDATAL, $4000
+	DMA_CH0 $01, SpriteTiles, <REG_VMDATAL, $4000
 
 
 
 ; -------------------------- font width table --> WRAM
-	ldx	#(SpriteFWT & $FFFF)					; set WRAM address = sprite font width table buffer
+	ldx	#loword(SpriteFWT)					; set WRAM address = sprite font width table buffer
 	stx	REG_WMADDL
 	stz	REG_WMADDH
 
-	DMA_CH0 $00, :Sprite_FWT, Sprite_FWT, <REG_WMDATA, _sizeof_Sprite_FWT
+	DMA_CH0 $00, Sprite_FWT, <REG_WMDATA, _sizeof_Sprite_FWT
 
 
 
@@ -204,7 +204,7 @@ GFXsetup:
 
 
 ; -------------------------- channel 3: color math
-	ldx	#(HDMAtable.ColorMath & $FFFF)
+	ldx	#loword(HDMAtable.ColorMath)
 	stx	$4332
 	lda	#$7E							; table in WRAM expected
 	sta	$4334
@@ -216,7 +216,7 @@ GFXsetup:
 
 
 ; -------------------------- channel 4: background color gradient
-	ldx	#(HDMAtable.BG & $FFFF)
+	ldx	#loword(HDMAtable.BG)
 	stx	$4342
 	lda	#$7E							; table in WRAM expected
 	sta	$4344
@@ -228,7 +228,7 @@ GFXsetup:
 
 
 ; -------------------------- channel 5: main/subscreen window
-	ldx	#(HDMAtable.Window & $FFFF)
+	ldx	#loword(HDMAtable.Window)
 	stx	$4352
 	lda	#$7E
 	sta	$4354
@@ -240,7 +240,7 @@ GFXsetup:
 
 
 ; -------------------------- channel 6: BG1 horizontal scroll offset
-	ldx	#(HDMAtable.ScrollBG1 & $FFFF)
+	ldx	#loword(HDMAtable.ScrollBG1)
 	stx	$4362
 	lda	#$7E
 	sta	$4364
@@ -252,7 +252,7 @@ GFXsetup:
 
 
 ; -------------------------- channel 7: BG2 horizontal scroll offset
-	ldx	#(HDMAtable.ScrollBG2 & $FFFF)
+	ldx	#loword(HDMAtable.ScrollBG2)
 	stx	$4372
 	lda	#$7E
 	sta	$4374

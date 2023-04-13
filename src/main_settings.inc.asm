@@ -291,7 +291,7 @@ CheckForUpdate:
 	jsr	SpriteMessageError
 
 	SetTextPos 20, 1
-	PrintString "UPDATE.ROM is not a valid \"MUFASA\" firmware file.\n"
+	PrintString "UPDATE.ROM is not a valid \"MUFASA\" firmware file.\\n"
 	PrintString "  Press any button ..."
 
 	jmp	@WaitBeforeReturn
@@ -511,7 +511,7 @@ SDRAMCheckFull:
 	sta	DMAWRITEHI
 
 	SetTextPos 18, 1
-	PrintString "Writing bank $  \n  Please hold on ..."
+	PrintString "Writing bank $  \\n  Please hold on ..."
 
 @WriteLoop:
 	lda	Joy1New+1						; check for user input

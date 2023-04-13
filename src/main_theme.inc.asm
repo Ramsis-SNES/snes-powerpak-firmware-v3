@@ -225,7 +225,7 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 
 
 ; -------------------------- process theme file data 09: BG color gradient --> WRAM (theme buffer)
-	ldx	#(HDMAtable.BG & $FFFF)					; set WRAM address = HDMA backdrop color gradient buffer, get lower word
+	ldx	#loword(HDMAtable.BG)					; set WRAM address = HDMA backdrop color gradient buffer
 	stx	REG_WMADDL
 	stz	REG_WMADDH
 	ldx	#0							; rebuild table
@@ -246,7 +246,7 @@ LoadTheme:								; expects that we're in forced blank & HDMA is off!
 
 
 ; -------------------------- process theme file data 10: sprite-based font width table --> WRAM (theme buffer)
-	ldx	#(SpriteFWT & $FFFF)					; set WRAM address = font width table buffer
+	ldx	#loword(SpriteFWT)					; set WRAM address = font width table buffer
 	stx	REG_WMADDL
 	stz	REG_WMADDH
 	ldx	#0

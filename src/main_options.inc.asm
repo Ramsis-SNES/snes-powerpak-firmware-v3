@@ -881,9 +881,9 @@ BackToIntro:
 ShowHelpGeneral:
 	ClearLine 21
 	SetTextPos 21, 2
-	PrintString " Accept\t\tBack"
+	PrintString " Accept\\t\\tBack"
 	SetTextPos 23, 6
-	PrintString " Launch game\t      Decode GG codes"
+	PrintString " Launch game\\t      Decode GG codes"
 
 
 
@@ -924,7 +924,7 @@ ShowHelpGeneral:
 ShowHelpGGcodeEdit:
 	ClearLine 21
 	SetTextPos 21, 4
-	PrintString "+Digit\t   -Digit     L+R: Clear this code"
+	PrintString "+Digit\\t   -Digit     L+R: Clear this code"
 
 	Accu16
 

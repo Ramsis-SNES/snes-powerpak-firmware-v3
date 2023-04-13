@@ -126,7 +126,7 @@ STR_Firmware_Build:
 	.DB "Build #"
 
 STR_Firmware_BuildNum:
-	.DB "11438"
+	.DB "11446"
 
 STR_Firmware_BuildNum_End:
 	.DB 0
@@ -149,7 +149,7 @@ PTR_findEntry:
 PTR_tempEntry:
 	.DW tempEntry
 
-CONST_Zeroes:
+SRC_Zeroes:
 	.DW 0
 
 .ENDS

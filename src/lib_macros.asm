@@ -237,7 +237,7 @@
 ; Effect: Prints a sprite-based 8*8 VWF text string (max length: 32 characters). Coordinate values work as with SetTextPos, but no indention is added (0, 0 = upper left screen corner). Valid font colors are palette numbers 3 (white), 4 (red), 5 (green), 6 (blue), or 7 (yellow).
 
 .MACRO PrintSpriteText
-	ldx	#((8*\1)-2)<<8 + 8*\2
+	ldx	#((8*\1-2)<<8) + 8*\2
 	stx	DP_TextPos
 	lda	#\4
 	sta	DP_SprTextPalette
@@ -264,7 +264,7 @@
 
 ; DMA macro by ManuLöwe (added for v2.01)
 ;
-; Usage: DMA_CH0 mode[8bit], A_bus_bank[8bit], A_bus_src[16bit], B_bus_register[8bit], length[16bit]
+; Usage: DMA_CH0 mode[8bit], A_bus_src[24bit], B_bus_register[8bit], length[16bit]
 ; Effect: Transfers data via DMA channel 0. For use during Vblank/Forced Blank only.
 ;
 ; Expects: A 8 bit, X/Y 16 bit
@@ -272,13 +272,13 @@
 .MACRO DMA_CH0
 	lda	#\1							; DMA mode (8 bit)
  	sta	$4300
-	lda	#\4							; B bus register (8 bit)
+	lda	#\3							; B bus register (8 bit)
 	sta	$4301
-	ldx	#\3							; data offset (16 bit)
+	ldx	#loword(\2)						; data offset (16 bit)
 	stx	$4302
-	lda	#\2							; data bank (8 bit)
+	lda	#bankbyte(\2)						; data bank (8 bit)
 	sta	$4304
-	ldx	#\5							; data length (16 bit)
+	ldx	#\4							; data length (16 bit)
 	stx	$4305
 	lda	#%00000001						; initiate DMA transfer (channel 0)
 	sta	$420B
@@ -288,11 +288,11 @@
 
 ; DMA (with wait-for-Hblank) macro by ManuLöwe (added for v2.01)
 ;
-; Usage: DMA_WaitHblank mode[8bit], A_bus_bank[8bit], A_bus_src_hi[8bit], A_bus_src_lo[8bit], B_bus_register[8bit], length[16bit]
+; Usage: DMA_WaitHblank mode[8bit], A_bus_src[24bit], B_bus_register[8bit], length[16bit]
 ;
 ; Effect: Waits for Hblank, then transfers data via DMA channel 1.
 ; For use during active display, with a standard data length of 512 bytes.
-; Timing is optimized in such a way that the DMA transfer is interrupted once by
+; Waiting for Hblank ensures that the DMA transfer is interrupted once by
 ; the next HDMA transfer, and ends long before another HDMA transfer (to work
 ; around DMA <> HDMA conflicts/crashes on CPU rev. 1 consoles).
 ;
@@ -305,15 +305,13 @@
 	bvc	@WaitForHblank\@
 	lda	#\1							; DMA mode (8 bit)
  	sta	$4310
-	lda	#\5							; B bus register (8 bit)
+	lda	#\3							; B bus register (8 bit)
 	sta	$4311
-	lda	#\4							; data offset, low byte (8 bit)
-	sta	$4312
-	lda	#\3							; data offset, high byte (8 bit)
-	sta	$4313
-	lda	#\2							; data bank (8 bit)
+	ldx	#loword(\2)						; data offset (16 bit)
+	stx	$4312
+	lda	#bankbyte(\2)						; data bank (8 bit)
 	sta	$4314
-	ldx	#\6							; data length (16 bit), should always be 512 bytes
+	ldx	#\4							; data length (16 bit), should always be 512 bytes
 	stx	$4315
 	lda	#%00000010						; initiate DMA transfer (channel 1)
 	sta	$420B

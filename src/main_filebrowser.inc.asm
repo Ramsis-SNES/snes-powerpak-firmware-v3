@@ -485,7 +485,7 @@ FileBrowserCheckDirEmpty:
 	jsr	SpriteMessageError
 
 	SetTextPos 21, 1
-	PrintString "No files/folders to display!\n"
+	PrintString "No files/folders to display!\\n"
 	PrintString "  Press any button to return."
 
 	WaitForUserInput
@@ -640,11 +640,11 @@ DirPrintEntry:
 	and	#%00000001
 	beq	@PrintFileOnly
 
-	PrintString " /%s\n"
+	PrintString " /%s\\n"
 	bra	@DirPrintEntryDone
 
 @PrintFileOnly:
-	PrintString "  %s\n"
+	PrintString "  %s\\n"
 
 @DirPrintEntryDone:
 	stz	CLDConfigFlags						; reset CLDConfigFlags

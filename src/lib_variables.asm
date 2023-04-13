@@ -16,7 +16,6 @@
 ; Label prefixes:
 
 ; ADDR_		= address value, as defined in this file
-; CONST_	= arbitrary constant, stored in ROM
 ; DP_		= Direct Page variable
 ; k		= arbitrary constant, as defined in this file
 ; PTR_		= 2-byte pointer, stored in ROM
@@ -205,9 +204,6 @@
 ; CF CARD READ REGISTERS
 
 .DEFINE CARDDATAREAD		$A08000
-.DEFINE CARDDATAREADbank	$A0
-.DEFINE CARDDATAREADhigh	$80
-.DEFINE CARDDATAREADlow		$00
 .DEFINE CARDSTATUS		$A0800E	; 7   ;0111
 .DEFINE CARDALTSTATUS		$A08007	; E   ;1110
 .DEFINE CARDDRIVEADDRESS	$A0800F	; F   ;1111
@@ -221,9 +217,6 @@
 ; CF CARD WRITE REGISTERS
 
 .DEFINE CARDDATAWRITE		$808000	; 0  ;0000
-.DEFINE CARDDATAWRITEbank	$80
-.DEFINE CARDDATAWRITEhigh	$80
-.DEFINE CARDDATAWRITElow	$00
 .DEFINE CARDSECTORCOUNT		$808004	; 2  ;0010
 .DEFINE CARDLBA0		$80800C	; 3  ;0011
 .DEFINE CARDLBA1		$808002	; 4  ;0100
@@ -268,7 +261,6 @@
 .DEFINE DMAWRITEHI		$308001
 .DEFINE DMAWRITEBANK		$308002
 .DEFINE DMAREADDATA		$21FF
-.DEFINE DMAPORT			$FF
 
 
 
@@ -360,11 +352,11 @@
 
 ; -------------------------- CF I/O constants
 .ENUM $00
-	kFPGA			db
-	kSDRAM			db
-	kSDRAMNoDMA		db
-	kWRAM			db
-	kWRAMNoDMA		db
+	kFPGA			dw					; 16-bit values as of build #11442 for faster index use)
+	kSDRAM			dw
+	kSDRAMNoDMA		dw
+	kWRAM			dw
+	kWRAMNoDMA		dw
 .ENDE
 
 
@@ -376,8 +368,8 @@
 	errorCode		dw
 	fat32Enabled		db
 
-	DP_DataDestination	db					; holds constant determining where to put data read from CF card
-	DP_DataSource		db					; holds constant determining the source of data to be written onto CF card
+	DP_DataDestination	dw					; holds constant determining where to put data read from CF card (16-bit variable as of build #11442 for faster index use)
+	DP_DataSource		dw					; holds constant determining the source of data to be written onto CF card (ditto)
 	source256		db
 	sourceLo		db
 	sourceHi		db
@@ -394,8 +386,16 @@
 	destHi			db
 	destBank		db
 
-	filesInDir		dw					; 21 bytes
-	temp			dsb 8
+	filesInDir		dw					; 23 bytes
+
+	.UNION
+		temp		dsb 8
+	.NEXTU
+		digi_src	dsb 3					; some SNESMod variables in the same region as temp
+		digi_src2	dsb 3
+		digi_unused	dw
+	.ENDU
+
 	selectedEntry		dw
 	lfnFound		db
 
@@ -406,7 +406,7 @@
 	sectorsPerCluster	db
 	reservedSectors		dw
 	sectorsPerFat		dsb 4
-	fatBeginLBA		dsb 4					; 59 bytes
+	fatBeginLBA		dsb 4					; 61 bytes
 
 	DP_ColdBootCheck2	db
 
@@ -428,7 +428,7 @@
 	Joy2New			dw
 
 	Joy1Old			dw
-	Joy2Old			dw					; 88 bytes
+	Joy2Old			dw					; 90 bytes
 
 	findEntry		dsb 9					; 8 bytes at most for short file names + NUL-terminator
 
@@ -440,7 +440,7 @@
 	scrollY			db
 	scrollYCounter		db
 	scrollYUp		db
-	scrollYDown		db					; 136 bytes
+	scrollYDown		db					; 138 bytes
 
 	cursorX			db					; sprite cursor coordinates (cursorX/cursorY must be kept in consecutive order due to occasional 16-bit writes)
 	cursorY			db
@@ -457,7 +457,7 @@
 	saveSize		db
 	useBattery		db
 
-	DP_ColdBootCheck3	db					; 148 bytes
+	DP_ColdBootCheck3	db					; 150 bytes
 
 	gameSize		dw
 	gameResetVector		dw
@@ -468,7 +468,7 @@
 	gameROMMbits		db
 	sramSizeByte		db
 
-	ggcode			dsb 4					; 193 bytes
+	ggcode			dsb 4					; 195 bytes
 
 	CLDConfigFlags		db					; CardLoadDir config flags: rrrrrrhb [r = Reserved, h = skip hidden files if set, b = use SDRAM buffer if set, WRAM buffer if clear]
 									; The h flag is checked (& reset) in CardLoadDir only.
@@ -490,7 +490,7 @@
 	audioY			db
 	audioPSW		db
 	audioSP			db
-	spcTimer		dsb 4					; 210 bytes
+	spcTimer		dsb 4					; 212 bytes
 
 	BGPrintMon		db					; keep track of BG we're printing on: $00 = BG1 (start), $01 = BG2
 	DP_SelectionFlags	db					; rrrrrrrf [r = Reserved, f = file was chosen if set]
@@ -507,12 +507,12 @@
 	DP_SubDirCounter	dw					; used in the file browser
 
 	DP_ThemeFileClusterLo	dw					; cluster of selected theme file
-	DP_ThemeFileClusterHi	dw					; 230 bytes
+	DP_ThemeFileClusterHi	dw					; 232 bytes
 
 	DP_SPCPlayerFlags	db					; rrrrrnnn [nnn = minutes of auto-play time (000 = auto-play off), r = Reserved]
 	DP_WarmBootFlags	db					; srrrrrrr [r = Reserved, s = go to SPC player]
 
-	spc_ptr			dsb 3					; SNESMod variables (up to, and including, "digi_src2")
+	spc_ptr			dsb 3					; SNESMod variables (up to, and including, "SoundTable")
 	spc_v			db
 	spc_bank		db
 	spc1			dsb 2
@@ -521,10 +521,7 @@
 	spc_fwrite		db
 	spc_pr			dsb 4					; port record [for interruption]
 	SoundTable		dsb 3
-.ENDE									; 250 of 256 bytes used
-
-	.DEFINE digi_src	temp					; some more SNESMod variables in the temp area
-	.DEFINE digi_src2	temp+3
+.ENDE									; 252 of 256 bytes used
 
 
 

@@ -113,7 +113,7 @@ GotoSPCplayer:
 	ldy	#PTR_tempEntry						; tempEntry holds name of SPC file currently playing
 
 	SetTextPos 9+32, 0
-	PrintString "File name:\n%s"
+	PrintString "File name:\\n%s"
 
 	lda	#$90							; next, read and display tag info
 	sta	DMAWRITEBANK

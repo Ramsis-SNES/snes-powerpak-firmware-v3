@@ -40,7 +40,7 @@ StateCardNotInserted:							; wait until card inserted, show no card message
 	bne	@StateCardInserted
 
 	SetTextPos 21, 1
-	PrintString "CF card not found.\n  Error code: $"
+	PrintString "CF card not found.\\n  Error code: $"
 	PrintHexNum errorCode
 
 	jsr	PrintRomVersion
@@ -59,7 +59,7 @@ StateCardBusy:								; wait until card not busy, show card busy message
 	wai
 
 	SetTextPos 21, 1
-	PrintString "CF card busy.     \n  Error code: $"
+	PrintString "CF card busy.     \\n  Error code: $"
 	PrintHexNum errorCode
 
 	bra	StateCardBusy
@@ -77,7 +77,7 @@ StateCardReady:								; wait until card ready, show card not ready message
 	wai
 
 	SetTextPos 21, 1
-	PrintString "CF card not ready.\n  Error code: $"
+	PrintString "CF card not ready.\\n  Error code: $"
 	PrintHexNum errorCode
 
 	bra	StateCardReady
@@ -284,44 +284,44 @@ CardCopyFatBeginLBA:
 
 	Accu8
 
- ;	PrintString "\n"
+ ;	PrintString "\\n"
  ;	PrintHexNum sectorsPerCluster
- ;	PrintString "\n"
+ ;	PrintString "\\n"
 
 .IFDEF DEBUG
 	PrintString "fat16 != "
 	PrintHexNum fat32Enabled
 	PrintString "  RootSectors $"
 	PrintHexNum fat16RootSectors
-	PrintString "\n"
+	PrintString "\\n"
 	PrintString "sectorsPerFat $"
 	PrintHexNum sectorsPerFat+3
 	PrintHexNum sectorsPerFat+2
 	PrintHexNum sectorsPerFat+1
 	PrintHexNum sectorsPerFat+0
-	PrintString "\n"
+	PrintString "\\n"
 	PrintString "partitionLBABegin $"
 	PrintHexNum partitionLBABegin+3
 	PrintHexNum partitionLBABegin+2
 	PrintHexNum partitionLBABegin+1
 	PrintHexNum partitionLBABegin+0
-	PrintString "\n"
+	PrintString "\\n"
 	PrintString "reservedSectors $"
 	PrintHexNum reservedSectors+1
 	PrintHexNum reservedSectors+0
-	PrintString "\n"
+	PrintString "\\n"
 	PrintString "fatBeginLBA $"
 	PrintHexNum fatBeginLBA+3
 	PrintHexNum fatBeginLBA+2
 	PrintHexNum fatBeginLBA+1
 	PrintHexNum fatBeginLBA+0
-	PrintString "\n"
+	PrintString "\\n"
 	PrintString "rootDirCluster $"
 	PrintHexNum rootDirCluster+3
 	PrintHexNum rootDirCluster+2
 	PrintHexNum rootDirCluster+1
 	PrintHexNum rootDirCluster+0
-	PrintString "\n"
+	PrintString "\\n"
 .ENDIF
 
 	rts
@@ -337,7 +337,7 @@ CardFormatError:
 	ClearLine 22
 	SetTextPos 21, 1
 	PrintString "Card format error: FAT16/FAT32 expected!"
-	PrintString "\n  Type code: $"
+	PrintString "\\n  Type code: $"
 	PrintHexNum sectorBuffer1+$1C2					; partition type code
 	PrintString " | Last word ($AA55): $"
 	PrintHexNum sectorBuffer1+$1FF					; high byte of signature word
@@ -421,7 +421,7 @@ CardTESTCheckError:
 	lda	CARDSTATUS						; get card status, check for general error
 	sta	errorCode
 	and	#%00000001
-	bne	CardError
+	bne	CardCheckError@CardError
 	lda	REG_RDNMI						; clear NMI flag
 	lda	#$81
 	sta	REG_NMITIMEN						; re-enable VBlank NMI
@@ -439,7 +439,7 @@ CardCheckError:
 	lda	CARDSTATUS						; get card status, check for general error
 	sta	errorCode
 	and	#%00000001
-;	bne	CardError						; CAVEAT: THIS MYSTERIOUSLY DOES NOT WORK!!!
+;	bne	@CardError						; CAVEAT: THIS MYSTERIOUSLY DOES NOT WORK!!!
 	cmp	#%00000001
 	beq	@CardError
 	rts
@@ -458,13 +458,13 @@ CardCheckError:
 	sta	errorCode
 	ldy	#errorCode
 
-	PrintString "\n  Error $%x - CF card error"
+	PrintString "\\n  Error $%x - CF card error"
 
 	lda	CARDSECTORCOUNTREAD
 	sta	errorCode
 	ldy	#errorCode
 
-	PrintString "\n  CSCR=$%x"
+	PrintString "\\n  CSCR=$%x"
 
 	lda	CARDLBA0READ
 	sta	errorCode
@@ -550,16 +550,7 @@ CardReadSector:
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
 
-	lda	DP_DataDestination					; read data destination
-
-	Accu16
-
-	and	#$00FF							; remove garbage in Accu B
-	asl	a							; use DP_DataDestination as a jump table index
-	tax
-
-	Accu8
-
+	ldx	DP_DataDestination					; use DP_DataDestination as jump table index
 	jmp	(@PTR_kDest, x)
 
 @PTR_kDest:
@@ -581,7 +572,7 @@ CardReadSector:
 	jmp	@CRS_Done
 
 @CRS_toSDRAM:
-	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, DMAPORT, 512
+	DMA_WaitHblank $08, CARDDATAREAD, <DMAREADDATA, 512
 
 	bra	@CRS_Done
 
@@ -603,7 +594,7 @@ CardReadSector:
 	lda	destBank
 	sta	REG_WMADDH
 
-	DMA_WaitHblank $08, CARDDATAREADbank, CARDDATAREADhigh, CARDDATAREADlow, $80, 512
+	DMA_WaitHblank $08, CARDDATAREAD, <REG_WMDATA, 512
 
 	bra	@CRS_Done
 
@@ -617,7 +608,7 @@ CardReadSector:
 	bne	-
 
 ;	PrintHexNum bankCounter
-;	PrintString "CardReadBytesDone\n"
+;	PrintString "CardReadBytesDone\\n"
 
 @CRS_Done:
 	jsr	CardWaitNotBusy
@@ -796,16 +787,7 @@ CardWriteSector:
 	jsr	CardCheckError
 	jsr	CardWaitDataReq
 
-	lda	DP_DataSource						; read data source
-
-	Accu16
-
-	and	#$00FF							; remove garbage in Accu B
-	asl	a							; use DP_DataSource as a jump table index
-	tax
-
-	Accu8
-
+	ldx	DP_DataSource						; use DP_DataSource as jump table index
 	jmp	(@PTR_kSource, x)
 
 @PTR_kSource:
@@ -1540,7 +1522,7 @@ LoadNextSectorNum:							; get next sector, use sectorCounter to check if next c
 	PrintString sourceCluster+2
 	PrintString sourceCluster+1
 	PrintString sourceCluster+0
-	PrintString "\n"
+	PrintString "\\n"
 .ENDIF
 
 	jsr	ClusterToLBA						; get sector num into sourceSector
@@ -1551,7 +1533,7 @@ LoadNextSectorNum:							; get next sector, use sectorCounter to check if next c
 	PrintHexNum sourceSector+2
 	PrintHexNum sourceSector+1
 	PrintHexNum sourceSector+0
-	PrintString "\n"
+	PrintString "\\n"
 
 	DelayFor 172
 .ENDIF
@@ -1577,13 +1559,13 @@ GotoSRMTest:
 	PrintHexNum sectorsPerFat+2
 	PrintHexNum sectorsPerFat+1
 	PrintHexNum sectorsPerFat+0
-	PrintString "\n"
+	PrintString "\\n"
 	PrintString "fatBeginLBA $"
 	PrintHexNum fatBeginLBA+3
 	PrintHexNum fatBeginLBA+2
 	PrintHexNum fatBeginLBA+1
 	PrintHexNum fatBeginLBA+0
-	PrintString "\n\nSearching for free sector within FAT ...\nSector no. $"
+	PrintString "\\n\\nSearching for free sector within FAT ...\\nSector no. $"
 
 	Accu16
 
@@ -1623,7 +1605,7 @@ FindFreeSector:
 
 	Accu8
 
-	PrintString "\nEmpty sector found!"
+	PrintString "\\nEmpty sector found!"
 
 	jmp	Forever
 ;	jmp	FindFreeSector

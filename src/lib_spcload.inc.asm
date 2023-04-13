@@ -56,7 +56,7 @@ upload_dsp_regs:
 -	lda.l	loader,x
 	jsr	spc_upload_byte
 	inx
-	cpy	#31							; size of loader
+	cpy	#_sizeof_loader
 	bne	-
 
 ; ---- Upload SP, PC & PSW
@@ -75,6 +75,7 @@ upload_dsp_regs:
 	ldx	#$0000
 -
 ; initialize FLG and KON ($6c/$4c) to avoid artifacts
+; (ikari_01)
 	cpx	#$4C
 	bne	+
 	lda	#$00
@@ -130,7 +131,7 @@ upload_high_ram:
 -	lda.l	transfer,x
 	jsr	spc_upload_byte
 	inx
-	cpy	#44							; size of transfer routine
+	cpy	#_sizeof_transfer
 	bne	-
 
 	ldx	#$023f							; prepare transfer address
@@ -259,6 +260,7 @@ restore_final:
 	jsr	exec_instr
 
 ; ---- wait a bit (the newer S-APU takes its time to ramp up the volume)
+; (ikari_01)
 	lda	#$10
 -	pha
 	jsr	WaitABit
@@ -581,7 +583,7 @@ apu_ram_init:
 -	lda.w	apu_ram_init_code, x
 	jsr	spc_upload_byte
 	inx
-	cpx	#apu_ram_init_code_END-apu_ram_init_code
+	cpx	#_sizeof_apu_ram_init_code
 	bne	-
 
 	ldx	#$0002
