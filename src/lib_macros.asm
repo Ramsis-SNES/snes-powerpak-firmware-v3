@@ -271,17 +271,17 @@
 
 .MACRO DMA_CH0
 	lda	#\1							; DMA mode (8 bit)
- 	sta	$4300
+ 	sta	DMAP0
 	lda	#\3							; B bus register (8 bit)
-	sta	$4301
+	sta	BBAD0
 	ldx	#loword(\2)						; data offset (16 bit)
-	stx	$4302
+	stx	A1T0L
 	lda	#bankbyte(\2)						; data bank (8 bit)
-	sta	$4304
+	sta	A1B0
 	ldx	#\4							; data length (16 bit)
-	stx	$4305
+	stx	DAS0L
 	lda	#%00000001						; initiate DMA transfer (channel 0)
-	sta	$420B
+	sta	REG_MDMAEN
 .ENDM
 
 
@@ -304,17 +304,17 @@
 	bit	REG_HVBJOY						; wait for Hblank period flag to get set
 	bvc	@WaitForHblank\@
 	lda	#\1							; DMA mode (8 bit)
- 	sta	$4310
+ 	sta	DMAP1
 	lda	#\3							; B bus register (8 bit)
-	sta	$4311
+	sta	BBAD1
 	ldx	#loword(\2)						; data offset (16 bit)
-	stx	$4312
+	stx	A1T1L
 	lda	#bankbyte(\2)						; data bank (8 bit)
-	sta	$4314
+	sta	A1B1
 	ldx	#\4							; data length (16 bit), should always be 512 bytes
-	stx	$4315
+	stx	DAS1L
 	lda	#%00000010						; initiate DMA transfer (channel 1)
-	sta	$420B
+	sta	REG_MDMAEN
 .ENDM
 
 
