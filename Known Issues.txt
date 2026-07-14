@@ -12,30 +12,27 @@
    CONSOLE HARDWARE ISSUES
 ______________________________________________________________________
 
-- Analogue Super Nt users beware: DO NOT ATTEMPT TO UPGRADE YOUR POWERPAK'S FIRMWARE ON A SUPER NT WITH FIRMWARE V5.0/JB7.0 INSTALLED, even though it might appear to start up fine. You *will* brick your PowerPak otherwise. Downgrade your Super Nt firmware to v4.9/jb6.9 first, make sure ROM loading with the PowerPak works reliably, then proceed to upgrading your PowerPak.
-  Background: Due to a critical regression in Super Nt firmware v5.0/JB7.0, the SNES PowerPak isn't compatible with the Super Nt any more. For unknown reasons, data loaded from the CF card (i.e., games, theme data, and, in this case, UPDATE.ROM) gets corrupted. This means that with SNES PowerPak stock firmware, the cart boots up fine but won't load and play any ROMs; with firmware v3.XX, it won't even start up properly, instead leading to a garbled or completely white screen as all graphics/theme data is loaded from the CF card. The only way to use the PowerPak with the Super Nt is by sticking with Super Nt firmware v4.9/JB6.9. (Obviously, "Launch System Timing" must be enabled in Super Nt's System --> Hardware sub-menu for the PowerPak to work at all.) Again, make sure ROMs load and play fine on your PowerPak before even attempting a cart firmware upgrade.
-  I contacted Analogue support back in May of 2021 about the issue, and they were unable to provide any help whatsoever. A GitHub issue I opened in the Super Nt "jailbreak" firmware repository was given the "wontfix" label and closed immediately, also without any help offered, reasons given, or even the slightest interest shown in the matter at all (cf. https://github.com/SmokeMonsterPacks/Super-NT-Jailbreak/issues/187). As the Super Nt GUI/OS is closed-source, there is unfortunately zero chance that anyone except Analogue developers themselves will ever be able to fix this issue.
+- Analogue Super Nt users beware: DO NOT attempt to upgrade your PowerPak's firmware on a Super Nt still running the now obsolete firmware v5.0/JB7.0 as YOU WILL INEVITABLY BRICK YOUR POWERPAK. Instead, first update your Super Nt to (at least) firmware v5.1/JB7.1, make sure that loading and playing games on the PowerPak works fine, and only then proceed to upgrading your PowerPak.
+  Background: Due to a critical regression in Super Nt firmware v5.0/JB7.0, the SNES PowerPak had been rendered incompatible with the Super Nt until firmware v5.1 was released in early May of 2023, which provided a fix. In order to use the PowerPak with the Super Nt, it is therefore recommended to update the console's firmware to (at the time of writing) v5.3/JB7.2. Obviously, "Launch System Timing" must be enabled in the Super Nt settings for the PowerPak to work at all on it. Permanently enabling this option might take several tries thanks to yet another bug in the Super Nt firmware. So again, make sure ROMs load and play fine on your PowerPak/Super Nt combo before even attempting a cart firmware upgrade.
 
 
 
-   KNOWN ISSUES EXCLUSIVE TO (OR NOT DISCOVERED UNTIL) V3.XX:
+   ISSUES EXCLUSIVE TO (OR NOT DISCOVERED UNTIL) V3.XX:
 ______________________________________________________________________
 
-- On SNES consoles with CPU v02/PPU1 v01/PPU2 v01 (in short, 2/1/1) chipset, the SDRAM check may report errors although loading and playing ROMs works just fine (i.e. hardware-wise, SDRAM is most likely OK). This may be caused by a hardware design flaw of the PowerPak, but this is pure speculation. In any case, there is no known fix/workaround on the SNES software side. Consoles with 1/1/1, 2/1/2, or 2/1/3 chipsets don't seem to be affected.
+- On SNES consoles with CPU v02/PPU1 v01/PPU2 v01 (in short, 2/1/1) chipset, the SDRAM check may report errors although loading and playing ROMs works just fine (i.e. hardware-wise, SDRAM is most likely OK). This may be caused by a hardware design flaw of the PowerPak, but this is pure speculation. In any case, there is no known fix/workaround on the SNES software side. Consoles with 1/1/1, 2/1/2, or 2/1/3 chipsets (including 1CHIP variants) don't seem to be affected.
 
-- When playing an SPC file (esp. songs from later SquareSoft games), audio artifacts/glitches may occur. Rarely, a file might even seem to load okay but no sound will be played at all. The exact cause of this issue is unknown and subject to ongoing investigations. Don't expect a fix anytime soon, though.
+- When playing an SPC file (esp. songs from later SquareSoft games), audio artifacts/glitches may occur. Rarely, a file might even seem to load okay but no sound will be played at all. The exact cause of this issue is unknown, so please don't expect a fix anytime soon.
 
 
 
-   KNOWN ISSUES SINCE V1.0X:
+   ISSUES KNOWN SINCE V1.0X:
 ______________________________________________________________________
 
 - The SPC player neither reads nor displays extended ID666 tags.
 
 - The file browser doesn't display entries in alphabetical order, but instead the way the filesystem organizes files on the CF card. If it really bothers you, please consider using drive-sorting software after loading your card with ROMs and savegames (although this is neither recommended nor tested).
 
-- ChimeraHardline's fan translation of the game "Fire Emblem Thracia 776" doesn't work. The translation expands the ROM to 64 Mbits and uses a special ExLoROM mapping, which the original SNES PowerPak creator implemented but never actually bothered to test (and it doesn't work). Unfortunately, SNES PowerPak hardware register documentation is pretty much non-existent (as is the original Verilog/VHDL source for the FPGA file), so there's currently no hope of getting this game to run on the PowerPak, ever.
+- The game "Pilotwings" might not work even with a DSP1 chip installed in your PowerPak. This is most likely related to different hardware revisions of the chip existing and/or the PowerPak hardware not supporting LoROM DSP1 games properly. Note that I have actually gotten the game to run in the past using a very small CF card (<500 MB), but in practice, getting it to boot at all seems to be a pure matter of luck.
 
-- The game "Pilotwings" might not work even with a DSP1 chip installed in your PowerPak. This is most likely related to there being different hardware revisions of the chip and/or the PowerPak hardware not supporting LoROM DSP1 games properly. Note that I have actually gotten the game to run in the past using a very small CF card (<500 MB), but in practice, getting it to boot at all seems to be a pure matter of luck.
-
-- The game "Star Ocean" (uncompressed 96 Mbit version) doesn't offer you to save your SRAM after playing. This can be fixed by patching/editing the ROM's internal header. Check the posting by shadowkn55 in the appropriate nesdev forum thread (http://forums.nesdev.com/viewtopic.php?p=53414#p53414 or https://archive.nes.science/nesdev-forums/f12/t5708.xhtml#p53414 as the nesdev forums seem to be gone for good) for details.
+- The game "Star Ocean" (uncompressed 96 Mbit version) doesn't offer you to save your SRAM after playing. This can be fixed by patching/editing the ROM's internal header. Check the posting by shadowkn55 in the appropriate nesdev forum thread (https://forums.nesdev.org/viewtopic.php?p=53414#p53414 or https://archive.nes.science/nesdev-forums/f12/t5708.xhtml#p53414) for details.

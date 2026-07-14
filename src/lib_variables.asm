@@ -378,7 +378,7 @@
 
 ; -------------------------- CF I/O constants
 .ENUM $00
-	kFPGA			dw					; 16-bit values as of build #11442 for faster index use)
+	kFPGA			dw					; 16-bit values as of build #11442 for faster index use
 	kSDRAM			dw
 	kSDRAMNoDMA		dw
 	kWRAM			dw
@@ -414,13 +414,13 @@
 
 	filesInDir		dw					; 23 bytes
 
-	.UNION
-		temp		dsb 8
-	.NEXTU
-		digi_src	dsb 3					; some SNESMod variables in the same region as temp
-		digi_src2	dsb 3
-		digi_unused	dw
-	.ENDU
+.UNION
+	temp			dsb 8
+.NEXTU
+	digi_src		dsb 3					; some SNESMod variables in the same region as temp
+	digi_src2		dsb 3
+	digi_unused		dw
+.ENDU
 
 	selectedEntry		dw
 	lfnFound		db

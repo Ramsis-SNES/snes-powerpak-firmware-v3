@@ -9,8 +9,8 @@
 
 
 
-# This requires Linux (on Windows, use the provided *.bat scripts instead), and the
-# WLA DX cross assembler (v10.4).
+# This requires GNU Make and the WLA DX cross assembler (v10.7), available from
+# https://github.com/vhelin/wla-dx
 # Also, you need to download and compile smconv from the tools folder of PVSnesLib
 # (https://github.com/alekmaul/pvsneslib), I use v0.1.0 (newer versions untested).
 # Graphics conversion (not implemented yet) will require superfamiconv
@@ -20,6 +20,7 @@ AS=wla-65816
 ASFLAGS=-x -o
 LD=wlalink
 LDFLAGS=-r -s
+SHELL=/bin/bash
 
 itsource=music/parforceritt_b2_downsampled.it
 target=bootrom
@@ -43,7 +44,7 @@ $(obj): $(src) soundbank
 	$(AS) $(ASFLAGS) $@ $<
 
 $(sfc): $(obj)
-	echo '[objects]\n$<' > $(lnk)
+	echo -e '[objects]\n$<' > $(lnk)
 	$(LD) $(LDFLAGS) $(lnk) $@
 
 clean:
