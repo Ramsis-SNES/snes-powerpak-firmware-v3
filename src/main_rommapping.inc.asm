@@ -1509,13 +1509,37 @@ LoRom32Mbit:
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
 	.DB $00, $00, $00, $00, $24, $25, $26, $27, $00, $00, $00, $00, $24, $25, $26, $27
 
-ExLoRom48Mbit:								; UNTESTED
-	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $28, $29, $2A, $2B, $24, $25, $26, $27
-	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
+ExLoRom48Mbit:
+; original "UNTESTED", confirmed non-working mapping:
+;	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $28, $29, $2A, $2B, $24, $25, $26, $27
+;	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
 
-ExLoRom64Mbit:								; UNTESTED
-	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $2C, $2D, $2E, $2F, $24, $25, $26, $27
-	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
+; game starts up but has massive text glitches:
+;	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
+;	.DB $00, $00, $00, $00, $28, $29, $2A, $2B, $00, $00, $00, $00, $28, $29, $2A, $2B
+
+; game appears to load and play just fine:
+	.DB $28, $29, $2A, $2B, $28, $29, $2A, $2B, $20, $21, $22, $23, $24, $25, $26, $27
+	.DB $00, $00, $00, $00, $28, $29, $2A, $2B, $00, $00, $00, $00, $24, $25, $26, $27
+
+; 48 Mbit mapping devised using, and tested with:
+; - Fire Emblem: Thracia 776 Lil' Manster 1.08 by Miacis (based on Project Exile v1.04 by Cirosan)
+
+ExLoRom64Mbit:
+; original "UNTESTED", confirmed non-working mapping:
+;	.DB $28, $29, $2A, $2B, $20, $21, $22, $23, $2C, $2D, $2E, $2F, $24, $25, $26, $27
+;	.DB $00, $00, $00, $00, $20, $21, $22, $23, $00, $00, $00, $00, $24, $25, $26, $27
+
+; game starts up with glitches, freezes on title screen:
+;	.DB $20, $21, $22, $23, $24, $25, $26, $27, $20, $21, $22, $23, $24, $25, $26, $27
+;	.DB $00, $00, $00, $00, $28, $29, $2A, $2B, $00, $00, $00, $00, $2C, $2D, $2E, $2F
+
+; game appears to load and play just fine:
+	.DB $28, $29, $2A, $2B, $2C, $2D, $2E, $2F, $20, $21, $22, $23, $24, $25, $26, $27
+	.DB $00, $00, $00, $00, $2C, $2D, $2E, $2F, $00, $00, $00, $00, $24, $25, $26, $27
+
+; 64 Mbit mapping devised using, and tested with:
+; - Fire Emblem: Thracia 776 Unified-0-3-6 by ChimeraHardline
 
 ExLoRom96Mbit:
 	.DB $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $2A, $2B, $2C, $2D, $2E, $2F
